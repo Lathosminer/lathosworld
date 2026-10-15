@@ -1,34 +1,88 @@
 import { useState } from "react";
 
-type Clip =
-  | { kind: "mp4"; title: string; note: string; src: string; poster: string }
-  | { kind: "yt"; title: string; note: string; id: string; start: number };
+const SITE = "https://lathosworld.com";
+const TWITCH_VOD = "https://www.twitch.tv/videos/2900991343";
+const VOD_DATE = "2026-10-15T00:04:41Z"; // Twitch VOD 2900991343 broadcast start
 
+type Base = { title: string; description: string; game: string; tags: string[]; uploadDate: string };
+type Clip =
+  | (Base & { kind: "mp4"; src: string; poster: string; duration: string })
+  | (Base & { kind: "yt"; id: string });
+
+// Captions are checked against the footage: Twitch clips by frames + on-screen callouts (no speech in the VOD),
+// YouTube by the video's own title. YouTube embeds start at 0 (no chapter or replay data to justify a jump).
 const CLIPS: Clip[] = [
-  { kind: "mp4", title: "We're Back In!", note: "Twitch · Once Human", src: "/clips/once-human-back-in-v1.mp4", poster: "/clips/once-human-back-in-v1.jpg" },
-  { kind: "mp4", title: "Moving My ENTIRE Base", note: "Twitch · Once Human", src: "/clips/once-human-moving-base-v1.mp4", poster: "/clips/once-human-moving-base-v1.jpg" },
-  { kind: "mp4", title: "New Base, New Neighborhood", note: "Twitch · Once Human", src: "/clips/once-human-new-base-v1.mp4", poster: "/clips/once-human-new-base-v1.jpg" },
-  { kind: "yt", title: "Talking to you! BOOMY!", note: "YouTube · Once Human", id: "uVXvTdaZFpo", start: 60 },
-  { kind: "yt", title: "War in the North", note: "YouTube · LOTR: War in the North", id: "ap7OTBLAFYc", start: 60 },
-  { kind: "yt", title: "Destiny 2", note: "YouTube · Destiny 2", id: "wagiK0c-Dn4", start: 60 },
+  {
+    kind: "mp4", title: "We're Back In! | Once Human Login to Base", game: "Once Human",
+    description: "Server notice, a glitchy login, the Once Human title screen, then straight back home to the base.",
+    tags: ["Once Human", "LathosWorld", "Twitch clip", "survival game", "login"],
+    src: "/clips/once-human-back-in-v1.mp4", poster: "/clips/once-human-back-in-v1.jpg", duration: "PT35S", uploadDate: VOD_DATE,
+  },
+  {
+    kind: "mp4", title: "Moving My ENTIRE Base in Once Human", game: "Once Human",
+    description: "Picking up the whole territory and scouting the map for the perfect new spot.",
+    tags: ["Once Human", "LathosWorld", "Twitch clip", "base building", "move territory"],
+    src: "/clips/once-human-moving-base-v1.mp4", poster: "/clips/once-human-moving-base-v1.jpg", duration: "PT1M15S", uploadDate: VOD_DATE,
+  },
+  {
+    kind: "mp4", title: "New Base, New Neighborhood | Once Human", game: "Once Human",
+    description: "Territory move confirmed, then out to explore the cliffs around the new home.",
+    tags: ["Once Human", "LathosWorld", "Twitch clip", "open world", "exploring"],
+    src: "/clips/once-human-new-base-v1.mp4", poster: "/clips/once-human-new-base-v1.jpg", duration: "PT48S", uploadDate: VOD_DATE,
+  },
+  {
+    kind: "yt", id: "uVXvTdaZFpo", title: "Once Human GamePlay (Talking to you!BOOMY!)", game: "Once Human",
+    description: "Once Human gameplay on the LathosWorld YouTube channel.",
+    tags: ["Once Human", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-01T18:56:49-07:00",
+  },
+  {
+    kind: "yt", id: "ap7OTBLAFYc", title: "The Lord of the Rings: War in the North – Legacy Edition_20260816172307", game: "The Lord of the Rings: War in the North",
+    description: "The Lord of the Rings: War in the North – Legacy Edition gameplay on the LathosWorld YouTube channel.",
+    tags: ["Lord of the Rings", "War in the North", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T17:03:51-07:00",
+  },
+  {
+    kind: "yt", id: "wagiK0c-Dn4", title: "Destiny 2_20260625214435", game: "Destiny 2",
+    description: "Destiny 2 gameplay on the LathosWorld YouTube channel.",
+    tags: ["Destiny 2", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T16:46:29-07:00",
+  },
 ];
+
+const thumb = (c: Clip) => (c.kind === "mp4" ? c.poster : `https://i.ytimg.com/vi/${c.id}/hqdefault.jpg`);
+const abs = (u: string) => (u.startsWith("http") ? u : SITE + u);
+
+const JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": CLIPS.map((c) => ({
+    "@type": "VideoObject",
+    name: c.title,
+    description: c.description,
+    thumbnailUrl: abs(thumb(c)),
+    uploadDate: c.uploadDate,
+    keywords: c.tags.join(", "),
+    genre: c.game,
+    author: { "@type": "Person", name: "Lathos", url: SITE },
+    ...(c.kind === "mp4"
+      ? { contentUrl: abs(c.src), duration: c.duration, isBasedOn: TWITCH_VOD }
+      : { embedUrl: `https://www.youtube-nocookie.com/embed/${c.id}`, url: `https://www.youtube.com/watch?v=${c.id}` }),
+  })),
+}).replace(/</g, "\\u003c");
 
 function ClipCard({ clip }: { clip: Clip }) {
   const [on, setOn] = useState(false);
-  const poster = clip.kind === "mp4" ? clip.poster : `https://i.ytimg.com/vi/${clip.id}/hqdefault.jpg`;
+  const source = clip.kind === "mp4" ? "Twitch" : "YouTube";
   return (
-    <figure className="clip-card gif-lightning">
+    <figure className="clip-card gif-lightning" data-tags={clip.tags.join(",")}>
       <div className="clip-media">
         {!on ? (
-          <button type="button" className="clip-facade" onClick={() => setOn(true)} aria-label={`Play ${clip.title}`}>
-            <img src={poster} alt="" loading="lazy" decoding="async" width={640} height={360} />
+          <button type="button" className="clip-facade" onClick={() => setOn(true)} aria-label={`Play ${clip.title} (${source}, ${clip.game})`}>
+            <img src={thumb(clip)} alt={`${clip.title}: ${clip.game} on LathosWorld`} loading="lazy" decoding="async" width={640} height={360} />
             <span className="clip-play" aria-hidden="true">▶</span>
           </button>
         ) : clip.kind === "mp4" ? (
-          <video src={clip.src} poster={clip.poster} controls autoPlay playsInline preload="metadata" />
+          <video src={clip.src} poster={clip.poster} controls autoPlay playsInline preload="metadata" aria-label={clip.title} />
         ) : (
           <iframe
-            src={`https://www.youtube-nocookie.com/embed/${clip.id}?start=${clip.start}&autoplay=1&rel=0`}
+            src={`https://www.youtube-nocookie.com/embed/${clip.id}?autoplay=1&rel=0`}
             title={clip.title}
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
             allowFullScreen
@@ -37,7 +91,8 @@ function ClipCard({ clip }: { clip: Clip }) {
       </div>
       <figcaption>
         <strong>{clip.title}</strong>
-        <span>{clip.note}</span>
+        <span>{clip.description}</span>
+        <span className="clip-tags">{source} · {clip.tags.map((t) => `#${t.replace(/[^A-Za-z0-9]/g, "")}`).join(" ")}</span>
       </figcaption>
     </figure>
   );
@@ -45,10 +100,11 @@ function ClipCard({ clip }: { clip: Clip }) {
 
 export function Clips() {
   return (
-    <section className="section" id="clips" aria-label="Clips">
+    <section className="section" id="clips" aria-labelledby="clips-title">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
       <div className="wrap">
         <div className="banner">
-          <h2>Clips</h2>
+          <h2 id="clips-title">Clips</h2>
         </div>
         <p className="serif-line">The best bits from Twitch and YouTube.</p>
         <div className="clip-grid">

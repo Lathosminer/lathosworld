@@ -1007,3 +1007,4 @@ body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
 .clip-facade:hover .clip-play, .clip-facade:focus-visible .clip-play { box-shadow: 0 0 22px rgba(95, 243, 240, 0.9), 0 0 30px rgba(255, 42, 42, 0.45); }
 .clip-card figcaption { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem 0.85rem; }
 .clip-card figcaption span { opacity: 0.7; font-size: 0.85rem; }
+.clip-card .clip-tags { font-size: 0.75rem; opacity: 0.55; }
