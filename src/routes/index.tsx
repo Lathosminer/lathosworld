@@ -1,3 +1,4 @@
+import { Clips } from "@/components/Clips";
 import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
@@ -191,6 +192,8 @@ function Home() {
             <YouTubeEmbed />
           </div>
         </section>
+        <SwordRule />
+        <Clips />
         <SwordRule />
         <section className="section emblem" aria-label="Lathos' World emblem">
           <div className="gif-lightning emblem-frame">
