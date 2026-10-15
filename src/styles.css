@@ -995,3 +995,15 @@ body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
 }
 
 .emblem-arc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+
+/* Clips */
+.clip-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); margin-top: 1.25rem; }
+.clip-card { margin: 0; background: rgba(8, 14, 22, 0.75); border: 1px solid rgba(95, 243, 240, 0.22); }
+.clip-card:hover { border-color: rgba(95, 243, 240, 0.55); box-shadow: 0 0 18px rgba(95, 243, 240, 0.18), 0 0 30px rgba(255, 42, 42, 0.08); }
+.clip-media { position: relative; aspect-ratio: 16 / 9; background: #000; }
+.clip-media video, .clip-media iframe, .clip-facade, .clip-facade img { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; display: block; }
+.clip-facade { padding: 0; cursor: pointer; background: #000; }
+.clip-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; color: #f4ffff; background: rgba(0, 0, 0, 0.55); border: 2px solid rgba(95, 243, 240, 0.8); box-shadow: 0 0 14px rgba(95, 243, 240, 0.6), 0 0 22px rgba(255, 42, 42, 0.3); }
+.clip-facade:hover .clip-play, .clip-facade:focus-visible .clip-play { box-shadow: 0 0 22px rgba(95, 243, 240, 0.9), 0 0 30px rgba(255, 42, 42, 0.45); }
+.clip-card figcaption { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem 0.85rem; }
+.clip-card figcaption span { opacity: 0.7; font-size: 0.85rem; }
