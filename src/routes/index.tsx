@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
 import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
-import LiveArc from "@/components/LiveArc";
-import EyeGlow from "@/components/EyeGlow";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
-import { UserButton } from "@/lib/auth/gates";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK = "/mark.jpg?v=v10";
 const LEDE =
@@ -38,7 +35,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://lathosworld.com/" },
-      { rel: "preload", as: "image", href: MARK, fetchPriority: "high" },
+      { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" },
     ],
   }),
 });
@@ -71,6 +68,15 @@ const SOCIALS = [
 const LATER = [
   { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates", icon: "telegram" },
   { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links", icon: "linktree" },
+] as const;
+
+const OFFERS = [
+  {
+    name: "Cash App",
+    handle: "Get $5 when you send $5+.",
+    hint: "Code W98XF7L",
+    href: "https://cash.app/refer/W98XF7L",
+  },
 ] as const;
 
 function TwitchEmbed() {
@@ -152,35 +158,18 @@ function Home() {
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
-          <a href="#socials">Socials</a>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
+          <a href="#socials">Socials</a>
           <a href="#list">List</a>
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
           <TrustConnect compact />
-          <AccountSlot />
         </nav>
       </header>
       <main id="top">
         <HeroLoop />
-        <section className="hero" aria-label="LathosWorld">
-          <div className="hero-art">
-            <h1 className="crest-lockup">
-              <img
-                className="wordmark"
-                src={MARK}
-                width={1792}
-                height={1008}
-                alt="LathosWorld"
-                fetchPriority="high"
-                decoding="async"
-              />
-              <LiveArc />
-              <EyeGlow />
-            </h1>
-          </div>
-        </section>
+        <h1 className="visually-hidden">LathosWorld</h1>
         <section className="hero" aria-label="Story">
           <div className="hero-copy">
             <p className="sell-line">I am a gamer and a streamer.</p>
@@ -188,11 +177,6 @@ function Home() {
             <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
             <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
             <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
-            <p className="kicker">Live on Flap · BNB Smart Chain</p>
-            <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD on Flap</a>
-              <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
-            </div>
           </div>
         </section>
         <SwordRule />
@@ -205,36 +189,6 @@ function Home() {
             <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
             <YouTubeEmbed />
           </div>
-        </section>
-        <SwordRule />
-        <section className="section" id="socials">
-          <div className="wrap">
-            <div className="banner">
-              <p className="kicker">Links</p>
-              <h2>Where it lives</h2>
-            </div>
-            <p className="serif-line">The links are optional. Follow if you want.</p>
-            <div className="socials">
-              {SOCIALS.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
-                  <span>
-                    <strong>{door.name}</strong>
-                    <em>{door.handle}</em>
-                  </span>
-                  <b>{door.hint}</b>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-        <SwordRule />
-        <section className="clip" id="clip" aria-label="LathosWorld">
-          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
-            <source src="/lathosworld.mp4" type="video/mp4" />
-            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
-          </video>
-          <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
         <section className="section" id="buy">
@@ -287,6 +241,27 @@ function Home() {
           </div>
         </section>
         <SwordRule />
+        <section className="section" id="offers" aria-label="Crypto offers">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Offers</p>
+              <h2>Crypto offers</h2>
+            </div>
+            <div className="socials offers">
+              {OFFERS.map((offer) => (
+                <a key={offer.name} className="social" href={offer.href} target="_blank" rel="noopener noreferrer">
+                  <span className="social-lead"><MiniSword /></span>
+                  <span>
+                    <strong>{offer.name}</strong>
+                    <em>{offer.handle}</em>
+                  </span>
+                  <b>{offer.hint}</b>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        <SwordRule />
         <section className="section" id="roadmap">
           <div className="wrap">
             <div className="banner">
@@ -312,6 +287,36 @@ function Home() {
               </p>
             </div>
           </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="socials">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Links</p>
+              <h2>Where it lives</h2>
+            </div>
+            <p className="serif-line">The links are optional. Follow if you want.</p>
+            <div className="socials">
+              {SOCIALS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
+                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
+                  <span>
+                    <strong>{door.name}</strong>
+                    <em>{door.handle}</em>
+                  </span>
+                  <b>{door.hint}</b>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="clip" id="clip" aria-label="LathosWorld">
+          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
+            <source src="/lathosworld.mp4" type="video/mp4" />
+            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
+          </video>
+          <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
         <section className="section" id="later" aria-label="Telegram and Linktree">
@@ -344,7 +349,7 @@ function Home() {
         <section className="section" id="help">
           <div className="wrap">
             <div className="banner">
-              <p className="kicker desk-label">lathosworld.comhelpdesk</p>
+              <p className="kicker desk-label">{DESK_LABEL}</p>
               <h2>Help desk</h2>
             </div>
             <HelpDesk />
@@ -355,7 +360,7 @@ function Home() {
         <div className="wrap">
           <p className="way">Not financial advice.</p>
           <p className="thanks">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><a href="#help">lathosworld.comhelpdesk</a></p>
+          <p className="copy"><a href="#help">{DESK_LABEL}</a></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>
@@ -364,18 +369,6 @@ function Home() {
         <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
       </div>
     </>
-  );
-}
-
-function AccountSlot() {
-  const { user, isPending } = useCurrentUserState();
-  if (isPending) return <span className="nav-auth-wait" aria-hidden="true" />;
-  if (!user) return <Link to="/login">Sign in</Link>;
-  return (
-    <span className="nav-auth">
-      <Link to="/account">Account</Link>
-      <UserButton />
-    </span>
   );
 }
 

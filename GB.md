@@ -10,7 +10,7 @@ The name on the page is **lathosworld.com**. A preview link in the builder can c
 
 ## Leave this layout
 
-After the nav, top to bottom: the looping hero video, the wordmark, the story, streams (Twitch player full width, then YouTube), socials in this order (Twitch, YouTube, X, Pinterest, Discord, Instagram), the mp4/gif clip, the coin block (how to get it, contract, wallets, roadmap), then Telegram and Linktree, then the list, then the help desk. Do not reorder that. Sign-in stays in the nav.
+After the nav, top to bottom: one centered hero (the square v9 loop, `hero-loop`), the story, streams (Twitch player full width, then YouTube), then the coin block (how to get it, the $LWRLD section with the whitepaper link, crypto offers, roadmap), then socials in this order (Twitch, YouTube, X, Pinterest, Discord, Instagram), the mp4/gif clip, then Telegram and Linktree, then the list, then the help desk. Do not reorder that. Do not add a second logo above or below the hero. The nav does not show Sign in.
 
 Do not restore `public/sword.png` or `public/sword-cursor.png`. The cursor is `public/sword-mini-cursor.png`. Section marks use the small still sword.
 
@@ -39,10 +39,10 @@ The owner will update the whitepaper later. On the site this is only a roadmap.
 
 ## Help desk
 
-Label: **lathosworld.comhelpdesk**
-Inbox: **lathosx@gmail.com**
+Label: **LathosWorld Help Desk**
+Public contact: **help@lathosworld.com** (forwards to the owner's Gmail)
 
-A visitor writes a note. The page answers from the site facts. A copy is sent to that Gmail with the subject `lathosworld.comhelpdesk`. The site never asks for a seed phrase.
+A visitor writes a note. The page answers from the site facts. A copy is sent to that address with the subject `LathosWorld Help Desk`. The site never asks for a seed phrase.
 
 The list only saves an email and lists the socials. It does not send inbox mail.
 
