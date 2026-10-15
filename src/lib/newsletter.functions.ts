@@ -10,8 +10,8 @@ function cleanEmail(value: unknown) {
 }
 
 async function writeSubscriber(email: string, mode: "in" | "out") {
-  const sql = await getSql();
   try {
+    const sql = await getSql();
     if (mode === "in") {
       await sql`insert into newsletter_subscriber (email) values (${email}) on conflict (email) do nothing`;
     } else {
