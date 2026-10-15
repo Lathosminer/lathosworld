@@ -967,3 +967,29 @@ a, button, .btn, .cursor-pointer, label, input, select, summary {
 .clip video img { display: block; width: 100%; height: auto; }
 .buy-bar { padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px)); }
 body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
+
+/* Shared lightning glow for every GIF on the site (subtle, flickers like a strike). */
+.emblem { display: flex; justify-content: center; padding-inline: 1rem; }
+.emblem-frame { width: 100%; max-width: 600px; margin: 0 auto; }
+.emblem-frame img { display: block; width: 100%; height: auto; }
+.gif-lightning { position: relative; isolation: isolate; border-radius: 8px; overflow: hidden; }
+.gif-lightning img, .gif-lightning-img { animation: gif-bolt-glow 5.5s infinite; }
+.gif-lightning::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  mix-blend-mode: screen; opacity: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(95, 243, 240, 0.35), rgba(255, 42, 42, 0.18) 45%, transparent 70%);
+  animation: gif-bolt-flash 5.5s infinite;
+}
+@keyframes gif-bolt-glow {
+  0%, 60%, 70%, 100% { filter: drop-shadow(0 0 4px rgba(95, 243, 240, 0.25)); }
+  62% { filter: drop-shadow(0 0 14px rgba(95, 243, 240, 0.85)) brightness(1.15); }
+  64% { filter: drop-shadow(0 0 6px rgba(255, 42, 42, 0.5)); }
+  66% { filter: drop-shadow(0 0 12px rgba(244, 255, 255, 0.8)) brightness(1.1); }
+}
+@keyframes gif-bolt-flash {
+  0%, 60%, 68%, 100% { opacity: 0; }
+  62% { opacity: 0.9; } 63% { opacity: 0.2; } 66% { opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gif-lightning img, .gif-lightning-img, .gif-lightning::after { animation: none; }
+}

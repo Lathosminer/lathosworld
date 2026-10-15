@@ -191,6 +191,18 @@ function Home() {
           </div>
         </section>
         <SwordRule />
+        <section className="section emblem" aria-label="Lathos' World emblem">
+          <div className="gif-lightning emblem-frame">
+            <img
+              src="/lathosworld-emblem-v9.gif"
+              alt="Lathos' World"
+              loading="lazy"
+              decoding="async"
+              width={600}
+              height={600}
+            />
+          </div>
+        </section>
         <section className="section" id="buy">
           <div className="wrap">
             <div className="banner">
@@ -314,7 +326,7 @@ function Home() {
         <section className="clip" id="clip" aria-label="LathosWorld">
           <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
             <source src="/lathosworld.mp4" type="video/mp4" />
-            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
+            <img className="gif-lightning-img" src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
           </video>
           <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
