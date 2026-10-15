@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
+import { MiniSword } from "@/components/MiniSword";
 import { joinLetter, leaveLetter } from "@/lib/newsletter.functions";
 import { SOCIALS } from "@/lib/socials";
 
@@ -56,7 +57,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
               placeholder="you@email.com"
             />
           </label>
-          <button className="btn btn-cyan" type="submit" disabled={busy}>{busy ? "Saving" : "Join the letter"}</button>
+          <button className="btn btn-cyan" type="submit" disabled={busy}><MiniSword />{busy ? "Saving" : "Join the letter"}</button>
         </form>
       )}
       {message ? <p className="gate-note">{message}</p> : null}
@@ -66,7 +67,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
       <ul className="letter-doors">
         {SOCIALS.map((door) => (
           <li key={door.name}>
-            <a href={door.href} target="_blank" rel="noreferrer">
+            <a href={door.href} target="_blank" rel="noopener noreferrer">
               <strong>{door.name}</strong>
               <span>{door.handle}</span>
             </a>

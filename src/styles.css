@@ -26,7 +26,12 @@
 }
 
 @layer base {
-  html { scroll-behavior: smooth; cursor: url("/sword-cursor.png?v=sharp") 32 2, auto; }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 3.25rem;
+    scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
+    cursor: url("/sword-mini-cursor.png") 59 0, auto;
+  }
   body {
     margin: 0;
     background: var(--color-bg);
@@ -37,7 +42,7 @@
     padding-bottom: 5.5rem;
   }
   button:not(:disabled),
-  [role="button"]:not(:disabled) { cursor: url("/sword-cursor.png?v=sharp") 32 2, auto; }
+  [role="button"]:not(:disabled) { cursor: url("/sword-mini-cursor.png") 59 0, auto; }
   :focus-visible {
     outline: 2px solid var(--color-cyan);
     outline-offset: 3px;
@@ -65,24 +70,26 @@
   top: 0;
   z-index: 30;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.25rem 0.75rem;
-  padding: 0.35rem 1rem;
-  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  gap: 0.35rem 0.6rem;
+  padding: 0.2rem 0.7rem;
+  background: #05080c;
   border-bottom: 1px solid var(--color-line);
-  backdrop-filter: blur(12px);
 }
 .brand {
   font-family: var(--font-display);
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   color: var(--color-cyan);
   text-decoration: none;
   min-height: 44px;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
+  font-size: 0.78rem;
   text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan) 55%, transparent);
 }
 .brand img {
@@ -94,21 +101,32 @@
 }
 .nav-links {
   display: flex;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
   gap: 0.15rem;
   align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a,
+.nav-links .btn {
+  flex: 0 0 auto;
 }
 .nav-links a {
   color: var(--color-muted);
   text-decoration: none;
   font-family: var(--font-display);
   font-size: 0.68rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   min-height: 44px;
   padding: 0 0.55rem;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap;
 }
 .nav-links a:hover { color: var(--color-ink); }
 .nav-auth { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--color-ink); }
@@ -127,6 +145,58 @@
   aspect-ratio: 16 / 9;
   background: #000;
 }
+.hero-loop {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.1rem 0.2rem;
+}
+.hero-loop-frame {
+  position: relative;
+  width: min(560px, 100%);
+}
+.hero-loop-frame video,
+.hero-loop-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 22%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--color-cyan) 12%, transparent);
+}
+.hero-loop-frame .hero-loop-still { display: none; }
+.hero-sound {
+  position: fixed;
+  z-index: 31;
+  left: 0.7rem;
+  bottom: calc(4.85rem + env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 35%, transparent);
+  background: color-mix(in srgb, #05080c 88%, transparent);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-cyan) 12%, transparent);
+}
+.hero-sound svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--color-cyan);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 .hero-art {
   position: relative;
   background: var(--color-bg);
@@ -139,7 +209,7 @@
   height: auto;
   object-fit: contain;
   background: #05080c;
-  filter: none;
+  filter: brightness(1.28) contrast(1.12) saturate(1.15);
   aspect-ratio: 1792 / 1008;
   pointer-events: none;
 }
@@ -479,14 +549,33 @@
   bottom: 0;
   z-index: 30;
   display: flex;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
-  gap: 0.8rem;
-  padding: 0.7rem 1rem;
-  background: rgba(5, 8, 12, 0.94);
+  gap: 0.6rem;
+  box-sizing: border-box;
+  min-height: 3.4rem;
+  padding: 0.45rem 0.75rem calc(0.45rem + env(safe-area-inset-bottom, 0px));
+  background: #05080c;
   border-top: 1px solid color-mix(in srgb, var(--color-cyan) 45%, transparent);
 }
-.buy-bar p { margin: 0; font-family: var(--font-display); letter-spacing: 0.08em; font-size: 0.78rem; }
+.buy-bar p {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: clamp(0.62rem, 2.7vw, 0.78rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.buy-bar .btn {
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+  white-space: nowrap;
+}
 .nav-buy { margin-left: 0.35rem; }
 .chips {
   display: flex;
@@ -636,6 +725,8 @@
   text-decoration: none;
   color: inherit;
 }
+.social-lead { display: inline-flex; align-items: center; gap: 0.35em; }
+.social-lead .mini-sword { margin-inline-end: 0; }
 .social svg { width: 1.4rem; height: 1.4rem; fill: var(--color-cyan); }
 .social strong { display: block; font-family: var(--font-display); letter-spacing: 0.08em; }
 .social em { color: var(--color-muted); font-style: normal; }
@@ -646,8 +737,32 @@
   font-size: 0.68rem;
   text-transform: uppercase;
 }
-.sword-rule { display: flex; justify-content: center; padding: 0.4rem 0; }
-.sword-rule img { width: 4.6rem; height: auto; }
+.sword-rule {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 1.25rem;
+  line-height: 0;
+}
+.sword-rule span {
+  width: min(7rem, 22vw);
+  height: 1px;
+  background: color-mix(in srgb, var(--color-cyan) 32%, transparent);
+}
+.sword-rule img { height: 2rem; width: auto; max-height: 2rem; object-fit: contain; }
+.mini-sword {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 1.2em;
+  margin-inline-end: 0.35em;
+  line-height: 0;
+  vertical-align: middle;
+}
+.mini-sword img { height: 1.2em; width: auto; display: block; }
+.mini-sword-still { display: none; }
 .footer { padding: 2rem 0 2.6rem; text-align: center; }
 .footer a { color: var(--color-cyan); }
 .desk-label { text-transform: none; letter-spacing: 0.02em; }
@@ -792,9 +907,11 @@
 }
 .gate-list { margin: 0; padding-left: 1.1rem; color: var(--color-muted); }
 
+.nav .btn, .buy-bar .btn { min-width: 0; }
 @media (min-width: 720px) {
   .cta-row { flex-direction: row; justify-content: center; }
   .btn { min-width: 15rem; }
+  .nav .btn, .buy-bar .btn { min-width: 0; }
   .ages { grid-template-columns: repeat(3, 1fr); }
   .vault-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   .socials { grid-template-columns: 1fr 1fr; }
@@ -802,7 +919,20 @@
 @media (prefers-reduced-motion: reduce) {
   .tag-rotator p, .saga-crawl { animation: none; opacity: 1; position: static; }
   .tag-rotator { min-height: 0; }
+  .mini-sword-anim { display: none; }
+  .mini-sword-still { display: block; }
+  .hero-loop-frame .hero-loop-motion { display: none; }
+  .hero-loop-frame .hero-loop-still { display: block; }
 }
 a, button, .btn, .cursor-pointer, label, input, select, summary {
-  cursor: url("/sword-cursor.png?v=sharp") 32 2, auto;
+  cursor: url("/sword-mini-cursor.png") 59 0, auto;
 }
+
+/* === LathosWorld v10 (appended; nothing above was removed) === */
+.wordmark { aspect-ratio: 1792 / 1008; }
+.storm.arc { will-change: transform; transform: translateZ(0); contain: strict; }
+.storm.eyes { pointer-events: none; z-index: 5; will-change: transform; transform: translateZ(0); contain: strict; }
+.clip video { aspect-ratio: 16 / 9; }
+.clip video img { display: block; width: 100%; height: auto; }
+.buy-bar { padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px)); }
+body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
