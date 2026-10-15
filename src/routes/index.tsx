@@ -1,0 +1,347 @@
+import { useEffect, useState } from "react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { LetterBox } from "@/components/LetterBox";
+import { HelpDesk } from "@/components/HelpDesk";
+import { TrustConnect } from "@/components/TrustConnect";
+import { UserButton } from "@/lib/auth/gates";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () => ({
+    links: [{ rel: "preload", as: "image", href: "/lathosworld.gif?v=post" }],
+  }),
+});
+
+const CA = "0x3899ebf76c768c156df3073031a4518c5f947777";
+const FLAP = `https://flap.sh/bnb/${CA}`;
+const SCAN = `https://bscscan.com/token/${CA}`;
+const PAPER = "https://github.com/Lathosminer/LWRLD";
+
+const FACTS = [
+  { label: "Ticker", value: "$LWRLD" },
+  { label: "Name", value: "LathosWorld" },
+  { label: "Chain", value: "BNB Smart Chain" },
+  { label: "Launch", value: "Flap.sh tax token" },
+  { label: "Supply", value: "1,000,000,000" },
+  { label: "Buy tax", value: "4%" },
+  { label: "Sell tax", value: "4%" },
+  { label: "Tax split", value: "85% liquidity · 10% fund · 5% burn" },
+] as const;
+
+const STREAMS = [
+  { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
+  { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
+] as const;
+
+const DOORS = [
+  { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
+  { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
+  { name: "X", handle: "@lathos563", href: "https://x.com/lathos563", hint: "Talk", icon: "x" },
+  { name: "Discord", handle: "The lobby", href: "https://discord.gg/749tHdsFU6", hint: "Join", icon: "discord" },
+  { name: "Instagram", handle: "@lathosworld", href: "https://www.instagram.com/lathosworld", hint: "Photos", icon: "instagram" },
+  { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates", icon: "telegram" },
+  { name: "Pinterest", handle: "Lathos' World", href: "https://www.pinterest.com/lathosworld/", hint: "Pins", icon: "pinterest" },
+  { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links", icon: "linktree" },
+] as const;
+
+function TwitchEmbed() {
+  const [parent, setParent] = useState("");
+  useEffect(() => {
+    setParent(window.location.hostname);
+  }, []);
+  return (
+    <div className="twitch">
+      {parent ? (
+        <iframe
+          className="twitch-frame"
+          src={`https://player.twitch.tv/?channel=lathosworld&parent=${encodeURIComponent(parent)}&muted=true`}
+          title="lathosworld on Twitch"
+          allowFullScreen
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function YouTubeEmbed() {
+  return (
+    <div className="youtube">
+      <iframe
+        className="youtube-frame"
+        src="https://www.youtube.com/embed/videoseries?list=UUcV1q2gBovKyWlU8SnCI3ww"
+        title="LathosWorld on YouTube"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
+    </div>
+  );
+}
+
+function SwordRule() {
+  return (
+    <div className="sword-rule" aria-hidden="true">
+      <img src="/sword.png?v=sharp" alt="" />
+    </div>
+  );
+}
+
+function Home() {
+  const [copied, setCopied] = useState(false);
+  const copyCa = () => {
+    navigator.clipboard.writeText(CA).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    }).catch(() => {});
+  };
+  return (
+    <>
+      <a className="skip" href="#token">Skip to token</a>
+      <header className="nav">
+        <a className="brand" href="#top">
+          <img src="/mark.jpg?v=v6" width={40} height={40} alt="" />
+          <span>lathosworld.com</span>
+        </a>
+        <nav className="nav-links" aria-label="Sections">
+          <a href="#streams">Streams</a>
+          <a href="#letter">Letter</a>
+          <a href="#help">Help</a>
+          <a href="#buy">How to get it</a>
+          <a href="#token">Contract</a>
+          <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD</a>
+          <TrustConnect compact />
+          <AccountSlot />
+        </nav>
+      </header>
+      <main id="top">
+        <TwitchEmbed />
+        <section className="section" id="streams">
+          <div className="wrap">
+            <div className="banner">
+              <h2>Streams</h2>
+            </div>
+            <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
+            <YouTubeEmbed />
+            <div className="socials">
+              {STREAMS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noreferrer">
+                  <Mark name={door.icon} />
+                  <span>
+                    <strong>{door.name}</strong>
+                    <em>{door.handle}</em>
+                  </span>
+                  <b>{door.hint}</b>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="film film-gap" aria-label="LathosWorld">
+          <h1 className="film-lockup">
+            <img className="film-gif" src="/lathosworld.gif?v=post" width={960} height={540} alt="LathosWorld" />
+          </h1>
+        </section>
+        <section className="hero" aria-label="Story">
+          <div className="hero-copy">
+            <p className="sell-line">I am a gamer and a streamer.</p>
+            <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
+            <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
+            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
+            <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
+            <p className="kicker">Live on Flap · BNB Smart Chain</p>
+            <div className="cta-row">
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD on Flap</a>
+              <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="buy">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Three steps</p>
+              <h2>How to get it</h2>
+            </div>
+            <ol className="steps">
+              <li><strong>1 · BNB</strong><span>Put BNB in a wallet that can reach BNB Smart Chain.</span></li>
+              <li><strong>2 · Flap</strong><span>Open the official Flap page. The address ends in 7777.</span></li>
+              <li><strong>3 · Trade</strong><span>Swap there. The 4% tax is part of the token, not a hidden fee.</span></li>
+            </ol>
+            <div className="cta-row">
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Open Flap and get $LWRLD</a>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="token">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">BNB Smart Chain</p>
+              <h2>$LWRLD</h2>
+            </div>
+            <p className="serif-line">LathosWorld. A Flap tax token.</p>
+            <div className="panel">
+              <dl className="facts">
+                {FACTS.map((fact) => (
+                  <div key={fact.label}>
+                    <dt>{fact.label}</dt>
+                    <dd>{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="ca-row">
+                <code>{CA}</code>
+                <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Copied" : "Copy contract"}</button>
+                <a className="btn btn-ghost" href={SCAN} target="_blank" rel="noreferrer">BscScan</a>
+              </div>
+              <p className="note">
+                Contract ends in 7777. A different address is not this token. Intended for certain audiences only. Not financial advice. Not a promise of price. Never risk more than you can afford to lose. Crypto is volatile.
+              </p>
+              <TrustConnect />
+              <div className="cta-row">
+                <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD on Flap</a>
+                <a className="btn btn-ghost" href={PAPER} target="_blank" rel="noreferrer">Read the paper</a>
+              </div>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="roadmap">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Later</p>
+              <h2>Roadmap</h2>
+            </div>
+            <p className="serif-line">Goals. Not live.</p>
+            <div className="panel">
+              <p className="note">
+                $LWRLD on Flap is the token now. Using its proceeds to launch a later token is a roadmap goal. That token does not exist yet. Buying $LWRLD does not send the later token. The only contract is the one that ends in 7777.
+              </p>
+              <p className="note">
+                Percent promise. Every holder of the contract that ends in 7777 is promised a percent of the later token. The percent is not set. No contract pays it yet.
+              </p>
+              <p className="note">
+                Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
+              </p>
+              <p className="note">
+                All revenue generated goes back into the coin. 100 percent. None of it is taken out. The merch shop is coming soon. All merch sales go directly back into the coin. 100 percent.
+              </p>
+              <p className="note">
+                Never risk more than you can afford to lose. Crypto is volatile. Not financial advice. Not a promise of price.
+              </p>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="community">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Links</p>
+              <h2>Where it lives</h2>
+            </div>
+            <p className="serif-line">The links are optional. Follow if you want.</p>
+            <div className="socials">
+              {DOORS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noreferrer">
+                  <Mark name={door.icon} />
+                  <span>
+                    <strong>{door.name}</strong>
+                    <em>{door.handle}</em>
+                  </span>
+                  <b>{door.hint}</b>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="letter">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">lathosworld.com</p>
+              <h2>The letter</h2>
+            </div>
+            <LetterBox />
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="help">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker desk-label">lathosworld.comhelpdesk</p>
+              <h2>Help desk</h2>
+            </div>
+            <HelpDesk />
+          </div>
+        </section>
+      </main>
+      <footer className="footer">
+        <div className="wrap">
+          <p className="way">Not financial advice.</p>
+          <p className="thanks">$LWRLD on Flap. BNB Smart Chain.</p>
+          <p className="copy"><a href="#help">lathosworld.comhelpdesk</a></p>
+          <p className="copy">© 2026 lathosworld.com</p>
+        </div>
+      </footer>
+      <div className="buy-bar">
+        <p>$LWRLD · contract ends in 7777</p>
+        <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD</a>
+      </div>
+    </>
+  );
+}
+
+function AccountSlot() {
+  const { user, isPending } = useCurrentUserState();
+  if (isPending) return <span className="nav-auth-wait" aria-hidden="true" />;
+  if (!user) return <Link to="/login">Sign in</Link>;
+  return (
+    <span className="nav-auth">
+      <Link to="/account">Account</Link>
+      <UserButton />
+    </span>
+  );
+}
+
+function Mark({ name }: { name: string }) {
+  if (name === "telegram") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M21.5 4.4 2.7 11.2c-1.2.5-1.2 1.1-.2 1.4l4.8 1.5 11.2-7.1c.5-.3 1-.1.6.3l-9.1 8.2-.3 4.7c.5 0 .7-.2 1-.5l2.3-2.2 4.9 3.6c.9.5 1.5.2 1.7-.8l3.2-15.1c.4-1.3-.5-1.9-1.3-1.4z" />
+      </svg>
+    );
+  }
+  if (name === "youtube") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M23 12.2s0-3.1-.4-4.5c-.2-.9-.9-1.6-1.8-1.8C19.2 5.5 12 5.5 12 5.5s-7.2 0-8.8.4c-.9.2-1.6.9-1.8 1.8C1 9.1 1 12.2 1 12.2s0 3.1.4 4.5c.2.9.9 1.6 1.8 1.8 1.6.4 8.8.4 8.8.4s7.2 0 8.8-.4c.9-.2 1.6-.9 1.8-1.8.4-1.4.4-4.5.4-4.5zM9.8 15.5V8.9l6.1 3.3-6.1 3.3z" />
+      </svg>
+    );
+  }
+  if (name === "x") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14.7 10.4 22.2 2h-1.8l-6.5 7.3L8.2 2H2l8 11.3L2 22h1.8l7-7.9L15.6 22H22l-7.3-11.6zm-2.5 2.8-.8-1.1L4.6 3.5h2.8l5.2 7.3.8 1.1 6.8 9.5h-2.8l-5.2-7.2z" />
+      </svg>
+    );
+  }
+  if (name === "twitch") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 3h16v11l-4 4h-4l-2 2H8v-2H3V6l2-3zm2 2v11h3v2h2l2-2h4l2-2V5H7zm8 2h2v5h-2V7zm-4 0h2v5h-2V7z" />
+      </svg>
+    );
+  }
+  if (name === "discord") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M19.3 5.3A17 17 0 0 0 15 4l-.3.6a15 15 0 0 0-5.4 0L9 4a17 17 0 0 0-4.3 1.3C2.4 9 1.7 12.5 2.1 16a16 16 0 0 0 5 2.5l.8-1.3a10 10 0 0 1-1.5-.7l.3-.2c3.1 1.4 6.5 1.4 9.6 0l.3.2c-.5.3-1 .5-1.5.7l.8 1.3a16 16 0 0 0 5-2.5c.5-3.9-.7-7.4-2.6-10.7zM8.6 14.2c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7zm6.8 0c-.8 0-1.5-.8-1.5-1.7s.7-1.7 1.5-1.7 1.5.8 1.5 1.7-.7 1.7-1.5 1.7z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3l2.2 5.2L20 9l-4 3.6L17.2 19 12 16.2 6.8 19 8 12.6 4 9l5.8-.8L12 3z" />
+    </svg>
+  );
+}
