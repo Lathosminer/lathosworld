@@ -1,3 +1,4 @@
+import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
@@ -201,6 +202,7 @@ function Home() {
               width={600}
               height={600}
             />
+            <EmblemArc />
           </div>
         </section>
         <section className="section" id="buy">
