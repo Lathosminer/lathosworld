@@ -236,15 +236,16 @@ export function HeroLoop() {
             muted
             loop
             playsInline
-            poster="/hero-still.jpg"
-            width={1920}
+            poster="/hero-poster.jpg"
+            width={1080}
             height={1080}
             preload="auto"
           >
-            <source src="/hero.mp4" type="video/mp4" />
+            <source src="/hero-loop.webm" type="video/webm" />
+            <source src="/hero-loop.mp4" type="video/mp4" />
           </video>
         )}
-        <img className="hero-loop-still" src="/hero-still.jpg" width={1920} height={1080} alt="" />
+        <img className="hero-loop-still" src="/hero-poster.jpg" width={1080} height={1080} alt="" />
       </div>
       <button
         type="button"

@@ -146,20 +146,21 @@
   background: #000;
 }
 .hero-loop {
-  display: block;
+  display: flex;
+  justify-content: center;
   width: 100%;
   max-width: 100%;
   margin-inline: auto;
-  padding: 0.35rem 0 0.15rem;
+  padding: 0.75rem 1.1rem 0.2rem;
   box-sizing: border-box;
 }
 .hero-loop-frame {
   position: relative;
-  width: min(1100px, 100%);
+  width: min(560px, 100%);
   max-width: 100%;
   min-width: 0;
   margin-inline: auto;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1;
 }
 .hero-loop-frame video,
 .hero-loop-frame img {
@@ -168,7 +169,7 @@
   max-width: 100%;
   height: auto;
   margin-inline: auto;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1;
   object-fit: contain;
   object-position: center center;
   background: #05080c;

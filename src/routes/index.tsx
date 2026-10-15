@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://lathosworld.com/" },
-      { rel: "preload", as: "image", href: "/hero-still.jpg", fetchPriority: "high" },
+      { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" },
     ],
   }),
 });
