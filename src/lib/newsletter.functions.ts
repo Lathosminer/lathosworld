@@ -9,18 +9,25 @@ function cleanEmail(value: unknown) {
   return email;
 }
 
+async function writeSubscriber(email: string, mode: "in" | "out") {
+  const sql = await getSql();
+  try {
+    if (mode === "in") {
+      await sql`insert into newsletter_subscriber (email) values (${email}) on conflict (email) do nothing`;
+    } else {
+      await sql`delete from newsletter_subscriber where email = ${email}`;
+    }
+  } catch (err) {
+    console.error("[list] could not update newsletter_subscriber", err);
+    throw new Error("Could not save that email. Try again in a moment.");
+  }
+  return { ok: true as const };
+}
+
 export const joinLetter = createServerFn({ method: "POST" })
   .validator(cleanEmail)
-  .handler(async ({ data: email }) => {
-    const sql = await getSql();
-    await sql`insert into newsletter_subscriber (email) values (${email}) on conflict (email) do nothing`;
-    return { ok: true as const };
-  });
+  .handler(async ({ data: email }) => writeSubscriber(email, "in"));
 
 export const leaveLetter = createServerFn({ method: "POST" })
   .validator(cleanEmail)
-  .handler(async ({ data: email }) => {
-    const sql = await getSql();
-    await sql`delete from newsletter_subscriber where email = ${email}`;
-    return { ok: true as const };
-  });
+  .handler(async ({ data: email }) => writeSubscriber(email, "out"));

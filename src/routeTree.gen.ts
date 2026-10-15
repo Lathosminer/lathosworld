@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LetterRouteImport } from './routes/letter'
+import { Route as ListRouteImport } from './routes/list'
 import { Route as LoginRouteImport } from './routes/login'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +36,11 @@ const LetterRoute = LetterRouteImport.update({
   path: '/letter',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ListRoute = ListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -46,6 +52,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/list': typeof ListRoute
   '/login': typeof LoginRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/list': typeof ListRoute
   '/login': typeof LoginRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,15 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/list': typeof ListRoute
   '/login': typeof LoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/help' | '/letter' | '/login'
+  fullPaths: '/' | '/account' | '/help' | '/letter' | '/list' | '/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/help' | '/letter' | '/login'
-  id: '__root__' | '/' | '/account' | '/help' | '/letter' | '/login'
+  to: '/' | '/account' | '/help' | '/letter' | '/list' | '/login'
+  id: '__root__' | '/' | '/account' | '/help' | '/letter' | '/list' | '/login'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +85,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   HelpRoute: typeof HelpRoute
   LetterRoute: typeof LetterRoute
+  ListRoute: typeof ListRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -109,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LetterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/list': {
+      id: '/list'
+      path: '/list'
+      fullPath: '/list'
+      preLoaderRoute: typeof ListRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -124,6 +141,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   HelpRoute: HelpRoute,
   LetterRoute: LetterRoute,
+  ListRoute: ListRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

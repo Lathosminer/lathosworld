@@ -1,6 +1,6 @@
 # lathosworld.com
 
-Site for LathosWorld. Streams, the story, $LWRLD, wallet connect, the letter, and the help desk.
+Site for LathosWorld. Streams, the story, $LWRLD, wallet connect, the list, and the help desk.
 
 Not financial advice. Not a promise of price. Crypto is volatile.
 
@@ -12,7 +12,7 @@ Not financial advice. Not a promise of price. Crypto is volatile.
 - Buy on [Flap](https://flap.sh/bnb/0x3899ebf76c768c156df3073031a4518c5f947777). Contract on [BscScan](https://bscscan.com/token/0x3899ebf76c768c156df3073031a4518c5f947777)
 - Whitepaper: [Lathosminer/LWRLD](https://github.com/Lathosminer/LWRLD)
 - Wallet connect in the browser, or a code that opens this site inside the wallet app. The site never asks for a seed phrase
-- Letter: saves an email and lists the socials. It does not send inbox mail
+- List: saves an email and lists the socials. It does not send inbox mail
 - Help desk **lathosworld.comhelpdesk** for [lathosx@gmail.com](mailto:lathosx@gmail.com)
 
 ## Socials

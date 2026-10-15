@@ -85,6 +85,49 @@ function toSql(run: Run): Sql {
   return sql;
 }
 
+function migrationSources() {
+  return import.meta.glob("/migrations/*.sql", {
+    query: "?raw",
+    import: "default",
+    eager: true,
+  }) as Record<string, string>;
+}
+
+/**
+ * Apply pending `migrations/*.sql` on Neon. Deploy-time `scripts/migrate.mjs`
+ * skips when `DATABASE_URL` is absent at build, so a hosted database can miss
+ * `newsletter_subscriber` until the first query. Same basename bookkeeping as
+ * the PGLite path and the deploy migrator.
+ */
+async function applyNeonMigrations(pool: import("pg").Pool) {
+  const migrations = migrationSources();
+  const client = await pool.connect();
+  try {
+    await client.query(
+      "create table if not exists _migrations (name text primary key, applied_at timestamptz not null default now())",
+    );
+    const applied = await client.query<{ name: string }>("select name from _migrations");
+    const done = applied.rows.map((row) => row.name);
+    for (const { name, path } of pendingMigrations(Object.keys(migrations), done)) {
+      try {
+        await client.query("begin");
+        await client.query(migrations[path]);
+        await client.query("insert into _migrations (name) values ($1)", [name]);
+        await client.query("commit");
+      } catch (err) {
+        try {
+          await client.query("rollback");
+        } catch {
+          // ROLLBACK fails when the connection died — keep the original error.
+        }
+        throw err;
+      }
+    }
+  } finally {
+    client.release();
+  }
+}
+
 function createNeonSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
     // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
@@ -94,6 +137,7 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
     const pool = new Pool({ connectionString: databaseUrl });
+    await applyNeonMigrations(pool);
     return toSql(async <T>(text: string, params: unknown[]) => {
       const res = await pool.query(text, params);
       return res.rows as T[];
@@ -137,11 +181,7 @@ async function createPgliteSql(): Promise<Sql> {
   // passes serialized on a global chain so concurrent callers never
   // double-apply.
   const migrate = async (): Promise<void> => {
-    const migrations = import.meta.glob("/migrations/*.sql", {
-      query: "?raw",
-      import: "default",
-      eager: true,
-    }) as Record<string, string>;
+    const migrations = migrationSources();
     const doneRows = await pg.query<{ name: string }>(
       "select name from _migrations",
     );
@@ -214,7 +254,7 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  *
  * - **PGLite** (preview / no `DATABASE_URL`): open the in-memory DB and apply
  *   `migrations/*.sql`. Idempotent — concurrent callers share one promise.
- * - **Neon**: no-op (pool is created lazily on first query).
+ * - **Neon**: no-op here (the pool migrates on the first `getSql()` call).
  *
  * Vite `configureServer` awaits this at dev startup; production imports of this
  * module kick it off immediately (see bottom of file).

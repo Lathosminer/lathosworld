@@ -155,7 +155,7 @@ function Home() {
           <a href="#socials">Socials</a>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
-          <a href="#letter">Letter</a>
+          <a href="#list">List</a>
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
           <TrustConnect compact />
@@ -331,11 +331,11 @@ function Home() {
           </div>
         </section>
         <SwordRule />
-        <section className="section" id="letter">
-          <div className="wrap">
+        <section className="section" id="list">
+          <div className="wrap" id="letter">
             <div className="banner">
               <p className="kicker">lathosworld.com</p>
-              <h2>The letter</h2>
+              <h2>The list</h2>
             </div>
             <LetterBox />
           </div>

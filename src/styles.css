@@ -762,7 +762,7 @@
   vertical-align: middle;
 }
 .mini-sword img { height: 1.2em; width: auto; display: block; }
-.mini-sword-still { display: none; }
+.mini-sword .mini-sword-still { display: none; }
 .footer { padding: 2rem 0 2.6rem; text-align: center; }
 .footer a { color: var(--color-cyan); }
 .desk-label { text-transform: none; letter-spacing: 0.02em; }
@@ -919,8 +919,8 @@
 @media (prefers-reduced-motion: reduce) {
   .tag-rotator p, .saga-crawl { animation: none; opacity: 1; position: static; }
   .tag-rotator { min-height: 0; }
-  .mini-sword-anim { display: none; }
-  .mini-sword-still { display: block; }
+  .mini-sword .mini-sword-anim { display: none; }
+  .mini-sword .mini-sword-still { display: block; }
   .hero-loop-frame .hero-loop-motion { display: none; }
   .hero-loop-frame .hero-loop-still { display: block; }
 }
