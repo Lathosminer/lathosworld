@@ -161,9 +161,9 @@ function Home() {
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
-          <a href="#socials">Socials</a>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
+          <a href="#socials">Socials</a>
           <a href="#list">List</a>
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
@@ -197,11 +197,6 @@ function Home() {
             <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
             <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
             <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
-            <p className="kicker">Live on Flap · BNB Smart Chain</p>
-            <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD on Flap</a>
-              <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
-            </div>
           </div>
         </section>
         <SwordRule />
@@ -214,36 +209,6 @@ function Home() {
             <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
             <YouTubeEmbed />
           </div>
-        </section>
-        <SwordRule />
-        <section className="section" id="socials">
-          <div className="wrap">
-            <div className="banner">
-              <p className="kicker">Links</p>
-              <h2>Where it lives</h2>
-            </div>
-            <p className="serif-line">The links are optional. Follow if you want.</p>
-            <div className="socials">
-              {SOCIALS.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
-                  <span>
-                    <strong>{door.name}</strong>
-                    <em>{door.handle}</em>
-                  </span>
-                  <b>{door.hint}</b>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-        <SwordRule />
-        <section className="clip" id="clip" aria-label="LathosWorld">
-          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
-            <source src="/lathosworld.mp4" type="video/mp4" />
-            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
-          </video>
-          <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
         <section className="section" id="buy">
@@ -342,6 +307,36 @@ function Home() {
               </p>
             </div>
           </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="socials">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Links</p>
+              <h2>Where it lives</h2>
+            </div>
+            <p className="serif-line">The links are optional. Follow if you want.</p>
+            <div className="socials">
+              {SOCIALS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
+                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
+                  <span>
+                    <strong>{door.name}</strong>
+                    <em>{door.handle}</em>
+                  </span>
+                  <b>{door.hint}</b>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="clip" id="clip" aria-label="LathosWorld">
+          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
+            <source src="/lathosworld.mp4" type="video/mp4" />
+            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
+          </video>
+          <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
         <section className="section" id="later" aria-label="Telegram and Linktree">

@@ -10,7 +10,7 @@ The name on the page is **lathosworld.com**. A preview link in the builder can c
 
 ## Leave this layout
 
-After the nav, top to bottom: the looping hero video, the wordmark, the story, streams (Twitch player full width, then YouTube), socials in this order (Twitch, YouTube, X, Pinterest, Discord, Instagram), the mp4/gif clip, the coin block (how to get it, contract, wallets, roadmap), then Telegram and Linktree, then the list, then the help desk. Do not reorder that. Sign-in stays in the nav.
+After the nav, top to bottom: the looping hero video, the wordmark, the story, streams (Twitch player full width, then YouTube), then the coin block (how to get it, the $LWRLD section with the whitepaper link, crypto offers, roadmap), then socials in this order (Twitch, YouTube, X, Pinterest, Discord, Instagram), the mp4/gif clip, then Telegram and Linktree, then the list, then the help desk. Do not reorder that. Sign-in stays in the nav.
 
 Do not restore `public/sword.png` or `public/sword-cursor.png`. The cursor is `public/sword-mini-cursor.png`. Section marks use the small still sword.
 
