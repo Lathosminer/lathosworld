@@ -694,6 +694,7 @@
 .shine { display: none; }
 .card-wide { grid-column: 1 / -1; }
 .socials { display: grid; gap: 0.7rem; }
+.socials.offers { grid-template-columns: 1fr; }
 .twitch {
   width: 100%;
   margin: 0;

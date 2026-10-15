@@ -73,6 +73,15 @@ const LATER = [
   { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links", icon: "linktree" },
 ] as const;
 
+const OFFERS = [
+  {
+    name: "Cash App",
+    handle: "Get $5 when you send $5+.",
+    hint: "Code W98XF7L",
+    href: "https://cash.app/refer/W98XF7L",
+  },
+] as const;
+
 function TwitchEmbed() {
   const [parent, setParent] = useState("");
   useEffect(() => {
@@ -283,6 +292,27 @@ function Home() {
                 <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD on Flap</a>
                 <a className="btn btn-ghost" href={PAPER} target="_blank" rel="noopener noreferrer">Read the paper</a>
               </div>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="offers" aria-label="Crypto offers">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Offers</p>
+              <h2>Crypto offers</h2>
+            </div>
+            <div className="socials offers">
+              {OFFERS.map((offer) => (
+                <a key={offer.name} className="social" href={offer.href} target="_blank" rel="noopener noreferrer">
+                  <span className="social-lead"><MiniSword /></span>
+                  <span>
+                    <strong>{offer.name}</strong>
+                    <em>{offer.handle}</em>
+                  </span>
+                  <b>{offer.hint}</b>
+                </a>
+              ))}
             </div>
           </div>
         </section>
