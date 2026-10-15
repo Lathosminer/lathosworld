@@ -6,6 +6,7 @@ import { TrustConnect } from "@/components/TrustConnect";
 import LiveArc from "@/components/LiveArc";
 import EyeGlow from "@/components/EyeGlow";
 import { MiniSword } from "@/components/MiniSword";
+import { HeroLoop } from "@/components/HeroLoop";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
@@ -162,6 +163,7 @@ function Home() {
         </nav>
       </header>
       <main id="top">
+        <HeroLoop />
         <section className="hero" aria-label="LathosWorld">
           <div className="hero-art">
             <h1 className="crest-lockup">

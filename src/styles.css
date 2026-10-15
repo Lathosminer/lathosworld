@@ -29,7 +29,7 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 3.25rem;
-    scroll-padding-bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
     cursor: url("/sword-mini-cursor.png") 59 0, auto;
   }
   body {
@@ -144,6 +144,58 @@
   height: auto;
   aspect-ratio: 16 / 9;
   background: #000;
+}
+.hero-loop {
+  display: flex;
+  justify-content: center;
+  padding: 1rem 1.1rem 0.2rem;
+}
+.hero-loop-frame {
+  position: relative;
+  width: min(560px, 100%);
+}
+.hero-loop-frame video,
+.hero-loop-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 22%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--color-cyan) 12%, transparent);
+}
+.hero-loop-frame .hero-loop-still { display: none; }
+.hero-sound {
+  position: fixed;
+  z-index: 31;
+  left: 0.7rem;
+  bottom: calc(4.85rem + env(safe-area-inset-bottom, 0px));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 36px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 35%, transparent);
+  background: color-mix(in srgb, #05080c 88%, transparent);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--color-cyan) 12%, transparent);
+}
+.hero-sound svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: var(--color-cyan);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
 }
 .hero-art {
   position: relative;
@@ -869,6 +921,8 @@
   .tag-rotator { min-height: 0; }
   .mini-sword-anim { display: none; }
   .mini-sword-still { display: block; }
+  .hero-loop-frame .hero-loop-motion { display: none; }
+  .hero-loop-frame .hero-loop-still { display: block; }
 }
 a, button, .btn, .cursor-pointer, label, input, select, summary {
   cursor: url("/sword-mini-cursor.png") 59 0, auto;
@@ -881,4 +935,4 @@ a, button, .btn, .cursor-pointer, label, input, select, summary {
 .clip video { aspect-ratio: 16 / 9; }
 .clip video img { display: block; width: 100%; height: auto; }
 .buy-bar { padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px)); }
-body { padding-bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px)); }
+body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
