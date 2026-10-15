@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
 import { DESK_EMAIL, DESK_FACTS, DESK_LABEL } from "@/lib/helpdesk";
 
-const FALLBACK = "lathosworld.comhelpdesk has the note. A person reads lathosx@gmail.com. This is not financial advice, and it is not a promise of price.";
+const FALLBACK = `${DESK_LABEL} has the note. A person reads ${DESK_EMAIL}. This is not financial advice, and it is not a promise of price.`;
 
 type HelpInput = { name: string; email: string; message: string; company: string };
 

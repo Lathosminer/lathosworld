@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
 import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
-import LiveArc from "@/components/LiveArc";
-import EyeGlow from "@/components/EyeGlow";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
-import { UserButton } from "@/lib/auth/gates";
-import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK = "/mark.jpg?v=v10";
 const LEDE =
@@ -38,7 +35,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "https://lathosworld.com/" },
-      { rel: "preload", as: "image", href: MARK, fetchPriority: "high" },
+      { rel: "preload", as: "image", href: "/hero-still.jpg", fetchPriority: "high" },
     ],
   }),
 });
@@ -168,28 +165,11 @@ function Home() {
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
           <TrustConnect compact />
-          <AccountSlot />
         </nav>
       </header>
       <main id="top">
         <HeroLoop />
-        <section className="hero" aria-label="LathosWorld">
-          <div className="hero-art">
-            <h1 className="crest-lockup">
-              <img
-                className="wordmark"
-                src={MARK}
-                width={1792}
-                height={1008}
-                alt="LathosWorld"
-                fetchPriority="high"
-                decoding="async"
-              />
-              <LiveArc />
-              <EyeGlow />
-            </h1>
-          </div>
-        </section>
+        <h1 className="visually-hidden">LathosWorld</h1>
         <section className="hero" aria-label="Story">
           <div className="hero-copy">
             <p className="sell-line">I am a gamer and a streamer.</p>
@@ -369,7 +349,7 @@ function Home() {
         <section className="section" id="help">
           <div className="wrap">
             <div className="banner">
-              <p className="kicker desk-label">lathosworld.comhelpdesk</p>
+              <p className="kicker desk-label">{DESK_LABEL}</p>
               <h2>Help desk</h2>
             </div>
             <HelpDesk />
@@ -380,7 +360,7 @@ function Home() {
         <div className="wrap">
           <p className="way">Not financial advice.</p>
           <p className="thanks">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><a href="#help">lathosworld.comhelpdesk</a></p>
+          <p className="copy"><a href="#help">{DESK_LABEL}</a></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>
@@ -389,18 +369,6 @@ function Home() {
         <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
       </div>
     </>
-  );
-}
-
-function AccountSlot() {
-  const { user, isPending } = useCurrentUserState();
-  if (isPending) return <span className="nav-auth-wait" aria-hidden="true" />;
-  if (!user) return <Link to="/login">Sign in</Link>;
-  return (
-    <span className="nav-auth">
-      <Link to="/account">Account</Link>
-      <UserButton />
-    </span>
   );
 }
 

@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HelpDesk } from "@/components/HelpDesk";
+import { DESK_LABEL } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/help")({
   component: HelpPage,
   head: () => ({
-    meta: [{ title: "lathosworld.comhelpdesk" }],
+    meta: [{ title: DESK_LABEL }],
   }),
 });
 
@@ -16,7 +17,7 @@ function HelpPage() {
         <span>lathosworld.com</span>
       </Link>
       <section className="gate-card">
-        <p className="kicker desk-label">lathosworld.comhelpdesk</p>
+        <p className="kicker desk-label">{DESK_LABEL}</p>
         <h1>Help desk</h1>
         <HelpDesk showLink={false} />
       </section>

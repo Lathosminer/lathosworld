@@ -13,7 +13,7 @@ Not financial advice. Not a promise of price. Crypto is volatile.
 - Whitepaper: [Lathosminer/LWRLD](https://github.com/Lathosminer/LWRLD)
 - Wallet connect in the browser, or a code that opens this site inside the wallet app. The site never asks for a seed phrase
 - List: saves an email and lists the socials. It does not send inbox mail
-- Help desk **lathosworld.comhelpdesk** for [lathosx@gmail.com](mailto:lathosx@gmail.com)
+- Help desk **LathosWorld Help Desk** at [help@lathosworld.com](mailto:help@lathosworld.com?subject=LathosWorld%20Help%20Desk)
 
 ## Socials
 

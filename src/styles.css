@@ -146,24 +146,35 @@
   background: #000;
 }
 .hero-loop {
-  display: flex;
-  justify-content: center;
-  padding: 1rem 1.1rem 0.2rem;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 0.35rem 0 0.15rem;
+  box-sizing: border-box;
 }
 .hero-loop-frame {
   position: relative;
-  width: min(560px, 100%);
+  width: min(1100px, 100%);
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  aspect-ratio: 16 / 9;
 }
 .hero-loop-frame video,
 .hero-loop-frame img {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
+  margin-inline: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  object-position: center center;
   background: #05080c;
-  border: 1px solid color-mix(in srgb, var(--color-cyan) 22%, transparent);
-  box-shadow: 0 0 28px color-mix(in srgb, var(--color-cyan) 12%, transparent);
+}
+.hero-loop-frame:hover video {
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--color-cyan) 42%, transparent));
 }
 .hero-loop-frame .hero-loop-still { display: none; }
 .hero-sound {
@@ -315,6 +326,13 @@
   color: var(--color-bg);
   background: var(--color-cyan);
   box-shadow: 0 0 22px color-mix(in srgb, var(--color-cyan) 35%, transparent);
+}
+.btn-cyan:hover,
+.social:hover {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--color-cyan) 48%, transparent);
+}
+.social:hover {
+  border-color: color-mix(in srgb, var(--color-cyan) 55%, transparent);
 }
 .btn-ghost {
   color: var(--color-ink);
@@ -931,6 +949,17 @@ a, button, .btn, .cursor-pointer, label, input, select, summary {
 
 /* === LathosWorld v10 (appended; nothing above was removed) === */
 .wordmark { aspect-ratio: 1792 / 1008; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .storm.arc { will-change: transform; transform: translateZ(0); contain: strict; }
 .storm.eyes { pointer-events: none; z-index: 5; will-change: transform; transform: translateZ(0); contain: strict; }
 .clip video { aspect-ratio: 16 / 9; }

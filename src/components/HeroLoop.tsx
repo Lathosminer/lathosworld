@@ -53,6 +53,7 @@ export function HeroLoop() {
   const calmRef = useRef<HTMLAudioElement>(null);
   const bedRef = useRef<Bed | null>(null);
   const soundRef = useRef(false);
+  const reducedRef = useRef(false);
   const heroOnRef = useRef(true);
   const calmOkRef = useRef(true);
   const [sound, setSound] = useState(false);
@@ -63,6 +64,7 @@ export function HeroLoop() {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => {
       const still = mq.matches;
+      reducedRef.current = still;
       setReduced(still);
       if (!video) return;
       if (still) {
@@ -80,6 +82,28 @@ export function HeroLoop() {
     return () => {
       video?.removeEventListener("play", blockAutoplay);
       mq.removeEventListener("change", apply);
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let kicking = false;
+    const keep = () => {
+      if (kicking || reducedRef.current || document.hidden || !video.paused) return;
+      kicking = true;
+      void video.play().catch(() => {}).finally(() => {
+        kicking = false;
+      });
+    };
+    video.addEventListener("pause", keep);
+    const io = new IntersectionObserver(() => keep(), { threshold: [0, 0.15] });
+    io.observe(video);
+    document.addEventListener("visibilitychange", keep);
+    return () => {
+      video.removeEventListener("pause", keep);
+      document.removeEventListener("visibilitychange", keep);
+      io.disconnect();
     };
   }, []);
 
@@ -212,16 +236,15 @@ export function HeroLoop() {
             muted
             loop
             playsInline
-            poster="/hero-poster.jpg"
-            width={1080}
+            poster="/hero-still.jpg"
+            width={1920}
             height={1080}
-            preload="metadata"
+            preload="auto"
           >
-            <source src="/hero-loop.webm" type="video/webm" />
-            <source src="/hero-loop.mp4" type="video/mp4" />
+            <source src="/hero.mp4" type="video/mp4" />
           </video>
         )}
-        <img className="hero-loop-still" src="/hero-poster.jpg" width={1080} height={1080} alt="" />
+        <img className="hero-loop-still" src="/hero-still.jpg" width={1920} height={1080} alt="" />
       </div>
       <button
         type="button"
