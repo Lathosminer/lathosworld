@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-// LiveArc — Star Wars Force lightning walking the letter bones in /bones.json.
+// LiveArc (v10: red starts from the WORLD centre) — Star Wars Force lightning walking the letter bones in /bones.json.
 // Cyan on LATHOS (teal nodes), red on WORLD (world nodes). Drop-in for the old LiveArc.
 // Perf: no shadowBlur, no getImageData, geometry rebuilt only every REGEN_MS, adaptive quality.
 
@@ -84,7 +84,11 @@ export default function LiveArc() {
       }
     };
 
+    // v10 lock: red charges start from the centre of the red WORLD letters (nearest ~30% of WORLD nodes
+    // to the WORLD centroid), then walk outward along the bones. Cyan still starts anywhere on the teal LATHOS strokes.
+    let redCore: number[] = [];
     const pool = (red: boolean) => {
+      if (red && redCore.length) return redCore;
       const ids: number[] = [];
       nodes.forEach((n, i) => { if ((red ? n.world : n.teal && !n.world) && adj[i].length) ids.push(i); });
       return ids;
@@ -185,6 +189,13 @@ export default function LiveArc() {
         nodes = mesh.nodes.map((n) => ({ x: n.x, y: n.y, teal: !!n.teal, world: !!n.world }));
         adj = nodes.map(() => [] as number[]);
         for (const [a, b] of mesh.ribs) if (nodes[a] && nodes[b]) { adj[a].push(b); adj[b].push(a); }
+        const world = nodes.map((n, i) => i).filter((i) => nodes[i].world && adj[i].length);
+        if (world.length) {
+          const cx = world.reduce((a, i) => a + nodes[i].x, 0) / world.length;
+          const cy = world.reduce((a, i) => a + nodes[i].y, 0) / world.length;
+          const d = (i: number) => Math.hypot(nodes[i].x - cx, nodes[i].y - cy);
+          redCore = world.slice().sort((a, b) => d(a) - d(b)).slice(0, Math.max(3, Math.round(world.length * 0.3)));
+        }
         const redCount = Math.max(1, Math.round(maxCharges * 0.4));
         charges = [];
         for (let i = 0; i < maxCharges; i++) { const c = spawn(i < redCount); if (c) charges.push(c); }

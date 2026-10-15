@@ -237,7 +237,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
             <li key={guide.name} className="wallet-guide">
               <strong>{guide.name}</strong>
               <p>{guide.how}</p>
-              <a href={guide.href} target="_blank" rel="noreferrer">{guide.help}</a>
+              <a href={guide.href} target="_blank" rel="noopener noreferrer">{guide.help}</a>
             </li>
           ))}
         </ul>

@@ -66,7 +66,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
       <ul className="letter-doors">
         {SOCIALS.map((door) => (
           <li key={door.name}>
-            <a href={door.href} target="_blank" rel="noreferrer">
+            <a href={door.href} target="_blank" rel="noopener noreferrer">
               <strong>{door.name}</strong>
               <span>{door.handle}</span>
             </a>

@@ -1,15 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
 import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
+import LiveArc from "@/components/LiveArc";
+import EyeGlow from "@/components/EyeGlow";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+
+const MARK = "/mark.jpg?v=v10";
+const LEDE =
+  "I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.";
+const OG_IMAGE = "https://lathosworld.com/og.jpg";
 
 export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
-    links: [{ rel: "preload", as: "image", href: "/lathosworld.gif?v=post" }],
+    meta: [
+      { title: "LathosWorld · $LWRLD" },
+      { name: "description", content: LEDE },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "LathosWorld" },
+      { property: "og:title", content: "LathosWorld · $LWRLD" },
+      { property: "og:description", content: LEDE },
+      { property: "og:url", content: "https://lathosworld.com/" },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "LathosWorld" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:site", content: "@lathos563" },
+      { name: "twitter:title", content: "LathosWorld · $LWRLD" },
+      { name: "twitter:description", content: LEDE },
+      { name: "twitter:image", content: OG_IMAGE },
+    ],
+    links: [
+      { rel: "canonical", href: "https://lathosworld.com/" },
+      { rel: "preload", as: "image", href: MARK, fetchPriority: "high" },
+    ],
   }),
 });
 
@@ -29,19 +57,17 @@ const FACTS = [
   { label: "Tax split", value: "85% liquidity · 10% fund · 5% burn" },
 ] as const;
 
-const STREAMS = [
-  { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
-  { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
-] as const;
-
-const DOORS = [
+const SOCIALS = [
   { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
   { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
   { name: "X", handle: "@lathos563", href: "https://x.com/lathos563", hint: "Talk", icon: "x" },
+  { name: "Pinterest", handle: "Lathos' World", href: "https://www.pinterest.com/lathosworld/", hint: "Pins", icon: "pinterest" },
   { name: "Discord", handle: "The lobby", href: "https://discord.gg/749tHdsFU6", hint: "Join", icon: "discord" },
   { name: "Instagram", handle: "@lathosworld", href: "https://www.instagram.com/lathosworld", hint: "Photos", icon: "instagram" },
+] as const;
+
+const LATER = [
   { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates", icon: "telegram" },
-  { name: "Pinterest", handle: "Lathos' World", href: "https://www.pinterest.com/lathosworld/", hint: "Pins", icon: "pinterest" },
   { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links", icon: "linktree" },
 ] as const;
 
@@ -88,43 +114,104 @@ function SwordRule() {
 
 function Home() {
   const [copied, setCopied] = useState(false);
-  const copyCa = () => {
-    navigator.clipboard.writeText(CA).then(() => {
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const copyCa = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(CA);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = CA;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1600);
-    }).catch(() => {});
+      window.clearTimeout(timer.current);
+      timer.current = window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* clipboard blocked: the address stays visible on the page to copy by hand */
+    }
   };
   return (
     <>
       <a className="skip" href="#token">Skip to token</a>
       <header className="nav">
         <a className="brand" href="#top">
-          <img src="/mark.jpg?v=v6" width={40} height={40} alt="" />
+          <img src={MARK} width={40} height={40} alt="" decoding="async" />
           <span>lathosworld.com</span>
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
-          <a href="#letter">Letter</a>
-          <a href="#help">Help</a>
+          <a href="#socials">Socials</a>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
-          <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD</a>
+          <a href="#letter">Letter</a>
+          <a href="#help">Help</a>
+          <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD</a>
           <TrustConnect compact />
           <AccountSlot />
         </nav>
       </header>
       <main id="top">
-        <TwitchEmbed />
+        <section className="hero" aria-label="LathosWorld">
+          <div className="hero-art">
+            <h1 className="crest-lockup">
+              <img
+                className="wordmark"
+                src={MARK}
+                width={1792}
+                height={1008}
+                alt="LathosWorld"
+                fetchPriority="high"
+                decoding="async"
+              />
+              <LiveArc />
+              <EyeGlow />
+            </h1>
+          </div>
+        </section>
+        <section className="hero" aria-label="Story">
+          <div className="hero-copy">
+            <p className="sell-line">I am a gamer and a streamer.</p>
+            <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
+            <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
+            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
+            <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
+            <p className="kicker">Live on Flap · BNB Smart Chain</p>
+            <div className="cta-row">
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD on Flap</a>
+              <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
+            </div>
+          </div>
+        </section>
+        <SwordRule />
         <section className="section" id="streams">
+          <TwitchEmbed />
           <div className="wrap">
             <div className="banner">
               <h2>Streams</h2>
             </div>
             <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
             <YouTubeEmbed />
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section" id="socials">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Links</p>
+              <h2>Where it lives</h2>
+            </div>
+            <p className="serif-line">The links are optional. Follow if you want.</p>
             <div className="socials">
-              {STREAMS.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noreferrer">
+              {SOCIALS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
                   <Mark name={door.icon} />
                   <span>
                     <strong>{door.name}</strong>
@@ -136,24 +223,13 @@ function Home() {
             </div>
           </div>
         </section>
-        <section className="film film-gap" aria-label="LathosWorld">
-          <h1 className="film-lockup">
-            <img className="film-gif" src="/lathosworld.gif?v=post" width={960} height={540} alt="LathosWorld" />
-          </h1>
-        </section>
-        <section className="hero" aria-label="Story">
-          <div className="hero-copy">
-            <p className="sell-line">I am a gamer and a streamer.</p>
-            <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
-            <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
-            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
-            <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
-            <p className="kicker">Live on Flap · BNB Smart Chain</p>
-            <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD on Flap</a>
-              <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
-            </div>
-          </div>
+        <SwordRule />
+        <section className="clip" id="clip" aria-label="LathosWorld">
+          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
+            <source src="/lathosworld.mp4" type="video/mp4" />
+            <img src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
+          </video>
+          <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
         <section className="section" id="buy">
@@ -168,7 +244,7 @@ function Home() {
               <li><strong>3 · Trade</strong><span>Swap there. The 4% tax is part of the token, not a hidden fee.</span></li>
             </ol>
             <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Open Flap and get $LWRLD</a>
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Open Flap and get $LWRLD</a>
             </div>
           </div>
         </section>
@@ -192,15 +268,15 @@ function Home() {
               <div className="ca-row">
                 <code>{CA}</code>
                 <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Copied" : "Copy contract"}</button>
-                <a className="btn btn-ghost" href={SCAN} target="_blank" rel="noreferrer">BscScan</a>
+                <a className="btn btn-ghost" href={SCAN} target="_blank" rel="noopener noreferrer">BscScan</a>
               </div>
               <p className="note">
                 Contract ends in 7777. A different address is not this token. Intended for certain audiences only. Not financial advice. Not a promise of price. Never risk more than you can afford to lose. Crypto is volatile.
               </p>
               <TrustConnect />
               <div className="cta-row">
-                <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD on Flap</a>
-                <a className="btn btn-ghost" href={PAPER} target="_blank" rel="noreferrer">Read the paper</a>
+                <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD on Flap</a>
+                <a className="btn btn-ghost" href={PAPER} target="_blank" rel="noopener noreferrer">Read the paper</a>
               </div>
             </div>
           </div>
@@ -233,16 +309,11 @@ function Home() {
           </div>
         </section>
         <SwordRule />
-        <section className="section" id="community">
+        <section className="section" id="later" aria-label="Telegram and Linktree">
           <div className="wrap">
-            <div className="banner">
-              <p className="kicker">Links</p>
-              <h2>Where it lives</h2>
-            </div>
-            <p className="serif-line">The links are optional. Follow if you want.</p>
             <div className="socials">
-              {DOORS.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noreferrer">
+              {LATER.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
                   <Mark name={door.icon} />
                   <span>
                     <strong>{door.name}</strong>
@@ -285,7 +356,7 @@ function Home() {
       </footer>
       <div className="buy-bar">
         <p>$LWRLD · contract ends in 7777</p>
-        <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noreferrer">Get $LWRLD</a>
+        <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD</a>
       </div>
     </>
   );

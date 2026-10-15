@@ -81,7 +81,7 @@ function Login() {
   return (
     <main className="gate">
       <Link className="brand" to="/">
-        <img src="/mark.jpg?v=v6" width={40} height={40} alt="" />
+        <img src="/mark.jpg?v=v10" width={40} height={40} alt="" decoding="async" />
         <span>lathosworld.com</span>
       </Link>
       <form className="gate-card" onSubmit={onSubmit}>

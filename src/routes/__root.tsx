@@ -18,7 +18,7 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#05080C" },
     ],
     links: [
-      { rel: "icon", type: "image/jpeg", href: "/mark.jpg?v=v6" },
+      { rel: "icon", type: "image/jpeg", href: "/mark.jpg?v=v10" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },

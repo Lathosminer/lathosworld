@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
 
-// EyeGlow — v6 synced eye effect over the hero mark (/mark.jpg, 1792x1008).
+// EyeGlow — v9/v10 (crossguard eye moved). Based on v8: synced eye effect (subtle-pop strength + slow clockwise pulse on both rings) over the hero mark (/mark.jpg, 1792x1008).
 // Crossguard eye, O-eye and pommel gem share one 6 s loop: flame ring on the iris
 // (white-gold -> orange -> deep red), eased blue -> red -> orange micro-flash cycle,
 // and a thin cyan flicker on the blue outline. One rAF, cached sprites, mirror-symmetric licks.
 
 // Positions in 1024x576 art units (same as the v6 render).
 const EYES = [
-  { x: 465, y: 156, r: 17 }, // crossguard eye
+  { x: 463.1, y: 167.9, r: 17 }, // crossguard eye (v9: re-centred on blade axis + lowered into socket)
   { x: 464, y: 345, r: 36 }, // O of WORLD
   { x: 464, y: 26, r: 7 },   // pommel gem
 ];
@@ -17,6 +17,8 @@ const PULSES: Array<[number, number, number]> = [ // [centre 0..1, half-width 0.
 ];
 const HUE: Array<[number, number, number]> = [[64, 140, 255], [255, 31, 26], [255, 140, 20], [64, 140, 255]];
 const LICKS = 48;
+// two soft lobes (at 0 and 0.5 of a turn) with smooth falloff, for the clockwise pulse
+const LOBE: Array<[number, number]> = [[0, 1], [0.06, 0.7], [0.14, 0.15], [0.25, 0], [0.36, 0.15], [0.44, 0.7], [0.5, 1], [0.56, 0.7], [0.64, 0.15], [0.75, 0], [0.86, 0.15], [0.94, 0.7], [1, 1]];
 
 const ss = (t: number) => t * t * (3 - 2 * t);
 function pulse(u: number) {
@@ -57,6 +59,7 @@ export default function EyeGlow() {
     if (!canvas || !ctx) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const sprite = flameSprite();
+    const hasConic = typeof ctx.createConicGradient === "function";
     const cosT = new Float32Array(LICKS), sinT = new Float32Array(LICKS), th = new Float32Array(LICKS);
     for (let i = 0; i < LICKS; i++) {
       const a = (i / LICKS) * Math.PI * 2; cosT[i] = Math.cos(a); sinT[i] = Math.sin(a);
@@ -84,10 +87,9 @@ export default function EyeGlow() {
         const x = ox + e.x * sc, y = oy + e.y * sc, r = e.r * sc;
         // 1) iris flame ring: cached sprite, breathing with the flicker
         const k = r * (0.97 + 0.05 * fl);
-        ctx.globalAlpha = 0.75 * fl;
+        ctx.globalAlpha = 0.95 * fl;
         ctx.drawImage(sprite, x - k, y - k, k * 2, k * 2);
         // 2) mirror-symmetric licks on the iris flame edge + thin cyan licks on the blue outline
-        ctx.beginPath();
         const flame: number[] = [], outl: number[] = [];
         for (let i = 0; i < LICKS; i++) {
           const t = th[i];
@@ -105,18 +107,32 @@ export default function EyeGlow() {
         };
         ctx.lineJoin = "round";
         poly(flame);
-        ctx.globalAlpha = 0.35 * fl; ctx.lineWidth = Math.max(1, r * 0.09);
-        ctx.strokeStyle = `rgb(${255 - 0.3 * p * (255 - cr)},${150 * (1 - 0.3 * p) + 0.3 * p * cg},${60 * (1 - 0.3 * p) + 0.3 * p * cb})`;
+        ctx.globalAlpha = 0.47 * fl; ctx.lineWidth = Math.max(1, r * 0.09);
+        ctx.strokeStyle = `rgb(${255 - 0.35 * p * (255 - cr)},${150 * (1 - 0.35 * p) + 0.35 * p * cg},${60 * (1 - 0.35 * p) + 0.35 * p * cb})`;
         ctx.stroke();
         poly(outl);
-        ctx.globalAlpha = (0.45 + 0.25 * p) * fl; ctx.lineWidth = Math.max(0.6, r * 0.035);
+        ctx.globalAlpha = (0.6 + 0.3 * p) * fl; ctx.lineWidth = Math.max(0.6, r * 0.035);
         ctx.strokeStyle = "rgb(150,235,255)"; ctx.stroke();
-        ctx.globalAlpha = 0.18 * fl; ctx.lineWidth = Math.max(1.5, r * 0.12);
+        ctx.globalAlpha = 0.24 * fl; ctx.lineWidth = Math.max(1.5, r * 0.14);
         ctx.strokeStyle = "rgb(40,140,255)"; ctx.stroke();
+        // 4) v8: two soft bright lobes travelling CLOCKWISE (one full turn per 6 s loop), +~30%
+        if (hasConic) {
+          const cw = (rgb: string) => {
+            const g2 = ctx.createConicGradient(ph, x, y); // canvas y is down: increasing angle = clockwise
+            for (const [o, al] of LOBE) g2.addColorStop(o, `rgba(${rgb},${al})`);
+            return g2;
+          };
+          poly(flame);
+          ctx.globalAlpha = 0.3 * fl; ctx.lineWidth = Math.max(1.5, r * 0.12);
+          ctx.strokeStyle = cw("255,200,110"); ctx.stroke();
+          poly(outl);
+          ctx.globalAlpha = 0.32 * fl; ctx.lineWidth = Math.max(0.6, r * 0.035);
+          ctx.strokeStyle = cw("170,240,255"); ctx.stroke();
+        }
         // 3) eased micro-flash tint inside the iris (keeps clear of the blue outline)
         const g = ctx.createRadialGradient(x, y, 0, x, y, r * 0.8);
-        g.addColorStop(0, `rgba(${cr | 0},${cg | 0},${cb | 0},${0.5 * p})`);
-        g.addColorStop(0.75, `rgba(${cr | 0},${cg | 0},${cb | 0},${0.35 * p})`);
+        g.addColorStop(0, `rgba(${cr | 0},${cg | 0},${cb | 0},${0.62 * p})`);
+        g.addColorStop(0.75, `rgba(${cr | 0},${cg | 0},${cb | 0},${0.45 * p})`);
         g.addColorStop(1, `rgba(${cr | 0},${cg | 0},${cb | 0},0)`);
         ctx.globalAlpha = 1; ctx.fillStyle = g;
         ctx.fillRect(x - r, y - r, r * 2, r * 2);
