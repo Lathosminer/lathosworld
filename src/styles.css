@@ -30,7 +30,7 @@
     scroll-behavior: smooth;
     scroll-padding-top: 3.25rem;
     scroll-padding-bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px));
-    cursor: url("/sword-cursor.png?v=sharp") 32 2, auto;
+    cursor: url("/sword-mini-cursor.png") 59 0, auto;
   }
   body {
     margin: 0;
@@ -42,7 +42,7 @@
     padding-bottom: 5.5rem;
   }
   button:not(:disabled),
-  [role="button"]:not(:disabled) { cursor: url("/sword-cursor.png?v=sharp") 32 2, auto; }
+  [role="button"]:not(:disabled) { cursor: url("/sword-mini-cursor.png") 59 0, auto; }
   :focus-visible {
     outline: 2px solid var(--color-cyan);
     outline-offset: 3px;
@@ -673,6 +673,8 @@
   text-decoration: none;
   color: inherit;
 }
+.social-lead { display: inline-flex; align-items: center; gap: 0.35em; }
+.social-lead .mini-sword { margin-inline-end: 0; }
 .social svg { width: 1.4rem; height: 1.4rem; fill: var(--color-cyan); }
 .social strong { display: block; font-family: var(--font-display); letter-spacing: 0.08em; }
 .social em { color: var(--color-muted); font-style: normal; }
@@ -683,11 +685,32 @@
   font-size: 0.68rem;
   text-transform: uppercase;
 }
-.sword-rule { display: flex; justify-content: center; align-items: center; padding: 0.4rem 0; line-height: 0; }
-.sword-rule img { width: 4.6rem; height: auto; max-width: 4.6rem; object-fit: contain; }
-@media (max-width: 720px) {
-  .sword-rule img { width: auto; height: 4.6rem; max-width: none; max-height: 4.6rem; }
+.sword-rule {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 1.25rem;
+  line-height: 0;
 }
+.sword-rule span {
+  width: min(7rem, 22vw);
+  height: 1px;
+  background: color-mix(in srgb, var(--color-cyan) 32%, transparent);
+}
+.sword-rule img { height: 2rem; width: auto; max-height: 2rem; object-fit: contain; }
+.mini-sword {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  height: 1.2em;
+  margin-inline-end: 0.35em;
+  line-height: 0;
+  vertical-align: middle;
+}
+.mini-sword img { height: 1.2em; width: auto; display: block; }
+.mini-sword-still { display: none; }
 .footer { padding: 2rem 0 2.6rem; text-align: center; }
 .footer a { color: var(--color-cyan); }
 .desk-label { text-transform: none; letter-spacing: 0.02em; }
@@ -844,9 +867,11 @@
 @media (prefers-reduced-motion: reduce) {
   .tag-rotator p, .saga-crawl { animation: none; opacity: 1; position: static; }
   .tag-rotator { min-height: 0; }
+  .mini-sword-anim { display: none; }
+  .mini-sword-still { display: block; }
 }
 a, button, .btn, .cursor-pointer, label, input, select, summary {
-  cursor: url("/sword-cursor.png?v=sharp") 32 2, auto;
+  cursor: url("/sword-mini-cursor.png") 59 0, auto;
 }
 
 /* === LathosWorld v10 (appended; nothing above was removed) === */

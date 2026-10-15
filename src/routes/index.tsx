@@ -5,6 +5,7 @@ import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
 import LiveArc from "@/components/LiveArc";
 import EyeGlow from "@/components/EyeGlow";
+import { MiniSword } from "@/components/MiniSword";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
@@ -107,7 +108,9 @@ function YouTubeEmbed() {
 function SwordRule() {
   return (
     <div className="sword-rule" aria-hidden="true">
-      <img src="/sword.png?v=sharp" alt="" />
+      <span />
+      <img src="/sword-mini-still.png" alt="" />
+      <span />
     </div>
   );
 }
@@ -153,7 +156,7 @@ function Home() {
           <a href="#token">Contract</a>
           <a href="#letter">Letter</a>
           <a href="#help">Help</a>
-          <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD</a>
+          <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
           <TrustConnect compact />
           <AccountSlot />
         </nav>
@@ -185,7 +188,7 @@ function Home() {
             <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
             <p className="kicker">Live on Flap · BNB Smart Chain</p>
             <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD on Flap</a>
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD on Flap</a>
               <button className="btn btn-ghost" type="button" onClick={copyCa}>{copied ? "Contract copied" : "Copy the contract"}</button>
             </div>
           </div>
@@ -212,7 +215,7 @@ function Home() {
             <div className="socials">
               {SOCIALS.map((door) => (
                 <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <Mark name={door.icon} />
+                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
                   <span>
                     <strong>{door.name}</strong>
                     <em>{door.handle}</em>
@@ -244,7 +247,7 @@ function Home() {
               <li><strong>3 · Trade</strong><span>Swap there. The 4% tax is part of the token, not a hidden fee.</span></li>
             </ol>
             <div className="cta-row">
-              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Open Flap and get $LWRLD</a>
+              <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Open Flap and get $LWRLD</a>
             </div>
           </div>
         </section>
@@ -275,7 +278,7 @@ function Home() {
               </p>
               <TrustConnect />
               <div className="cta-row">
-                <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD on Flap</a>
+                <a className="btn btn-cyan btn-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD on Flap</a>
                 <a className="btn btn-ghost" href={PAPER} target="_blank" rel="noopener noreferrer">Read the paper</a>
               </div>
             </div>
@@ -314,7 +317,7 @@ function Home() {
             <div className="socials">
               {LATER.map((door) => (
                 <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <Mark name={door.icon} />
+                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
                   <span>
                     <strong>{door.name}</strong>
                     <em>{door.handle}</em>
@@ -356,7 +359,7 @@ function Home() {
       </footer>
       <div className="buy-bar">
         <p>$LWRLD · contract ends in 7777</p>
-        <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer">Get $LWRLD</a>
+        <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
       </div>
     </>
   );
