@@ -993,3 +993,5 @@ body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
 @media (prefers-reduced-motion: reduce) {
   .gif-lightning img, .gif-lightning-img, .gif-lightning::after { animation: none; }
 }
+
+.emblem-arc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
