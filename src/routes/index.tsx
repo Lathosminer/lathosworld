@@ -208,11 +208,16 @@ function Home() {
             <EmblemArc />
           </div>
         </section>
-        <section className="section" id="buy">
+        <section className="section" id="buy" aria-labelledby="lwrld-title">
           <div className="wrap">
             <div className="banner">
+              <p className="kicker">BNB Smart Chain</p>
+              <h2 id="lwrld-title">$LWRLD</h2>
+            </div>
+            <p className="serif-line">LathosWorld. A Flap tax token.</p>
+            <div className="banner">
               <p className="kicker">Three steps</p>
-              <h2>How to get it</h2>
+              <h3 className="h2-like">How to get it</h3>
             </div>
             <ol className="steps">
               <li><strong>1 · BNB</strong><span>Put BNB in a wallet that can reach BNB Smart Chain.</span></li>
@@ -228,10 +233,9 @@ function Home() {
         <section className="section" id="token">
           <div className="wrap">
             <div className="banner">
-              <p className="kicker">BNB Smart Chain</p>
-              <h2>$LWRLD</h2>
+              <p className="kicker">$LWRLD</p>
+              <h2>Contract</h2>
             </div>
-            <p className="serif-line">LathosWorld. A Flap tax token.</p>
             <div className="panel">
               <dl className="facts">
                 {FACTS.map((fact) => (

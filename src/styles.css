@@ -1008,3 +1008,4 @@ body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
 .clip-card figcaption { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem 0.85rem; }
 .clip-card figcaption span { opacity: 0.7; font-size: 0.85rem; }
 .clip-card .clip-tags { font-size: 0.75rem; opacity: 0.55; }
+.banner .h2-like { margin: 1.4rem 0 0.4rem; font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.9rem); letter-spacing: 0.04em; }
