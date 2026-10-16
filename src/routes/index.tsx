@@ -28,6 +28,7 @@ export const Route = createFileRoute("/")({
 });
 
 const CA = "0x3899ebf76c768c156df3073031a4518c5f947777";
+const SHOP = "https://lathosworld-shop.fourthwall.com/";
 const FLAP = `https://flap.sh/bnb/${CA}`;
 const SCAN = `https://bscscan.com/token/${CA}`;
 const PAPER = "https://github.com/Lathosminer/LWRLD";
@@ -202,6 +203,7 @@ function Home() {
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
           <Link to="/schedule">Schedule</Link>
+          <a href="#merch">Merch</a>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
           <a href="#socials">Socials</a>
@@ -256,6 +258,25 @@ function Home() {
         </section>
         <SwordRule />
         <Clips />
+        <SwordRule />
+        <section className="section" id="merch" aria-labelledby="merch-title">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">LathosWorld Shop</p>
+              <h2 id="merch-title">Merch</h2>
+            </div>
+            <p className="serif-line">Support is optional but appreciated.</p>
+            <ul className="steps merch-list">
+              <li><strong>Sword Hoodie · $48</strong><span>The flagship. The LathosWorld blade on a heavy hoodie.</span></li>
+              <li><strong>Logo Tee · $27</strong><span>The Lathos&apos; World logo on a classic tee.</span></li>
+              <li><strong>Sticker · $6.78</strong><span>The logo, ready for your laptop or rig.</span></li>
+              <li><strong>Animated Emote Pack · $4.99</strong><span>Animated and static emotes in every Twitch size. Instant download.</span></li>
+            </ul>
+            <div className="cta-row">
+              <a className="btn btn-cyan btn-buy" href={SHOP} target="_blank" rel="noopener noreferrer"><MiniSword />Open the LathosWorld Shop</a>
+            </div>
+          </div>
+        </section>
         <SwordRule />
         <section className="section emblem" aria-label="Lathos' World emblem">
           <div className="gif-lightning emblem-frame">
