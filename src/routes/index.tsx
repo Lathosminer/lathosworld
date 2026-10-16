@@ -1,3 +1,4 @@
+import { twitchLive } from "@/lib/twitch-live.functions";
 import { pageHead } from "@/lib/seo";
 import { youtubeLive } from "@/lib/youtube-live.functions";
 import { Clips } from "@/components/Clips";
@@ -66,19 +67,32 @@ const OFFERS = [
 
 function TwitchEmbed() {
   const [parent, setParent] = useState("");
+  const [on, setOn] = useState(false);
+  const [live, setLive] = useState<{ live: boolean; title: string; preview: string | null }>({ live: false, title: "", preview: null });
   useEffect(() => {
     setParent(window.location.hostname);
+    twitchLive().then(setLive).catch(() => {});
   }, []);
+  // Bust the CDN cache on the live preview so the cover is current.
+  const poster = live.preview ? `${live.preview}?t=${Math.floor(Date.now() / 60000)}` : "/stream/blade-1080.webp";
   return (
     <div className="twitch">
-      {parent ? (
+      {on && parent ? (
         <iframe
           className="twitch-frame"
-          src={`https://player.twitch.tv/?channel=lathosworld&parent=${encodeURIComponent(parent)}&muted=true`}
+          src={`https://player.twitch.tv/?channel=lathosworld&parent=${encodeURIComponent(parent)}&autoplay=true&muted=false`}
           title="lathosworld on Twitch"
+          allow="autoplay; fullscreen"
           allowFullScreen
         />
-      ) : null}
+      ) : (
+        <button type="button" className="twitch-frame stream-facade" onClick={() => setOn(true)} aria-label={live.live ? `Watch lathosworld live on Twitch: ${live.title}` : "Play lathosworld on Twitch"}>
+          <img src={poster} alt="" width={640} height={360} decoding="async" fetchPriority="low" />
+          {live.live ? <span className="live-badge">● Live</span> : null}
+          <span className="clip-play" aria-hidden="true">▶</span>
+          <span className="stream-facade-label">{live.live ? live.title || "Live on Twitch" : "Twitch · lathosworld"}</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -93,13 +107,25 @@ function YouTubeEmbed() {
     const t = window.setInterval(check, 90_000);
     return () => { alive = false; window.clearInterval(t); };
   }, []);
+  if (liveId && !on) {
+    return (
+      <div className="youtube">
+        <p className="yt-live-badge"><span aria-hidden="true">●</span> Live on YouTube now</p>
+        <button type="button" className="youtube-frame clip-facade" onClick={() => setOn(true)} aria-label="Watch LathosWorld live on YouTube">
+          <img src={`https://i.ytimg.com/vi/${liveId}/hqdefault_live.jpg`} alt="LathosWorld live on YouTube" loading="lazy" decoding="async" width={480} height={360} />
+          <span className="live-badge">● Live</span>
+          <span className="clip-play" aria-hidden="true">▶</span>
+        </button>
+      </div>
+    );
+  }
   if (liveId) {
     return (
       <div className="youtube">
         <p className="yt-live-badge"><span aria-hidden="true">●</span> Live on YouTube now</p>
         <iframe
           className="youtube-frame"
-          src={`https://www.youtube-nocookie.com/embed/${liveId}?autoplay=1&mute=1`}
+          src={`https://www.youtube-nocookie.com/embed/${liveId}?autoplay=1`}
           title="LathosWorld live on YouTube"
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
