@@ -21,7 +21,7 @@ async function mailList(email: string, mode: "in" | "out") {
         Accept: "application/json",
         // FormSubmit rejects server-side posts without a site Origin/Referer.
         Origin: "https://lathosworld.com",
-        Referer: "https://lathosworld.com/",
+        Referer: "https://lathosworld.com/help", // the activated FormSubmit referrer
       },
       signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
