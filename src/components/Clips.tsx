@@ -13,6 +13,8 @@ type Clip =
 
 // Captions are checked against the footage: Twitch clips by frames + on-screen callouts (no speech in the VOD),
 // YouTube by the video's own title. YouTube embeds start at 0 (no chapter or replay data to justify a jump).
+// Never add clips that show the PS5 blue "can't stream this screen" placeholder.
+// PS5 blocks capture on menus and other non-streamable screens, so that footage is a solid blue card, not gameplay.
 export const CLIPS: Clip[] = [
   {
     kind: "twitch", slug: "DignifiedUgliestArmadilloTwitchRPG-n9yOfV6fiIcWsBMM", channel: "the_demon_hunter3",
@@ -29,37 +31,15 @@ export const CLIPS: Clip[] = [
     poster: "/clips/labyrinthine-hades-check-on-your-dawg.webp", duration: "PT28S", uploadDate: "2026-10-04T07:23:14Z",
   },
   {
-    kind: "mp4", title: "We're Back In! | Once Human Login to Base", game: "Once Human",
-    description: "Server notice, a glitchy login, the Once Human title screen, then straight back home to the base.",
-    tags: ["Once Human", "LathosWorld", "Twitch clip", "survival game", "login"],
-    src: "/clips/once-human-back-in-v1.mp4", poster: "/clips/once-human-back-in-v1.jpg", duration: "PT35S", uploadDate: VOD_DATE,
-  },
-  {
     kind: "mp4", title: "Moving My ENTIRE Base in Once Human", game: "Once Human",
     description: "Picking up the whole territory and scouting the map for the perfect new spot.",
     tags: ["Once Human", "LathosWorld", "Twitch clip", "base building", "move territory"],
     src: "/clips/once-human-moving-base-v1.mp4", poster: "/clips/once-human-moving-base-v1.jpg", duration: "PT1M15S", uploadDate: VOD_DATE,
   },
   {
-    kind: "mp4", title: "New Base, New Neighborhood | Once Human", game: "Once Human",
-    description: "Territory move confirmed, then out to explore the cliffs around the new home.",
-    tags: ["Once Human", "LathosWorld", "Twitch clip", "open world", "exploring"],
-    src: "/clips/once-human-new-base-v1.mp4", poster: "/clips/once-human-new-base-v1.jpg", duration: "PT48S", uploadDate: VOD_DATE,
-  },
-  {
     kind: "yt", id: "uVXvTdaZFpo", title: "Once Human GamePlay (Talking to you!BOOMY!)", game: "Once Human",
     description: "Once Human gameplay on the LathosWorld YouTube channel.",
     tags: ["Once Human", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-01T18:56:49-07:00",
-  },
-  {
-    kind: "yt", id: "ap7OTBLAFYc", title: "Lord of the Rings: War in the North – Legacy Edition Gameplay | Live Stream (Aug 16, 2026)", game: "The Lord of the Rings: War in the North",
-    description: "The Lord of the Rings: War in the North – Legacy Edition gameplay on the LathosWorld YouTube channel.",
-    tags: ["Lord of the Rings", "War in the North", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T17:03:51-07:00",
-  },
-  {
-    kind: "yt", id: "wagiK0c-Dn4", title: "Destiny 2 Gameplay – Full Live Stream (Jun 25, 2026) | LathosWorld", game: "Destiny 2",
-    description: "Destiny 2 gameplay on the LathosWorld YouTube channel.",
-    tags: ["Destiny 2", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T16:46:29-07:00",
   },
 ];
 
