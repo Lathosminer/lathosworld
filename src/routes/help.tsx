@@ -1,12 +1,16 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HelpDesk } from "@/components/HelpDesk";
 import { DESK_LABEL } from "@/lib/helpdesk";
 
 export const Route = createFileRoute("/help")({
   component: HelpPage,
-  head: () => ({
-    meta: [{ title: DESK_LABEL }],
-  }),
+  head: () =>
+    pageHead({
+      path: "/help",
+      title: "LathosWorld Help Desk",
+      description: "Questions about LathosWorld or $LWRLD? Ask the LathosWorld Help Desk or write help@lathosworld.com. Never share a seed phrase.",
+    }),
 });
 
 function HelpPage() {

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/seo";
 import { youtubeLive } from "@/lib/youtube-live.functions";
 import { Clips } from "@/components/Clips";
 import EmblemArc from "@/components/EmblemArc";
@@ -12,36 +13,17 @@ import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK = "/mark.jpg?v=v10";
 const MARK_SM = "/mark-sm.webp";
-const LEDE =
-  "I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.";
-const OG_IMAGE = "https://lathosworld.com/og.jpg";
 
 export const Route = createFileRoute("/")({
   component: Home,
-  head: () => ({
-    meta: [
-      { title: "LathosWorld · $LWRLD" },
-      { name: "description", content: LEDE },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "LathosWorld" },
-      { property: "og:title", content: "LathosWorld · $LWRLD" },
-      { property: "og:description", content: LEDE },
-      { property: "og:url", content: "https://lathosworld.com/" },
-      { property: "og:image", content: OG_IMAGE },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: "LathosWorld" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@lathos563" },
-      { name: "twitter:title", content: "LathosWorld · $LWRLD" },
-      { name: "twitter:description", content: LEDE },
-      { name: "twitter:image", content: OG_IMAGE },
-    ],
-    links: [
-      { rel: "canonical", href: "https://lathosworld.com/" },
-      { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" },
-    ],
-  }),
+  head: () => {
+    const h = pageHead({
+      path: "/",
+      title: "LathosWorld · Gamer, streamer and $LWRLD",
+      description: "Lathos streams Once Human and more on Twitch and YouTube. Clips, the $LWRLD token on Flap, The Official Shit List and the help desk.",
+    });
+    return { ...h, links: [...h.links, { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" }] };
+  },
 });
 
 const CA = "0x3899ebf76c768c156df3073031a4518c5f947777";
@@ -419,6 +401,7 @@ function Home() {
               <h2>The Official Shit List</h2>
             </div>
             <LetterBox />
+            <p className="page-link"><a href="/list">Open The Official Shit List page</a></p>
           </div>
         </section>
         <SwordRule />
@@ -429,6 +412,7 @@ function Home() {
               <h2>Help desk</h2>
             </div>
             <HelpDesk />
+            <p className="page-link"><a href="/help">Open the LathosWorld Help Desk page</a></p>
           </div>
         </section>
       </main>
@@ -436,7 +420,7 @@ function Home() {
         <div className="wrap">
           <p className="way">Not financial advice.</p>
           <p className="thanks">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><a href="#help">{DESK_LABEL}</a></p>
+          <p className="copy"><a href="/help">{DESK_LABEL}</a> · <a href="/list">The Official Shit List</a></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>

@@ -1,11 +1,15 @@
+import { pageHead } from "@/lib/seo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
 
 export const Route = createFileRoute("/list")({
   component: ListPage,
-  head: () => ({
-    meta: [{ title: "The Official Shit List · lathosworld.com" }, { name: "description", content: "Join The Official Shit List. It only points at the doors. A follow is the only ask." }],
-  }),
+  head: () =>
+    pageHead({
+      path: "/list",
+      title: "The Official Shit List · LathosWorld",
+      description: "Join The Official Shit List from LathosWorld. It only points at the doors: Twitch, YouTube, X, Discord and more. A follow is the only ask.",
+    }),
 });
 
 function ListPage() {
