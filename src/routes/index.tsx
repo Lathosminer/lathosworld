@@ -1,3 +1,4 @@
+import { youtubeLive } from "@/lib/youtube-live.functions";
 import { Clips } from "@/components/Clips";
 import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
@@ -103,6 +104,28 @@ function TwitchEmbed() {
 
 function YouTubeEmbed() {
   const [on, setOn] = useState(false);
+  const [liveId, setLiveId] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const check = () => youtubeLive().then((r) => alive && setLiveId(r.id)).catch(() => {});
+    check();
+    const t = window.setInterval(check, 90_000);
+    return () => { alive = false; window.clearInterval(t); };
+  }, []);
+  if (liveId) {
+    return (
+      <div className="youtube">
+        <p className="yt-live-badge"><span aria-hidden="true">●</span> Live on YouTube now</p>
+        <iframe
+          className="youtube-frame"
+          src={`https://www.youtube-nocookie.com/embed/${liveId}?autoplay=1&mute=1`}
+          title="LathosWorld live on YouTube"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+        />
+      </div>
+    );
+  }
   return (
     <div className="youtube">
       {on ? (
