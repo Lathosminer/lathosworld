@@ -244,6 +244,9 @@ function Home() {
             </div>
             <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
             <p className="team-line">I love Grok Bot and Grok ⚡</p>
+            <blockquote className="motto">
+              <p>“A LathosWorld inhabitant is neither late, nor is he early. He arrives precisely when he means to.”</p>
+            </blockquote>
             <YouTubeEmbed />
           </div>
         </section>
