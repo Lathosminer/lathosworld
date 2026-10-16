@@ -25,7 +25,7 @@ async function mailList(email: string, mode: "in" | "out") {
       },
       signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
-        _subject: mode === "in" ? "The list: new signup" : "The list: remove me",
+        _subject: mode === "in" ? "The Official Shit List: new signup" : "The Official Shit List: remove me",
         _template: "table",
         _captcha: "false",
         list: mode === "in" ? "join" : "leave",

@@ -172,7 +172,7 @@ function Home() {
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
           <a href="#socials">Socials</a>
-          <a href="#list">List</a>
+          <a href="#list">Shit List</a>
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
           <TrustConnect compact />
@@ -378,7 +378,7 @@ function Home() {
           <div className="wrap" id="letter">
             <div className="banner">
               <p className="kicker">lathosworld.com</p>
-              <h2>The list</h2>
+              <h2>The Official Shit List</h2>
             </div>
             <LetterBox />
           </div>

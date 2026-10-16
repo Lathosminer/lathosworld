@@ -39,11 +39,11 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
 
   return (
     <div className="letter-box">
-      <p className="lede">The list only points at the doors. I will never ask you for anything but a follow.</p>
+      <p className="lede">The Official Shit List only points at the doors. I will never ask you for anything but a follow.</p>
       {done === "in" ? (
-        <p className="gate-note">You're on the list. The doors are on this page.</p>
+        <p className="gate-note">You're on The Official Shit List. The doors are on this page.</p>
       ) : done === "out" ? (
-        <p className="gate-note">That email is off the list.</p>
+        <p className="gate-note">That email is off The Official Shit List.</p>
       ) : (
         <form className="letter-form" onSubmit={onJoin}>
           <label>
@@ -57,7 +57,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
               placeholder="you@email.com"
             />
           </label>
-          <button className="btn btn-cyan" type="submit" disabled={busy}><MiniSword />{busy ? "Saving" : "Join the list"}</button>
+          <button className="btn btn-cyan" type="submit" disabled={busy}><MiniSword />{busy ? "Saving" : "Join The Official Shit List"}</button>
         </form>
       )}
       {message ? <p className="gate-note">{message}</p> : null}
