@@ -967,3 +967,53 @@ a, button, .btn, .cursor-pointer, label, input, select, summary {
 .clip video img { display: block; width: 100%; height: auto; }
 .buy-bar { padding-bottom: calc(0.45rem + env(safe-area-inset-bottom, 0px)); }
 body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
+
+/* Shared lightning glow for every GIF on the site (subtle, flickers like a strike). */
+.emblem { display: flex; justify-content: center; padding-inline: 1rem; }
+.emblem-frame { width: 100%; max-width: 600px; margin: 0 auto; }
+.emblem-frame img { display: block; width: 100%; height: auto; }
+.gif-lightning { position: relative; isolation: isolate; border-radius: 8px; overflow: hidden; }
+.gif-lightning img, .gif-lightning-img { animation: gif-bolt-glow 5.5s infinite; }
+.gif-lightning::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  mix-blend-mode: screen; opacity: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(95, 243, 240, 0.35), rgba(255, 42, 42, 0.18) 45%, transparent 70%);
+  animation: gif-bolt-flash 5.5s infinite;
+}
+@keyframes gif-bolt-glow {
+  0%, 60%, 70%, 100% { filter: drop-shadow(0 0 4px rgba(95, 243, 240, 0.25)); }
+  62% { filter: drop-shadow(0 0 14px rgba(95, 243, 240, 0.85)) brightness(1.15); }
+  64% { filter: drop-shadow(0 0 6px rgba(255, 42, 42, 0.5)); }
+  66% { filter: drop-shadow(0 0 12px rgba(244, 255, 255, 0.8)) brightness(1.1); }
+}
+@keyframes gif-bolt-flash {
+  0%, 60%, 68%, 100% { opacity: 0; }
+  62% { opacity: 0.9; } 63% { opacity: 0.2; } 66% { opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gif-lightning img, .gif-lightning-img, .gif-lightning::after { animation: none; }
+}
+
+.emblem-arc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+
+/* Clips */
+.clip-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); margin-top: 1.25rem; }
+.clip-card { margin: 0; background: rgba(8, 14, 22, 0.75); border: 1px solid rgba(95, 243, 240, 0.22); }
+.clip-card:hover { border-color: rgba(95, 243, 240, 0.55); box-shadow: 0 0 18px rgba(95, 243, 240, 0.18), 0 0 30px rgba(255, 42, 42, 0.08); }
+.clip-media { position: relative; aspect-ratio: 16 / 9; background: #000; }
+.clip-media video, .clip-media iframe, .clip-facade, .clip-facade img { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; object-fit: cover; display: block; }
+.clip-facade { padding: 0; cursor: pointer; background: #000; }
+.clip-play { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; color: #f4ffff; background: rgba(0, 0, 0, 0.55); border: 2px solid rgba(95, 243, 240, 0.8); box-shadow: 0 0 14px rgba(95, 243, 240, 0.6), 0 0 22px rgba(255, 42, 42, 0.3); }
+.clip-facade:hover .clip-play, .clip-facade:focus-visible .clip-play { box-shadow: 0 0 22px rgba(95, 243, 240, 0.9), 0 0 30px rgba(255, 42, 42, 0.45); }
+.clip-card figcaption { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem 0.85rem; }
+.clip-card figcaption span { opacity: 0.7; font-size: 0.85rem; }
+.clip-card .clip-tags { font-size: 0.75rem; opacity: 0.55; }
+.banner .h2-like { margin: 1.4rem 0 0.4rem; font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.9rem); letter-spacing: 0.04em; }
+
+.nav-links a.btn-cyan, .nav-links a.btn-cyan:hover { color: var(--color-bg); }
+.emblem-video { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+.gif-lightning .emblem-video { animation: gif-bolt-glow 5.5s infinite; }
+.youtube .clip-facade { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; padding: 0; border: 0; }
+.youtube .clip-facade img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (prefers-reduced-motion: reduce) { .gif-lightning .emblem-video { animation: none; } }
+.notfound { min-height: 70vh; display: grid; place-content: center; text-align: center; gap: 1rem; padding: 2rem; }
