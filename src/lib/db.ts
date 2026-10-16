@@ -132,7 +132,7 @@ function createNeonSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
     // Neon's serverless driver (pg-compatible Pool over WebSocket/443). Works on
     // Cloudflare Workers, where raw TCP to 5432 is not available by default.
-    const { Pool, types, neonConfig } = await import("@neondatabase/serverless");
+    const { Pool, Client, types, neonConfig } = await import("@neondatabase/serverless");
     if (typeof WebSocket === "undefined") {
       const { default: ws } = await import("ws");
       neonConfig.webSocketConstructor = ws as unknown as typeof WebSocket;
@@ -140,11 +140,24 @@ function createNeonSql(): Promise<Sql> {
     types.setTypeParser(OID_INT8, Number);
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
-    const pool = new Pool({ connectionString: databaseUrl });
-    await applyNeonMigrations(pool);
+    // Migrations: a short-lived Pool, closed before this request ends.
+    const migratePool = new Pool({ connectionString: databaseUrl });
+    try {
+      await applyNeonMigrations(migratePool);
+    } finally {
+      await migratePool.end().catch(() => {});
+    }
+    // Queries: a fresh Client per query. Cloudflare Workers forbid reusing a
+    // socket across requests, so nothing long-lived may be cached here.
     return toSql(async <T>(text: string, params: unknown[]) => {
-      const res = await pool.query(text, params);
-      return res.rows as T[];
+      const client = new Client({ connectionString: databaseUrl, types });
+      await client.connect();
+      try {
+        const res = await client.query(text, params);
+        return res.rows as T[];
+      } finally {
+        await client.end().catch(() => {});
+      }
     });
   })().catch((err) => {
     globalRef.__pgSqlPromise__ = undefined;
