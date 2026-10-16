@@ -124,7 +124,8 @@ export const resetWithSecurity = createServerFn({ method: "POST" })
       throw new Error("Those answers don't match.");
     }
     const hashed = await hashPassword(data.password);
-    await sql`update "account" set password = ${hashed}, "updatedAt" = now() where "userId" = ${user.id} and "providerId" = 'credential'`;
+    const updated = await sql<{ id: string }>`update "account" set password = ${hashed}, "updatedAt" = now() where "userId" = ${user.id} and "providerId" = 'credential' returning id`;
+    if (updated.length === 0) throw new Error("That account has no password to reset.");
     await sql`delete from "session" where "userId" = ${user.id}`;
     fails.delete(data.email);
     return { ok: true as const };
