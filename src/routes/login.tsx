@@ -65,7 +65,11 @@ function Login() {
         setMessage("Those passwords don't match.");
         return;
       }
-      await resetWithSecurity({ data: { email, answers: [a1, a2], password } });
+      const reset = await resetWithSecurity({ data: { email, answers: [a1, a2], password } });
+      // Only claim success when the server confirmed it; a failed call must show its error.
+      if (!reset || (reset as { ok?: boolean }).ok !== true) {
+        throw new Error("Could not reset the password. Try again in a moment.");
+      }
       setFound(null);
       setMode("in");
       setPassword("");
