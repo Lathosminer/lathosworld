@@ -47,6 +47,8 @@ async function writeSubscriber(email: string, mode: "in" | "out") {
     } else {
       await sql`delete from newsletter_subscriber where email = ${email}`;
     }
+    // Saved. Also mail a copy to the desk inbox; a mail hiccup never fails the visitor.
+    await mailList(email, mode);
     return { ok: true as const };
   } catch (err) {
     console.error("[list] database unavailable, mailing instead", err);

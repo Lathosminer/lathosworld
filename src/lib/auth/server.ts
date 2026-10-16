@@ -34,7 +34,7 @@ import { bearer, genericOAuth } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { getCookie } from "@tanstack/react-start/server";
 import { randomBytes } from "node:crypto";
-import { Pool } from "pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
@@ -130,6 +130,12 @@ const trustedOrigins: string[] = explicitBaseURL
     ];
 
 const databaseUrl = env("DATABASE_URL");
+
+// Workers (and Node 22+) have a global WebSocket for Neon; older Node needs `ws`.
+if (databaseUrl && typeof WebSocket === "undefined") {
+  const { default: ws } = await import("ws");
+  neonConfig.webSocketConstructor = ws as unknown as typeof WebSocket;
+}
 
 // Static broker OAuth endpoints (skip OIDC discovery on every sign-in / callback).
 // Discovery would cost an extra network hop to the broker before the popup can
