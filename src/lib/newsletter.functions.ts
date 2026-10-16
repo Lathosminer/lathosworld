@@ -16,7 +16,13 @@ async function mailList(email: string, mode: "in" | "out") {
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${DESK_EMAIL}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // FormSubmit rejects server-side posts without a site Origin/Referer.
+        Origin: "https://lathosworld.com",
+        Referer: "https://lathosworld.com/",
+      },
       signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
         _subject: mode === "in" ? "The list: new signup" : "The list: remove me",
@@ -27,7 +33,7 @@ async function mailList(email: string, mode: "in" | "out") {
       }),
     });
     const body = (await res.json().catch(() => ({}))) as { success?: string | boolean; message?: string };
-    return body.success === true || body.success === "true" || /activat/i.test(String(body.message ?? ""));
+    return body.success === true || body.success === "true";
   } catch {
     return false;
   }

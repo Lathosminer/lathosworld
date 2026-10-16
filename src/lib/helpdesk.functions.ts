@@ -49,7 +49,13 @@ async function mailDesk(input: HelpInput, answer: string) {
   try {
     const res = await fetch(`https://formsubmit.co/ajax/${DESK_EMAIL}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        // FormSubmit rejects server-side posts without a site Origin/Referer.
+        Origin: "https://lathosworld.com",
+        Referer: "https://lathosworld.com/",
+      },
       signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
         _subject: DESK_LABEL,
