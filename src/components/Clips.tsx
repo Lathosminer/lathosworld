@@ -51,12 +51,12 @@ const CLIPS: Clip[] = [
     tags: ["Once Human", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-01T18:56:49-07:00",
   },
   {
-    kind: "yt", id: "ap7OTBLAFYc", title: "The Lord of the Rings: War in the North – Legacy Edition_20260816172307", game: "The Lord of the Rings: War in the North",
+    kind: "yt", id: "ap7OTBLAFYc", title: "Lord of the Rings: War in the North – Legacy Edition Gameplay | Live Stream (Aug 16, 2026)", game: "The Lord of the Rings: War in the North",
     description: "The Lord of the Rings: War in the North – Legacy Edition gameplay on the LathosWorld YouTube channel.",
     tags: ["Lord of the Rings", "War in the North", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T17:03:51-07:00",
   },
   {
-    kind: "yt", id: "wagiK0c-Dn4", title: "Destiny 2_20260625214435", game: "Destiny 2",
+    kind: "yt", id: "wagiK0c-Dn4", title: "Destiny 2 Gameplay – Full Live Stream (Jun 25, 2026) | LathosWorld", game: "Destiny 2",
     description: "Destiny 2 gameplay on the LathosWorld YouTube channel.",
     tags: ["Destiny 2", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-11T16:46:29-07:00",
   },
