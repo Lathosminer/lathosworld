@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 
 const SITE = "https://lathosworld.com";
 const TWITCH_VOD = "https://www.twitch.tv/videos/2900991343";
@@ -12,7 +13,7 @@ type Clip =
 
 // Captions are checked against the footage: Twitch clips by frames + on-screen callouts (no speech in the VOD),
 // YouTube by the video's own title. YouTube embeds start at 0 (no chapter or replay data to justify a jump).
-const CLIPS: Clip[] = [
+export const CLIPS: Clip[] = [
   {
     kind: "twitch", slug: "DignifiedUgliestArmadilloTwitchRPG-n9yOfV6fiIcWsBMM", channel: "the_demon_hunter3",
     title: "can you fly bobby?", game: "ARC Raiders",
@@ -122,6 +123,30 @@ function ClipCard({ clip }: { clip: Clip }) {
   );
 }
 
+export function ClipBrowser({ filters = false }: { filters?: boolean }) {
+  const games = ["All", ...CLIPS.map((clip) => clip.game).filter((game, index, all) => all.indexOf(game) === index)];
+  const [game, setGame] = useState("All");
+  const shown = game === "All" ? CLIPS : CLIPS.filter((clip) => clip.game === game);
+  return (
+    <>
+      {filters ? (
+        <div className="clip-filters" role="toolbar" aria-label="Filter by game">
+          {games.map((name) => (
+            <button key={name} type="button" className={name === game ? "btn btn-cyan" : "btn btn-ghost"} onClick={() => setGame(name)} aria-pressed={name === game}>
+              {name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <div className="clip-grid">
+        {shown.map((clip) => (
+          <ClipCard key={clip.title} clip={clip} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function Clips() {
   return (
     <section className="section" id="clips" aria-labelledby="clips-title">
@@ -130,12 +155,8 @@ export function Clips() {
         <div className="banner">
           <h2 id="clips-title">Clips</h2>
         </div>
-        <p className="serif-line">The best bits from Twitch and YouTube.</p>
-        <div className="clip-grid">
-          {CLIPS.map((clip) => (
-            <ClipCard key={clip.title} clip={clip} />
-          ))}
-        </div>
+        <p className="serif-line">The best bits from Twitch and YouTube. <Link to="/clips">Filter by game</Link></p>
+        <ClipBrowser />
       </div>
     </section>
   );

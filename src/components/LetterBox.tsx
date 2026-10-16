@@ -6,6 +6,8 @@ import { SOCIALS } from "@/lib/socials";
 
 export function LetterBox({ showLink = true }: { showLink?: boolean }) {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [wall, setWall] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<"in" | "out" | "">("");
   const [message, setMessage] = useState("");
@@ -15,7 +17,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
     setBusy(true);
     setMessage("");
     try {
-      await joinLetter({ data: email });
+      await joinLetter({ data: { email, name, wall } });
       setDone("in");
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Could not add that email.");
@@ -57,6 +59,23 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
               placeholder="you@email.com"
             />
           </label>
+          <label className="check">
+            <input type="checkbox" checked={wall} onChange={(event) => setWall(event.target.checked)} />
+            <span>Show my name on the survivors wall. My email stays private.</span>
+          </label>
+          {wall ? (
+            <label>
+              First name or nickname
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={24}
+                required
+                placeholder="A first name or nickname"
+                autoComplete="nickname"
+              />
+            </label>
+          ) : null}
           <button className="btn btn-cyan" type="submit" disabled={busy}><MiniSword />{busy ? "Saving" : "Join The Official Shit List"}</button>
         </form>
       )}

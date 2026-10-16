@@ -1063,3 +1063,19 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 
 .motto { margin: 1rem 0 1.5rem; max-width: 34rem; padding: .25rem 0 .25rem 1rem; border-left: 2px solid rgba(0,229,255,.6); text-align: left; }
 .motto p { margin: 0; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 1rem; line-height: 1.5; opacity: .85; }
+
+.gate-wide { max-width: 72rem; }
+.clip-filters { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0.8rem 0 1rem; }
+.clip-filters .btn { min-height: 44px; }
+.check { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.95rem; }
+.check input { margin-top: 0.35rem; width: 1rem; height: 1rem; }
+.wall { display: flex; flex-wrap: wrap; gap: 0.55rem; list-style: none; padding: 0; margin: 1rem 0; }
+.wall li { padding: 0.45rem 0.8rem; border: 1px solid rgba(95, 243, 240, 0.35); background: rgba(8, 14, 22, 0.75); font-family: var(--font-display); letter-spacing: 0.06em; }
+.week { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.week th, .week td { text-align: left; padding: 0.65rem 0.7rem; border-bottom: 1px solid var(--color-line); }
+.week thead th { font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-cyan); }
+.egg { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 1rem; background: rgba(0, 0, 0, 0.78); }
+.egg-card { position: relative; width: min(36rem, 100%); min-height: 18rem; padding: 1.2rem 1.2rem 1rem; background: #070c12; border: 1px solid rgba(95, 243, 240, 0.4); box-shadow: 0 0 24px rgba(224, 34, 42, 0.25); }
+.egg-bug { position: absolute; transform: translate(-50%, -50%); min-width: 4.5rem; min-height: 44px; border: 1px solid var(--color-blood); background: rgba(80, 8, 12, 0.9); color: #fff; font-family: var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
+.egg-bug span { display: block; width: 0.7rem; height: 0.7rem; margin: 0 auto 0.15rem; border-radius: 50%; background: #ff5a1f; box-shadow: 0 0 8px #ff5a1f; }
+

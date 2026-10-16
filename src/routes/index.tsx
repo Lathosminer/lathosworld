@@ -4,12 +4,13 @@ import { youtubeLive } from "@/lib/youtube-live.functions";
 import { Clips } from "@/components/Clips";
 import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { LetterBox } from "@/components/LetterBox";
 import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
+import { SurvivorEgg } from "@/components/SurvivorEgg";
 import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK_SM = "/mark-sm.webp";
@@ -199,9 +200,12 @@ function Home() {
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
+          <Link to="/clips">Clips</Link>
+          <Link to="/schedule">Schedule</Link>
           <a href="#buy">How to get it</a>
           <a href="#token">Contract</a>
           <a href="#socials">Socials</a>
+          <Link to="/survivors">Survivors</Link>
           <a href="#list">Shit List</a>
           <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
@@ -457,6 +461,7 @@ function Home() {
         <p>$LWRLD · contract ends in 7777</p>
         <a className="btn btn-cyan" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
       </div>
+      <SurvivorEgg />
     </>
   );
 }
