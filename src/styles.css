@@ -1079,3 +1079,8 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 .egg-bug { position: absolute; transform: translate(-50%, -50%); min-width: 4.5rem; min-height: 44px; border: 1px solid var(--color-blood); background: rgba(80, 8, 12, 0.9); color: #fff; font-family: var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
 .egg-bug span { display: block; width: 0.7rem; height: 0.7rem; margin: 0 auto 0.15rem; border-radius: 50%; background: #ff5a1f; box-shadow: 0 0 8px #ff5a1f; }
 
+
+/* /clips, /schedule, /survivors page headings (were falling back to plain text) */
+.gate-wide h1 { margin: 0.25rem 0 0.5rem; font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 2.8rem); letter-spacing: 0.04em; line-height: 1.1; }
+/* Easter egg: taller card so the moving target never lands on the text or Close */
+.egg-card { min-height: 28rem; }

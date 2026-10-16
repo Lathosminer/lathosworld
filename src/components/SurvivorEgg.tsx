@@ -49,7 +49,7 @@ function Raid({ onClose }: { onClose: () => void }) {
   const calm = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
-  const [bug, setBug] = useState<Bug | null>(calm ? null : { id: 1, x: 18, y: 62 });
+  const [bug, setBug] = useState<Bug | null>(calm ? null : { id: 1, x: 18, y: 72 });
   const [end, setEnd] = useState<"" | "out" | "down">(calm ? "out" : "");
   const id = useRef(1);
 
@@ -62,7 +62,7 @@ function Raid({ onClose }: { onClose: () => void }) {
         return next;
       });
       id.current += 1;
-      setBug({ id: id.current, x: 8 + Math.random() * 78, y: 18 + Math.random() * 64 });
+      setBug({ id: id.current, x: 8 + Math.random() * 78, y: 56 + Math.random() * 32 });
     }, 1300);
     return () => window.clearTimeout(timer);
   }, [bug, calm, end]);
@@ -76,7 +76,7 @@ function Raid({ onClose }: { onClose: () => void }) {
       return;
     }
     id.current += 1;
-    setBug({ id: id.current, x: 8 + Math.random() * 78, y: 18 + Math.random() * 64 });
+    setBug({ id: id.current, x: 8 + Math.random() * 78, y: 56 + Math.random() * 32 });
   }
 
   return (
