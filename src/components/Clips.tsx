@@ -7,11 +7,26 @@ const VOD_DATE = "2026-10-15T00:04:41Z"; // Twitch VOD 2900991343 broadcast star
 type Base = { title: string; description: string; game: string; tags: string[]; uploadDate: string };
 type Clip =
   | (Base & { kind: "mp4"; src: string; poster: string; duration: string })
-  | (Base & { kind: "yt"; id: string });
+  | (Base & { kind: "yt"; id: string })
+  | (Base & { kind: "twitch"; slug: string; channel: string; poster: string; duration: string });
 
 // Captions are checked against the footage: Twitch clips by frames + on-screen callouts (no speech in the VOD),
 // YouTube by the video's own title. YouTube embeds start at 0 (no chapter or replay data to justify a jump).
 const CLIPS: Clip[] = [
+  {
+    kind: "twitch", slug: "DignifiedUgliestArmadilloTwitchRPG-n9yOfV6fiIcWsBMM", channel: "the_demon_hunter3",
+    title: "can you fly bobby?", game: "ARC Raiders",
+    description: "Funny and friendly: \"I believe I can fly\" up on the rooftops, then the squad runs on through the rail yard. Clipped by Lathos on the_demon_hunter3's stream.",
+    tags: ["ARC Raiders", "LathosWorld", "the_demon_hunter3", "Twitch clip", "funny"],
+    poster: "/clips/arc-raiders-can-you-fly-bobby.webp", duration: "PT30S", uploadDate: "2026-10-09T05:32:05Z",
+  },
+  {
+    kind: "twitch", slug: "CrepuscularDifferentHawkTBTacoRight-SJ_rYvnelqtp_0N8", channel: "the_demon_hunter3",
+    title: "Hades 🐕 Check on your dawg", game: "LABYRINTHINE",
+    description: "Funny and friendly: chilling on the LABYRINTHINE menu with Hades the dog while we wait. \"You okay, Hades? Come here. No, not over there.\" Clipped by Lathos on the_demon_hunter3's stream.",
+    tags: ["LABYRINTHINE", "LathosWorld", "the_demon_hunter3", "Twitch clip", "dog"],
+    poster: "/clips/labyrinthine-hades-check-on-your-dawg.webp", duration: "PT28S", uploadDate: "2026-10-04T07:23:14Z",
+  },
   {
     kind: "mp4", title: "We're Back In! | Once Human Login to Base", game: "Once Human",
     description: "Server notice, a glitchy login, the Once Human title screen, then straight back home to the base.",
@@ -47,7 +62,7 @@ const CLIPS: Clip[] = [
   },
 ];
 
-const thumb = (c: Clip) => (c.kind === "mp4" ? c.poster : `https://i.ytimg.com/vi/${c.id}/hqdefault.jpg`);
+const thumb = (c: Clip) => (c.kind === "yt" ? `https://i.ytimg.com/vi/${c.id}/hqdefault.jpg` : c.poster);
 const abs = (u: string) => (u.startsWith("http") ? u : SITE + u);
 
 const JSON_LD = JSON.stringify({
@@ -63,13 +78,15 @@ const JSON_LD = JSON.stringify({
     author: { "@type": "Person", name: "Lathos", url: SITE },
     ...(c.kind === "mp4"
       ? { contentUrl: abs(c.src), duration: c.duration, isBasedOn: TWITCH_VOD }
-      : { embedUrl: `https://www.youtube-nocookie.com/embed/${c.id}`, url: `https://www.youtube.com/watch?v=${c.id}` }),
+      : c.kind === "twitch"
+        ? { embedUrl: `https://clips.twitch.tv/embed?clip=${c.slug}&parent=lathosworld.com`, url: `https://www.twitch.tv/${c.channel}/clip/${c.slug}`, duration: c.duration }
+        : { embedUrl: `https://www.youtube-nocookie.com/embed/${c.id}`, url: `https://www.youtube.com/watch?v=${c.id}` }),
   })),
 }).replace(/</g, "\\u003c");
 
 function ClipCard({ clip }: { clip: Clip }) {
   const [on, setOn] = useState(false);
-  const source = clip.kind === "mp4" ? "Twitch" : "YouTube";
+  const source = clip.kind === "yt" ? "YouTube" : "Twitch";
   return (
     <figure className="clip-card gif-lightning" data-tags={clip.tags.join(",")}>
       <div className="clip-media">
@@ -78,6 +95,13 @@ function ClipCard({ clip }: { clip: Clip }) {
             <img src={thumb(clip)} alt={`${clip.title}: ${clip.game} on LathosWorld`} loading="lazy" decoding="async" width={640} height={360} />
             <span className="clip-play" aria-hidden="true">▶</span>
           </button>
+        ) : clip.kind === "twitch" ? (
+          <iframe
+            src={`https://clips.twitch.tv/embed?clip=${clip.slug}&parent=lathosworld.com&parent=www.lathosworld.com&autoplay=true`}
+            title={clip.title}
+            allow="autoplay; fullscreen"
+            allowFullScreen
+          />
         ) : clip.kind === "mp4" ? (
           <video src={clip.src} poster={clip.poster} controls autoPlay playsInline preload="metadata" aria-label={clip.title} />
         ) : (
