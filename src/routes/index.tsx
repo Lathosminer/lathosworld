@@ -180,6 +180,10 @@ function Home() {
       </header>
       <main id="top">
         <HeroLoop />
+        <section className="blade" aria-label="The blade">
+          <img src="/blade-4k.jpg" width={3840} height={2160} alt="The LathosWorld blade" />
+          <a href="/blade-4k.jpg" download="lathosworld-blade-4k.jpg">Save the 4K blade</a>
+        </section>
         <h1 className="visually-hidden">LathosWorld</h1>
         <section className="hero" aria-label="Story">
           <div className="hero-copy">
