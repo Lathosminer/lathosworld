@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { MiniSword } from "@/components/MiniSword";
 import { joinLetter, leaveLetter } from "@/lib/newsletter.functions";
 import { SOCIALS } from "@/lib/socials";
 
@@ -76,7 +75,7 @@ export function LetterBox({ showLink = true }: { showLink?: boolean }) {
               />
             </label>
           ) : null}
-          <button className="btn btn-cyan" type="submit" disabled={busy}><MiniSword />{busy ? "Saving" : "Join The Official Shit List"}</button>
+          <button className="btn btn-cyan" type="submit" disabled={busy}>{busy ? "Saving" : "Join The Official Shit List"}</button>
         </form>
       )}
       {message ? <p className="gate-note">{message}</p> : null}

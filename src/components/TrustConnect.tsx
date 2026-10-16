@@ -184,6 +184,11 @@ function QrImg({ value }: { value: string }) {
 
 export function TrustConnect({ compact = false }: { compact?: boolean }) {
   const { ready, wallets, wallet, busy, error } = useSyncExternalStore(subscribeTrust, getTrustState, getTrustState);
+  const [more, setMore] = useState(false);
+  const primaryPhone = PHONE.filter((item) => item.name === "Trust Wallet" || item.name === "MetaMask");
+  const morePhone = PHONE.filter((item) => item.name !== "Trust Wallet" && item.name !== "MetaMask");
+  const primaryGuides = GUIDES.filter((guide) => guide.name === "Trust Wallet" || guide.name === "MetaMask");
+  const moreGuides = GUIDES.filter((guide) => guide.name !== "Trust Wallet" && guide.name !== "MetaMask");
 
   if (compact) {
     if (wallet) return <a className="btn btn-ghost" href="#token">{shortAddress(wallet.address)}</a>;
@@ -225,7 +230,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
       <div className="wallet-help">
         <p className="note">On a computer, scan a code with the phone camera. It opens this page inside that wallet. Then press Connect and approve. Use BNB Smart Chain. On a phone, press the name under a code, or open this site in that app’s own browser. An exchange login is not a wallet. This site never asks for a seed phrase.</p>
         <div className="qr-grid">
-          {PHONE.map((item) => (
+          {primaryPhone.map((item) => (
             <div key={item.name} className="qr-card">
               <QrImg value={item.href()} />
               <button className={item.name === "Trust Wallet" ? "btn btn-cyan" : "btn btn-ghost"} type="button" onClick={item.open}>{item.name}</button>
@@ -233,7 +238,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
           ))}
         </div>
         <ul className="wallet-guides">
-          {GUIDES.map((guide) => (
+          {primaryGuides.map((guide) => (
             <li key={guide.name} className="wallet-guide">
               <strong>{guide.name}</strong>
               <p>{guide.how}</p>
@@ -241,6 +246,32 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
             </li>
           ))}
         </ul>
+        <div className="cta-row">
+          <button className="btn btn-ghost" type="button" aria-expanded={more} onClick={() => setMore((open) => !open)}>
+            {more ? "Fewer wallets" : "More wallets"}
+          </button>
+        </div>
+        {more ? (
+          <>
+            <div className="qr-grid">
+              {morePhone.map((item) => (
+                <div key={item.name} className="qr-card">
+                  <QrImg value={item.href()} />
+                  <button className="btn btn-ghost" type="button" onClick={item.open}>{item.name}</button>
+                </div>
+              ))}
+            </div>
+            <ul className="wallet-guides">
+              {moreGuides.map((guide) => (
+                <li key={guide.name} className="wallet-guide">
+                  <strong>{guide.name}</strong>
+                  <p>{guide.how}</p>
+                  <a href={guide.href} target="_blank" rel="noopener noreferrer">{guide.help}</a>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </div>
     </div>
   );

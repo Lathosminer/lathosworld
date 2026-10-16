@@ -123,10 +123,11 @@ function ClipCard({ clip }: { clip: Clip }) {
   );
 }
 
-export function ClipBrowser({ filters = false }: { filters?: boolean }) {
+export function ClipBrowser({ filters = false, limit }: { filters?: boolean; limit?: number }) {
   const games = ["All", ...CLIPS.map((clip) => clip.game).filter((game, index, all) => all.indexOf(game) === index)];
   const [game, setGame] = useState("All");
-  const shown = game === "All" ? CLIPS : CLIPS.filter((clip) => clip.game === game);
+  const pool = game === "All" ? CLIPS : CLIPS.filter((clip) => clip.game === game);
+  const shown = limit ? pool.slice(0, limit) : pool;
   return (
     <>
       {filters ? (
@@ -147,7 +148,7 @@ export function ClipBrowser({ filters = false }: { filters?: boolean }) {
   );
 }
 
-export function Clips() {
+export function Clips({ limit }: { limit?: number }) {
   return (
     <section className="section" id="clips" aria-labelledby="clips-title">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
@@ -155,8 +156,8 @@ export function Clips() {
         <div className="banner">
           <h2 id="clips-title">Clips</h2>
         </div>
-        <p className="serif-line">The best bits from Twitch and YouTube. <Link to="/clips">Filter by game</Link></p>
-        <ClipBrowser />
+        <p className="serif-line">The best bits from Twitch and YouTube. <Link to="/clips">All clips</Link></p>
+        <ClipBrowser limit={limit} />
       </div>
     </section>
   );

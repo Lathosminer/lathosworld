@@ -10,7 +10,15 @@ The name on the page is **lathosworld.com**. A preview link in the builder can c
 
 ## Leave this layout
 
-After the nav, top to bottom: one centered hero (the square v9 loop, `hero-loop`), the story, streams (Twitch player full width, then YouTube), then the coin block (how to get it, the $LWRLD section with the whitepaper link, crypto offers, roadmap), then socials in this order (Twitch, YouTube, X, Pinterest, Discord, Instagram), the mp4/gif clip, then Telegram and Linktree, then the list, then the help desk. Do not reorder that. Do not add a second logo above or below the hero. The nav does not show Sign in.
+After the nav, top to bottom: one centered hero (the square v9 loop, `hero-loop`), the blade, the story, streams (Twitch player full width, then YouTube), three clips, the emblem, then the coin block (how to get it, the contract, crypto offers, roadmap), then one social row, the mp4/gif clip, a short link to the list, then a short link to the help desk. Do not reorder that. Do not add a second logo above or below the hero. The nav does not show Sign in.
+
+The nav is only Streams, Clips, and Get $LWRLD. Schedule, Survivors, the Shit List, and the help desk stay in the footer and on their own pages. The join form is on `/list`. The desk form is on `/help`. Do not put either form back on the homepage.
+
+Homepage socials, in order: Twitch, YouTube, X, Discord, Instagram, Telegram. Pinterest and Linktree stay on the list page only. Do not add a second social row.
+
+The lightning sword is only on the Get $LWRLD buttons (nav, Flap, buy bar). Section marks still use the small still sword. Do not put the lightning sword on social cards or the list button.
+
+Wallets on the contract: detected wallets, Trust Wallet, and MetaMask are the path. The rest sit behind More wallets. Phantom stays in that list.
 
 Do not restore `public/sword.png` or `public/sword-cursor.png`. The cursor is `public/sword-mini-cursor.png`. Section marks use the small still sword.
 
@@ -33,9 +41,9 @@ Sign-in is already on. `emailAndPasswordEnabled = true` in `src/lib/auth/email-p
 The owner will update the whitepaper later. On the site this is only a roadmap.
 
 - $LWRLD on Flap is the token now. Using its proceeds to launch a later token is a roadmap goal. That token does not exist yet. Buying $LWRLD does not send the later token. The only contract is the one that ends in 7777.
-- Percent promise. Every holder of the contract that ends in 7777 is promised a percent of the later token. The percent is not set. No contract pays it yet.
+- A share, not a payment. The goal is that every holder of the contract that ends in 7777 gets a share of the later token. The percent is not set. No contract pays it yet.
 - Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
-- All revenue generated goes back into the coin. 100 percent. None of it is taken out. The merch shop is coming soon. All merch sales go directly back into the coin. 100 percent.
+- The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is coming soon.
 
 ## Help desk
 

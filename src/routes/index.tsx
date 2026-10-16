@@ -5,8 +5,6 @@ import { Clips } from "@/components/Clips";
 import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { LetterBox } from "@/components/LetterBox";
-import { HelpDesk } from "@/components/HelpDesk";
 import { TrustConnect } from "@/components/TrustConnect";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
@@ -47,14 +45,9 @@ const SOCIALS = [
   { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
   { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
   { name: "X", handle: "@lathos563", href: "https://x.com/lathos563", hint: "Talk", icon: "x" },
-  { name: "Pinterest", handle: "Lathos' World", href: "https://www.pinterest.com/lathosworld/", hint: "Pins", icon: "pinterest" },
   { name: "Discord", handle: "The lobby", href: "https://discord.gg/749tHdsFU6", hint: "Join", icon: "discord" },
   { name: "Instagram", handle: "@lathosworld", href: "https://www.instagram.com/lathosworld", hint: "Photos", icon: "instagram" },
-] as const;
-
-const LATER = [
   { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates", icon: "telegram" },
-  { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links", icon: "linktree" },
 ] as const;
 
 const OFFERS = [
@@ -201,15 +194,7 @@ function Home() {
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
-          <Link to="/schedule">Schedule</Link>
-          <a href="#buy">How to get it</a>
-          <a href="#token">Contract</a>
-          <a href="#socials">Socials</a>
-          <Link to="/survivors">Survivors</Link>
-          <a href="#list">Shit List</a>
-          <a href="#help">Help</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
-          <TrustConnect compact />
         </nav>
       </header>
       <main id="top">
@@ -235,8 +220,6 @@ function Home() {
             <p className="sell-line">I am a gamer and a streamer.</p>
             <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
             <p className="lede">I will never ask you for anything but a follow.</p>
-            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support!</p>
-            <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
           </div>
         </section>
         <SwordRule />
@@ -246,7 +229,8 @@ function Home() {
             <div className="banner">
               <h2>Streams</h2>
             </div>
-            <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
+            <p className="serif-line">I stream what I want when I can. My streams are chill. This is not a promise of a start time.</p>
+            <p className="note"><Link to="/schedule">The week</Link></p>
             <p className="team-line">I love Grok Bot and Grok ⚡</p>
             <blockquote className="motto">
               <p>“A LathosWorld inhabitant is neither late, nor is he early. He arrives precisely when he means to.”</p>
@@ -255,7 +239,7 @@ function Home() {
           </div>
         </section>
         <SwordRule />
-        <Clips />
+        <Clips limit={3} />
         <SwordRule />
         <section className="section emblem" aria-label="Lathos' World emblem">
           <div className="gif-lightning emblem-frame">
@@ -341,7 +325,6 @@ function Home() {
             <div className="socials offers">
               {OFFERS.map((offer) => (
                 <a key={offer.name} className="social" href={offer.href} target="_blank" rel="noopener noreferrer">
-                  <span className="social-lead"><MiniSword /></span>
                   <span>
                     <strong>{offer.name}</strong>
                     <em>{offer.handle}</em>
@@ -365,13 +348,13 @@ function Home() {
                 $LWRLD on Flap is the token now. Using its proceeds to launch a later token is a roadmap goal. That token does not exist yet. Buying $LWRLD does not send the later token. The only contract is the one that ends in 7777.
               </p>
               <p className="note">
-                Percent promise. Every holder of the contract that ends in 7777 is promised a percent of the later token. The percent is not set. No contract pays it yet.
+                A share, not a payment. The goal is that every holder of the contract that ends in 7777 gets a share of the later token. The percent is not set. No contract pays it yet.
               </p>
               <p className="note">
                 Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
               </p>
               <p className="note">
-                All revenue generated goes back into the coin. 100 percent. None of it is taken out. The merch shop is coming soon. All merch sales go directly back into the coin. 100 percent.
+                The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is coming soon.
               </p>
               <p className="note">
                 Never risk more than you can afford to lose. Crypto is volatile. Not financial advice. Not a promise of price.
@@ -390,7 +373,7 @@ function Home() {
             <div className="socials">
               {SOCIALS.map((door) => (
                 <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
+                  <span className="social-lead"><Mark name={door.icon} /></span>
                   <span>
                     <strong>{door.name}</strong>
                     <em>{door.handle}</em>
@@ -410,31 +393,16 @@ function Home() {
           <a href="/lathosworld.mp4" download="lathosworld.mp4">Save the video</a>
         </section>
         <SwordRule />
-        <section className="section" id="later" aria-label="Telegram and Linktree">
-          <div className="wrap">
-            <div className="socials">
-              {LATER.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
-                  <span className="social-lead"><MiniSword /><Mark name={door.icon} /></span>
-                  <span>
-                    <strong>{door.name}</strong>
-                    <em>{door.handle}</em>
-                  </span>
-                  <b>{door.hint}</b>
-                </a>
-              ))}
-            </div>
-          </div>
-        </section>
-        <SwordRule />
         <section className="section" id="list">
-          <div className="wrap" id="letter">
+          <div className="wrap">
             <div className="banner">
               <p className="kicker">lathosworld.com</p>
               <h2>The Official Shit List</h2>
             </div>
-            <LetterBox />
-            <p className="page-link"><a href="/list">Open The Official Shit List page</a></p>
+            <p className="serif-line">The Official Shit List only points at the doors. I will never ask you for anything but a follow.</p>
+            <div className="cta-row">
+              <Link className="btn btn-ghost" to="/list">Join the list</Link>
+            </div>
           </div>
         </section>
         <SwordRule />
@@ -444,16 +412,19 @@ function Home() {
               <p className="kicker desk-label">{DESK_LABEL}</p>
               <h2>Help desk</h2>
             </div>
-            <HelpDesk />
-            <p className="page-link"><a href="/help">Open the LathosWorld Help Desk page</a></p>
+            <p className="serif-line">Ask here. The desk never asks for a seed phrase.</p>
+            <div className="cta-row">
+              <Link className="btn btn-ghost" to="/help">Open the help desk</Link>
+            </div>
           </div>
         </section>
       </main>
       <footer className="footer">
         <div className="wrap">
           <p className="way">Not financial advice.</p>
-          <p className="thanks">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><a href="/help">{DESK_LABEL}</a> · <a href="/list">The Official Shit List</a></p>
+          <p className="thanks">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support. Thanks for reading my story. I hope to see you all soon. God bless and goodnight.</p>
+          <p className="copy">$LWRLD on Flap. BNB Smart Chain.</p>
+          <p className="copy"><Link to="/schedule">Schedule</Link> · <Link to="/survivors">Survivors</Link> · <Link to="/list">The Official Shit List</Link> · <Link to="/help">{DESK_LABEL}</Link></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>
