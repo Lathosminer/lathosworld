@@ -267,6 +267,14 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+.blade-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem 1rem;
+  max-width: 52rem;
+  padding-inline: 1rem;
+}
 .clip {
   display: flex;
   flex-direction: column;

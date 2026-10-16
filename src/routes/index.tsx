@@ -206,6 +206,17 @@ function Home() {
         <section className="blade" aria-label="The blade">
           <img src="/blade-4k.png" width={3840} height={2160} alt="The LathosWorld blade" />
           <a href="/blade-4k.png" download="lathosworld-blade-4k.png">Save the 4K blade</a>
+          <nav className="blade-links" aria-label="Stream plates">
+            <a href="/stream/blade-1080.png" download="lathosworld-blade-1080.png">1080 blade</a>
+            <a href="/stream/starting-soon-4k.png" download="starting-soon-4k.png">Starting soon</a>
+            <a href="/stream/be-right-back-4k.png" download="be-right-back-4k.png">Be right back</a>
+            <a href="/stream/ending-4k.png" download="ending-4k.png">Ending</a>
+            <a href="/stream/offline-4k.png" download="offline-4k.png">Offline</a>
+            <a href="/stream/starting-soon-1080.png" download="starting-soon-1080.png">1080 starting</a>
+            <a href="/stream/be-right-back-1080.png" download="be-right-back-1080.png">1080 brb</a>
+            <a href="/stream/ending-1080.png" download="ending-1080.png">1080 ending</a>
+            <a href="/stream/offline-1080.png" download="offline-1080.png">1080 offline</a>
+          </nav>
         </section>
         <h1 className="visually-hidden">LathosWorld</h1>
         <section className="hero" aria-label="Story">
