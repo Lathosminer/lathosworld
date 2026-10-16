@@ -25,7 +25,7 @@ async function mailList(email: string, mode: "in" | "out") {
       },
       signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
-        _subject: mode === "in" ? "The list: new signup" : "The list: remove me",
+        _subject: mode === "in" ? "The Official Shit List: new signup" : "The Official Shit List: remove me",
         _template: "table",
         _captcha: "false",
         list: mode === "in" ? "join" : "leave",
@@ -47,6 +47,8 @@ async function writeSubscriber(email: string, mode: "in" | "out") {
     } else {
       await sql`delete from newsletter_subscriber where email = ${email}`;
     }
+    // Saved. Also mail a copy to the desk inbox; a mail hiccup never fails the visitor.
+    await mailList(email, mode);
     return { ok: true as const };
   } catch (err) {
     console.error("[list] database unavailable, mailing instead", err);

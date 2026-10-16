@@ -15,7 +15,11 @@
 import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import pg from "pg";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
+
+// Neon over WebSocket (443): works where outbound 5432 is blocked (some build boxes).
+neonConfig.webSocketConstructor = ws;
 import { pendingMigrations } from "./migration-plan.mjs";
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -42,7 +46,7 @@ async function main() {
     return;
   }
 
-  const pool = new pg.Pool({ connectionString: databaseUrl, max: 1 });
+  const pool = new Pool({ connectionString: databaseUrl, max: 1 });
   const client = await pool.connect();
   try {
     await client.query(

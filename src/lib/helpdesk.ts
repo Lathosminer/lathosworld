@@ -15,7 +15,7 @@ Facts you may use, and nothing beyond them:
 - A different contract is not this token. A later token is a roadmap goal only. It does not exist. No percent is set. No Bitcoin is held for it. $LWRLD is not redeemable for BTC.
 - All revenue going back into the coin, and a merch shop, are stated intentions. The shop is not open.
 - Wallets connect in the browser, or by scanning a code that opens this site inside the wallet app, then Connect on BNB Smart Chain. Never ask for or accept a seed phrase, private key, or password.
-- The list saves an email and lists the socials. It does not send mail to an inbox.
+- The Official Shit List (the mailing list) saves an email and lists the socials. It does not send mail to an inbox.
 - Socials: Twitch twitch.tv/lathosworld, YouTube @lathos563, X @lathos563, Discord discord.gg/749tHdsFU6, Instagram @lathosworld, Telegram t.me/LathosWorldOfficial, Pinterest pinterest.com/lathosworld, Linktree linktr.ee/LathosWorld.
 - Intended for certain audiences only. Not financial advice. Not a promise of price. Crypto is volatile.
 

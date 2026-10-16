@@ -99,7 +99,7 @@ function migrationSources() {
  * `newsletter_subscriber` until the first query. Same basename bookkeeping as
  * the PGLite path and the deploy migrator.
  */
-async function applyNeonMigrations(pool: import("pg").Pool) {
+async function applyNeonMigrations(pool: import("@neondatabase/serverless").Pool) {
   const migrations = migrationSources();
   const client = await pool.connect();
   try {
@@ -130,9 +130,13 @@ async function applyNeonMigrations(pool: import("pg").Pool) {
 
 function createNeonSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
-    // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
-    // pooled endpoint. One pool per process; warm serverless instances reuse it.
-    const { Pool, types } = await import("pg");
+    // Neon's serverless driver (pg-compatible Pool over WebSocket/443). Works on
+    // Cloudflare Workers, where raw TCP to 5432 is not available by default.
+    const { Pool, types, neonConfig } = await import("@neondatabase/serverless");
+    if (typeof WebSocket === "undefined") {
+      const { default: ws } = await import("ws");
+      neonConfig.webSocketConstructor = ws as unknown as typeof WebSocket;
+    }
     types.setTypeParser(OID_INT8, Number);
     types.setTypeParser(OID_DATE, identity);
     types.setTypeParser(OID_INTERVAL, identity);
