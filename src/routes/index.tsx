@@ -10,6 +10,7 @@ import { HeroLoop } from "@/components/HeroLoop";
 import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK = "/mark.jpg?v=v10";
+const MARK_SM = "/mark-sm.webp";
 const LEDE =
   "I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.";
 const OG_IMAGE = "https://lathosworld.com/og.jpg";
@@ -101,15 +102,23 @@ function TwitchEmbed() {
 }
 
 function YouTubeEmbed() {
+  const [on, setOn] = useState(false);
   return (
     <div className="youtube">
-      <iframe
-        className="youtube-frame"
-        src="https://www.youtube.com/embed/videoseries?list=UUcV1q2gBovKyWlU8SnCI3ww"
-        title="LathosWorld on YouTube"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-      />
+      {on ? (
+        <iframe
+          className="youtube-frame"
+          src="https://www.youtube-nocookie.com/embed/videoseries?list=UUcV1q2gBovKyWlU8SnCI3ww&autoplay=1"
+          title="LathosWorld on YouTube"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowFullScreen
+        />
+      ) : (
+        <button type="button" className="youtube-frame clip-facade" onClick={() => setOn(true)} aria-label="Play the latest LathosWorld videos on YouTube">
+          <img src="https://i.ytimg.com/vi/uVXvTdaZFpo/hqdefault.jpg" alt="LathosWorld on YouTube" loading="lazy" decoding="async" width={480} height={360} />
+          <span className="clip-play" aria-hidden="true">▶</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -155,7 +164,7 @@ function Home() {
       <a className="skip" href="#token">Skip to token</a>
       <header className="nav">
         <a className="brand" href="#top">
-          <img src={MARK} width={40} height={40} alt="" decoding="async" />
+          <img src={MARK_SM} width={40} height={40} alt="" decoding="async" />
           <span>lathosworld.com</span>
         </a>
         <nav className="nav-links" aria-label="Sections">
@@ -176,8 +185,8 @@ function Home() {
           <div className="hero-copy">
             <p className="sell-line">I am a gamer and a streamer.</p>
             <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
-            <p className="lede">I stream what I want when I can. I will never ask you for anything but a follow.</p>
-            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support! My streams are chill.</p>
+            <p className="lede">I will never ask you for anything but a follow.</p>
+            <p className="lede">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support!</p>
             <p className="lede">Thanks for reading my story. I hope to see you all soon. God bless and goodnight!</p>
           </div>
         </section>
@@ -197,14 +206,22 @@ function Home() {
         <SwordRule />
         <section className="section emblem" aria-label="Lathos' World emblem">
           <div className="gif-lightning emblem-frame">
-            <img
-              src="/lathosworld-emblem-v9.gif"
-              alt="Lathos' World"
-              loading="lazy"
-              decoding="async"
+            <video
+              className="emblem-video"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              poster="/lathosworld-emblem-v9-poster.jpg"
               width={600}
               height={600}
-            />
+              aria-label="Lathos' World"
+            >
+              <source src="/lathosworld-emblem-v9.webm" type="video/webm" />
+              <source src="/lathosworld-emblem-v9.mp4" type="video/mp4" />
+              <img src="/lathosworld-emblem-v9.gif" alt="Lathos' World" loading="lazy" width={600} height={600} />
+            </video>
             <EmblemArc />
           </div>
         </section>
