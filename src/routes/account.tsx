@@ -77,7 +77,7 @@ function Account() {
   return (
     <main className="gate">
       <Link className="brand" to="/">
-        <img src="/mark.jpg?v=v10" width={40} height={40} alt="" decoding="async" />
+        <img src="/mark-sm.webp" width={40} height={40} alt="" decoding="async" />
         <span>lathosworld.com</span>
       </Link>
       <div className="gate-card">

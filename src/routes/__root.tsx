@@ -18,12 +18,22 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#05080C" },
     ],
     links: [
-      { rel: "icon", type: "image/jpeg", href: "/mark.jpg?v=v10" },
+      { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+      { rel: "icon", type: "image/png", href: "/favicon-32.png", sizes: "32x32" },
+      { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
+  notFoundComponent: () => (
+    <main className="notfound">
+      <img src="/mark-sm.webp" width={80} height={80} alt="" />
+      <h1>That door is not here.</h1>
+      <p>The page you wanted does not exist. Head back to LathosWorld.</p>
+      <p><a className="btn btn-cyan" href="/">Back to lathosworld.com</a></p>
+    </main>
+  ),
   component: () => (
     <html lang="en" suppressHydrationWarning>
       <head>

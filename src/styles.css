@@ -1009,3 +1009,11 @@ body { padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
 .clip-card figcaption span { opacity: 0.7; font-size: 0.85rem; }
 .clip-card .clip-tags { font-size: 0.75rem; opacity: 0.55; }
 .banner .h2-like { margin: 1.4rem 0 0.4rem; font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.9rem); letter-spacing: 0.04em; }
+
+.nav-links a.btn-cyan, .nav-links a.btn-cyan:hover { color: var(--color-bg); }
+.emblem-video { display: block; width: 100%; height: auto; aspect-ratio: 1; }
+.gif-lightning .emblem-video { animation: gif-bolt-glow 5.5s infinite; }
+.youtube .clip-facade { position: relative; display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; padding: 0; border: 0; }
+.youtube .clip-facade img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (prefers-reduced-motion: reduce) { .gif-lightning .emblem-video { animation: none; } }
+.notfound { min-height: 70vh; display: grid; place-content: center; text-align: center; gap: 1rem; padding: 2rem; }

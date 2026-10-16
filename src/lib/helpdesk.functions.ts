@@ -80,25 +80,31 @@ export const askDesk = createServerFn({ method: "POST" })
     if (data.company) {
       return { ok: true as const, answer: FALLBACK, mail: "sent" as const };
     }
-    const sql = await getSql();
-    let recent: { n: number }[];
+    // The database is optional: on the Cloudflare Worker it may be unavailable (no DATABASE_URL).
+    // The note still reaches the inbox by mail, so never block the visitor on it.
+    let sql: Awaited<ReturnType<typeof getSql>> | null = null;
     try {
-      recent = await sql<{ n: number }>`
+      sql = await getSql();
+      const recent = await sql<{ n: number }>`
         select count(*)::int as n from help_ticket
         where email = ${data.email} and created_at > now() - interval '2 minutes'
       `;
-    } catch {
-      throw new Error("The desk could not save that note. Use the mail link.");
+      if ((recent[0]?.n ?? 0) >= 3) throw new Error("RATE");
+    } catch (err) {
+      if (err instanceof Error && err.message === "RATE") throw new Error("Wait a couple of minutes, then send again.");
+      console.error("[desk] database unavailable, mailing only", err);
+      sql = null;
     }
-    if ((recent[0]?.n ?? 0) >= 3) throw new Error("Wait a couple of minutes, then send again.");
     const answer = await automaticAnswer(data.message);
-    try {
-      await sql`
-        insert into help_ticket (name, email, message, answer)
-        values (${data.name}, ${data.email}, ${data.message}, ${answer})
-      `;
-    } catch {
-      throw new Error("The desk could not save that note. Use the mail link.");
+    if (sql) {
+      try {
+        await sql`
+          insert into help_ticket (name, email, message, answer)
+          values (${data.name}, ${data.email}, ${data.message}, ${answer})
+        `;
+      } catch (err) {
+        console.error("[desk] could not save ticket", err);
+      }
     }
     const mail = await mailDesk(data, answer);
     return { ok: true as const, answer, mail };
