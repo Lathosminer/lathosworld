@@ -11,7 +11,6 @@ import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
 import { DESK_LABEL } from "@/lib/helpdesk";
 
-const MARK = "/mark.jpg?v=v10";
 const MARK_SM = "/mark-sm.webp";
 
 export const Route = createFileRoute("/")({
@@ -186,7 +185,7 @@ function Home() {
       <main id="top">
         <HeroLoop />
         <section className="blade" aria-label="The blade">
-          <img src="/blade-4k.png" width={3840} height={2160} alt="The LathosWorld blade" />
+          <img src="/blade-1920.webp" srcSet="/blade-960.webp 960w, /blade-1920.webp 1920w, /blade-3840.webp 3840w" sizes="100vw" width={3840} height={2160} alt="The LathosWorld blade" loading="lazy" decoding="async" />
           <a href="/blade-4k.png" download="lathosworld-blade-4k.png">Save the 4K blade</a>
           <nav className="blade-links" aria-label="Stream plates">
             <a href="/stream/blade-1080.png" download="lathosworld-blade-1080.png">1080 blade</a>
@@ -370,7 +369,7 @@ function Home() {
         </section>
         <SwordRule />
         <section className="clip" id="clip" aria-label="LathosWorld">
-          <video controls playsInline loop preload="metadata" poster={MARK} width={1280} height={720}>
+          <video controls playsInline loop preload="metadata" poster="/mark-1280.webp" width={1280} height={720}>
             <source src="/lathosworld.mp4" type="video/mp4" />
             <img className="gif-lightning-img" src="/lathosworld.gif" alt="LathosWorld" loading="lazy" />
           </video>
