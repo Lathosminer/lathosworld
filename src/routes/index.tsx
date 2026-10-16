@@ -243,7 +243,7 @@ function Home() {
               <h2>Streams</h2>
             </div>
             <p className="serif-line">I stream what I want when I can. My streams are chill.</p>
-            <p className="team-line">I love GB and Grok ⚡</p>
+            <p className="team-line">I love Grok Bot and Grok ⚡</p>
             <YouTubeEmbed />
           </div>
         </section>
