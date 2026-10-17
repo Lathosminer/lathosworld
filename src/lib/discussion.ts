@@ -28,18 +28,17 @@ export const HELD_NOTICE = "Held for review. It won't show until the owner clear
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
- * Slurs and hate only. Ordinary swearing and gamer trash talk are left alone.
- * Patterns stay bounded so "classic", "cocktail", "Scunthorpe", and "grape"
- * are not flagged. A hit is hidden for review, not rejected.
+ * Slurs and hate only. Opinions, politics, criticism, profanity, and
+ * controversial topics publish. "rape" and "rapist" are topic words, so only
+ * a direct threat is held. Patterns stay bounded so "classic", "cocktail",
+ * "Scunthorpe", "grape", "chink in the armor", and "spic and span" are not
+ * flagged. A hit is hidden for review, not rejected.
  */
 const SEVERE_WORDS = [
   "faggot",
   "fag",
   "nigger",
   "nigga",
-  "retard",
-  "rapist",
-  "rape",
   "kike",
   "spic",
   "chink",
@@ -67,7 +66,11 @@ function spaced(words: string[]): RegExp {
   return new RegExp(`(?<![a-z])${body}(?![a-z])`, "i");
 }
 
-const SEVERE_PATTERNS = SEVERE_WORDS.map((word) => wordPattern(word, "es|s|ed|y"));
+const SEVERE_PATTERNS = [
+  ...SEVERE_WORDS.map((word) => wordPattern(word, "es|s|ed|y")),
+  // The noun is a slur. "retarded" as in "that take is retarded" is profanity and stays up.
+  wordPattern("retard", "s"),
+];
 
 /** Harassment and real threats. "I'll kill you" in a match is trash talk and stays up. */
 const SEVERE_PHRASES = [
@@ -250,8 +253,13 @@ function matchesAny(text: string, patterns: readonly RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(text));
 }
 
+/** Ordinary idioms that share letters with a slur. */
+function stripIdioms(text: string): string {
+  return text.replace(/\bchinks?\s+in\b/g, " ").replace(/\bspic\s+and\s+span\b/g, " ");
+}
+
 export function severeLanguage(text: string): boolean {
-  const forms = [fold(text), leet(text)];
+  const forms = [fold(text), leet(text)].map(stripIdioms);
   return forms.some((form) => matchesAny(form, SEVERE_PHRASES) || matchesAny(form, SEVERE_PATTERNS));
 }
 

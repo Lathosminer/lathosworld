@@ -62,6 +62,32 @@ describe("discussion safety", () => {
     assert.equal(validateBody(text).ok, true);
   });
 
+  it("publishes opinions, politics, criticism, profanity, and controversial topics", () => {
+    for (const text of [
+      "I disagree with the raid leader and the politics on this site",
+      "Trump, Biden, and every party can get fucked, the clip is still good",
+      "This criticism is fair: the boss fight is lazy and the writing is worse",
+      "what the fuck is this balance patch",
+      "the rape scene in that episode was unnecessary and badly written",
+      "calling the streamer a rapist with no evidence is reckless",
+      "religion, guns, and immigration are all on the table and I disagree",
+      "that take is retarded",
+      "there is a chink in his armor on the second phase",
+      "spic and span loadout",
+    ]) {
+      assert.equal(severeLanguage(text), false, text);
+      const checked = validateBody(text);
+      assert.equal(checked.ok, true, text);
+      if (checked.ok) assert.equal(checked.hold, false, text);
+      const note = validateNote(text);
+      assert.equal(note.ok, true, text);
+      if (note.ok) assert.equal(note.hold, false, text);
+    }
+    const titled = validateTitle("Politics and criticism");
+    assert.equal(titled.ok, true);
+    if (titled.ok) assert.equal(titled.hold, false);
+  });
+
   it("lets swearing, caps, emoji, and gamer trash talk through", () => {
     for (const text of [
       "what the fuck",
@@ -89,6 +115,9 @@ describe("discussion safety", () => {
     assert.equal(severeLanguage("I'll kill you next round"), false);
     assert.equal(severeLanguage("kill yourself"), true);
     assert.equal(severeLanguage("I will rape you"), true);
+    assert.equal(severeLanguage("you are a retard"), true);
+    assert.equal(severeLanguage("you chink"), true);
+    assert.equal(severeLanguage("you spic"), true);
     assert.equal(severeLanguage("k y s"), true);
     assert.equal(severeLanguage("n!gger"), true);
     assert.equal(hasProfanity("go kys"), true);
