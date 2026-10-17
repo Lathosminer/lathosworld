@@ -7,8 +7,9 @@
  * only — never a `VITE_` key.
  *
  * Clean posts, including ordinary swearing and trash talk, are inserted and
- * returned immediately. Slurs, threats, and harassment are stored hidden for
- * the review queue. Link spam and duplicate posts are rejected.
+ * returned immediately. Slurs, threats, and harassment are held hidden for
+ * the owner to approve, delete, or ban. Nothing here mutes or bans on its own.
+ * Link spam and duplicate posts are rejected.
  */
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { getSql, type Sql } from "@/lib/db";
@@ -22,8 +23,6 @@ import {
   isAdminEmail,
   isAllowedClipId,
   isUuid,
-  muteMessage,
-  penaltyForStrikes,
   rateLimitError,
   reportRateError,
   safeAvatarUrl,
@@ -45,7 +44,6 @@ type Actor = {
   image: string | null;
   isAdmin: boolean;
   banned: boolean;
-  mutedUntil: string | null;
 };
 
 type Session = { id: string; email: string | null } | null;
@@ -153,9 +151,6 @@ async function loadActor(sql: Sql, userId: string, fallbackEmail: string | null)
   const bans = await sql<{ user_id: string }>`
     select user_id from discussion_ban where user_id = ${userId} limit 1
   `;
-  const mutes = await sql<{ until: unknown }>`
-    select until from discussion_mute where user_id = ${userId} and until > now() limit 1
-  `;
   const row = users[0];
   const email = row?.email ?? fallbackEmail;
   const isAdmin = isAdminEmail(email, adminAllowlist());
@@ -166,7 +161,6 @@ async function loadActor(sql: Sql, userId: string, fallbackEmail: string | null)
     image: safeAvatarUrl(row?.image),
     isAdmin,
     banned: Boolean(bans[0]) && !isAdmin,
-    mutedUntil: isAdmin || !mutes[0] ? null : stamp(mutes[0].until),
   };
 }
 
@@ -179,7 +173,6 @@ function toViewer(actor: Actor | null): TalkViewer {
     image: actor.image,
     isAdmin: actor.isAdmin,
     banned: actor.banned,
-    mutedUntil: actor.mutedUntil,
   };
 }
 
@@ -264,6 +257,7 @@ async function listQueue(sql: Sql): Promise<TalkReview[]> {
     author_name: string | null;
     author_image: string | null;
     report_count: number | null;
+    proposed_strikes: number | null;
   }>`
     select
       p.id,
@@ -276,7 +270,8 @@ async function listQueue(sql: Sql): Promise<TalkReview[]> {
       p.author_id,
       u."name" as author_name,
       u."image" as author_image,
-      (select count(*)::int from discussion_report r where r.post_id = p.id) as report_count
+      (select count(*)::int from discussion_report r where r.post_id = p.id) as report_count,
+      (select count(*)::int from discussion_strike s where s.user_id = p.author_id) as proposed_strikes
     from discussion_post p
     left join "user" u on u.id = p.author_id
     where p.deleted_at is null
@@ -294,8 +289,9 @@ async function listQueue(sql: Sql): Promise<TalkReview[]> {
     body: row.body,
     createdAt: stamp(row.created_at),
     hidden: present(row.hidden_at),
-    hiddenReason: row.hidden_reason || (present(row.hidden_at) ? "hidden" : ""),
+    hiddenReason: row.hidden_reason || (present(row.hidden_at) ? "pending" : ""),
     reportCount: count(row.report_count),
+    proposedStrikes: count(row.proposed_strikes),
     author: {
       id: row.author_id,
       name: displayName(row.author_name, row.author_id),
@@ -329,13 +325,6 @@ async function duplicateMessage(sql: Sql, userId: string, body: string, title: s
   return duplicateError(body, title, rows);
 }
 
-async function strikeCount(sql: Sql, userId: string): Promise<number> {
-  const rows = await sql<{ n: number }>`
-    select count(*)::int as n from discussion_strike where user_id = ${userId}
-  `;
-  return count(rows[0]?.n);
-}
-
 async function userIsAdmin(sql: Sql, userId: string): Promise<boolean> {
   const rows = await sql<{ email: string | null }>`
     select "email" as email from "user" where id = ${userId} limit 1
@@ -343,36 +332,8 @@ async function userIsAdmin(sql: Sql, userId: string): Promise<boolean> {
   return isAdminEmail(rows[0]?.email, adminAllowlist());
 }
 
-async function applyPenalty(sql: Sql, userId: string): Promise<void> {
-  if (await userIsAdmin(sql, userId)) return;
-  const strikes = await strikeCount(sql, userId);
-  const penalty = penaltyForStrikes(strikes);
-  if (penalty.ban) {
-    await sql`
-      insert into discussion_ban (user_id, banned_by, reason)
-      values (${userId}, ${"auto"}, ${"Automatic ban after repeated violations."})
-      on conflict (user_id) do update
-        set reason = excluded.reason, banned_by = excluded.banned_by, created_at = now()
-    `;
-    await sql`delete from discussion_mute where user_id = ${userId}`;
-    return;
-  }
-  await sql`delete from discussion_ban where user_id = ${userId} and banned_by = ${"auto"}`;
-  if (penalty.muteHours <= 0) {
-    await sql`delete from discussion_mute where user_id = ${userId}`;
-    return;
-  }
-  const until = new Date(Date.now() + penalty.muteHours * 3_600_000).toISOString();
-  await sql`
-    insert into discussion_mute (user_id, until)
-    values (${userId}, ${until})
-    on conflict (user_id) do update
-      set until = case when discussion_mute.until > excluded.until then discussion_mute.until else excluded.until end,
-          created_at = now()
-  `;
-}
-
-async function addStrike(sql: Sql, userId: string, postId: string, reason: string): Promise<void> {
+/** Noted on the review queue only. Never mutes or bans. */
+async function noteStrike(sql: Sql, userId: string, postId: string, reason: string): Promise<void> {
   if (await userIsAdmin(sql, userId)) return;
   try {
     await sql`
@@ -383,7 +344,6 @@ async function addStrike(sql: Sql, userId: string, postId: string, reason: strin
     if (isUniqueViolation(err)) return;
     throw err;
   }
-  await applyPenalty(sql, userId);
 }
 
 async function parentDepth(sql: Sql, parentId: string): Promise<number | null> {
@@ -404,11 +364,10 @@ async function parentDepth(sql: Sql, parentId: string): Promise<number | null> {
   return count(rows[0].depth);
 }
 
-async function requireActor(userId: string, writing: boolean): Promise<{ sql: Sql; actor: Actor } | Fail> {
+async function requireActor(userId: string): Promise<{ sql: Sql; actor: Actor } | Fail> {
   const sql = await getSql();
   const actor = await loadActor(sql, userId, null);
   if (actor.banned) return { ok: false, error: "This account can't post." };
-  if (writing && actor.mutedUntil) return { ok: false, error: muteMessage(actor.mutedUntil) };
   return { sql, actor };
 }
 
@@ -437,7 +396,7 @@ async function savePost(
       ${row.hold ? "language" : ""}
     )
   `;
-  if (row.hold) await addStrike(sql, actor.id, id, "language");
+  if (row.hold) await noteStrike(sql, actor.id, id, "language");
   return { ok: true, id, held: row.hold };
 }
 
@@ -525,7 +484,7 @@ export const createThread = createServerFn({ method: "POST" })
     if (!title.ok) return title;
     const body = validateBody(data.body);
     if (!body.ok) return body;
-    const ready = await requireActor(context.userId, true);
+    const ready = await requireActor(context.userId);
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, title.title);
     if (dup) return failed(dup);
@@ -551,7 +510,7 @@ export const replyToPost = createServerFn({ method: "POST" })
     if (!isUuid(data.parentId)) return failed("That post is not here.");
     const body = validateBody(data.body);
     if (!body.ok) return body;
-    const ready = await requireActor(context.userId, true);
+    const ready = await requireActor(context.userId);
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, null);
     if (dup) return failed(dup);
@@ -587,7 +546,7 @@ export const commentOnClip = createServerFn({ method: "POST" })
     if (!isAllowedClipId(data.clipId)) return failed("That clip is not here.");
     const body = validateBody(data.body);
     if (!body.ok) return body;
-    const ready = await requireActor(context.userId, true);
+    const ready = await requireActor(context.userId);
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, null);
     if (dup) return failed(dup);
@@ -632,7 +591,7 @@ export const reportPost = createServerFn({ method: "POST" })
     if (!isUuid(data.postId)) return failed("That post is not here.");
     const reason = validateReason(data.reason);
     if (!reason.ok) return reason;
-    const ready = await requireActor(context.userId, false);
+    const ready = await requireActor(context.userId);
     if ("ok" in ready) return ready;
     const posts = await ready.sql<{ author_id: string; deleted_at: unknown; hidden_at: unknown }>`
       select author_id, deleted_at, hidden_at from discussion_post where id = ${data.postId} limit 1
@@ -667,7 +626,7 @@ export const reportPost = createServerFn({ method: "POST" })
         returning author_id
       `;
       const authorId = hidden[0]?.author_id;
-      if (authorId) await addStrike(ready.sql, authorId, data.postId, "reports");
+      if (authorId) await noteStrike(ready.sql, authorId, data.postId, "reports");
     }
     return { ok: true };
   });
@@ -709,7 +668,6 @@ export const restorePost = createServerFn({ method: "POST" })
     const authorId = posts[0]?.author_id;
     if (!authorId) return failed("That post is not here.");
     await sql`delete from discussion_strike where post_id = ${data}`;
-    await applyPenalty(sql, authorId);
     return { ok: true };
   });
 
@@ -739,7 +697,6 @@ export const banUser = createServerFn({ method: "POST" })
       on conflict (user_id) do update
         set reason = excluded.reason, banned_by = excluded.banned_by, created_at = now()
     `;
-    await sql`delete from discussion_mute where user_id = ${data.userId}`;
     return { ok: true };
   });
 

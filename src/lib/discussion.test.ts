@@ -9,8 +9,6 @@ import {
   RATE_MAX_POSTS,
   RATE_MIN_GAP_MS,
   REPORT_HIDE_AT,
-  STRIKES_FOR_BAN,
-  STRIKES_FOR_MUTE,
   depthError,
   duplicateError,
   formatWhen,
@@ -19,9 +17,8 @@ import {
   isAllowedClipId,
   isUuid,
   linkSpamError,
-  muteMessage,
-  penaltyForStrikes,
   postsByParent,
+  proposedStrikeNote,
   previewText,
   rateLimitError,
   reportRateError,
@@ -125,18 +122,14 @@ describe("discussion safety", () => {
     assert.equal(duplicateError("gg", null, [{ title: null, body: "gg" }]), null);
   });
 
-  it("hides a post after three reports and escalates strikes", () => {
+  it("hides a post after three reports and only labels proposed strikes", () => {
     assert.equal(shouldHideForReports(REPORT_HIDE_AT - 1), false);
     assert.equal(shouldHideForReports(REPORT_HIDE_AT), true);
-    assert.deepEqual(penaltyForStrikes(STRIKES_FOR_MUTE - 1), { muteHours: 0, ban: false });
-    assert.deepEqual(penaltyForStrikes(STRIKES_FOR_MUTE), { muteHours: 24, ban: false });
-    assert.deepEqual(penaltyForStrikes(4), { muteHours: 72, ban: false });
-    assert.deepEqual(penaltyForStrikes(5), { muteHours: 24 * 7, ban: false });
-    assert.equal(penaltyForStrikes(STRIKES_FOR_BAN).ban, true);
-    assert.match(muteMessage(new Date(NOW + 3 * 3_600_000).toISOString(), NOW), /3 hours/);
+    assert.equal(proposedStrikeNote(0), null);
+    assert.equal(proposedStrikeNote(1), "Proposed strike: 1");
+    assert.equal(proposedStrikeNote(3), "Proposed strikes: 3");
     assert.equal(COMMUNITY_RULES.split("\n")[0], "Common courtesy. Be respectful.");
     assert.match(COMMUNITY_RULES, /Slurs, threats, harassment, and spam get removed/);
-    assert.equal(COMMUNITY_RULES.includes("Three strikes"), false);
   });
 
   it("caps links", () => {

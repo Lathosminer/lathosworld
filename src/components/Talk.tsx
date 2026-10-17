@@ -7,9 +7,9 @@ import {
   TITLE_MAX,
   formatWhen,
   initial,
-  muteMessage,
   postsByParent,
   previewText,
+  proposedStrikeNote,
   reviewPlace,
   type TalkFeed,
   type TalkPost,
@@ -104,12 +104,11 @@ function SignIn({ viewer }: { viewer: TalkViewer }) {
     );
   }
   if (viewer.banned) return <p className="talk-note">This account can't post.</p>;
-  if (viewer.mutedUntil) return <p className="talk-note">{muteMessage(viewer.mutedUntil)}</p>;
   return null;
 }
 
 function canPost(viewer: TalkViewer): boolean {
-  return viewer.signedIn && !viewer.banned && !viewer.mutedUntil;
+  return viewer.signedIn && !viewer.banned;
 }
 
 function Composer({
@@ -588,6 +587,47 @@ function ReviewPanel({
   setNotice: (value: string) => void;
   reload: () => void;
 }) {
+  return (
+    <section className="talk-bans talk-queue" aria-label="Review queue">
+      <h2>Review queue</h2>
+      <p className="talk-note">Held posts stay hidden until you approve, delete, or ban.</p>
+      {items.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
+      <ul>
+        {items.map((item) => (
+          <QueueItem
+            key={item.id}
+            item={item}
+            busy={busy}
+            setBusy={setBusy}
+            setError={setError}
+            setNotice={setNotice}
+            reload={reload}
+          />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function QueueItem({
+  item,
+  busy,
+  setBusy,
+  setError,
+  setNotice,
+  reload,
+}: {
+  item: TalkReview;
+  busy: boolean;
+  setBusy: (value: boolean) => void;
+  setError: (value: string) => void;
+  setNotice: (value: string) => void;
+  reload: () => void;
+}) {
+  const [banOpen, setBanOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const strike = proposedStrikeNote(item.proposedStrikes);
+
   function run(work: () => Promise<{ ok: true } | { ok: false; error: string }>) {
     setBusy(true);
     setError("");
@@ -596,6 +636,8 @@ function ReviewPanel({
       .then((result) => {
         if (!result.ok) setError(result.error);
         else {
+          setBanOpen(false);
+          setNote("");
           setNotice("Done.");
           reload();
         }
@@ -605,37 +647,48 @@ function ReviewPanel({
   }
 
   return (
-    <section className="talk-bans talk-queue" aria-label="Review queue">
-      <h2>Review queue</h2>
-      {items.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
-      <ul>
-        {items.map((item) => (
-          <li key={item.id}>
-            <div>
-              <p className="talk-meta">
-                <strong>{item.author.name}</strong>
-                <span>{reviewPlace(item.scope)}</span>
-                <time dateTime={item.createdAt}>{formatWhen(item.createdAt)}</time>
-                {item.hidden ? <span className="talk-flag">Hidden · {item.hiddenReason}</span> : null}
-                {item.reportCount > 0 ? <span className="talk-flag">{item.reportCount} reports</span> : null}
-              </p>
-              {item.title ? <p className="talk-preview">{item.title}</p> : null}
-              <p className="talk-body">{item.body}</p>
-            </div>
-            <div className="talk-actions">
-              {item.hidden ? (
-                <button type="button" className="talk-btn" disabled={busy} onClick={() => run(() => restorePost({ data: { postId: item.id } }))}>
-                  Restore
-                </button>
-              ) : null}
-              <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => run(() => removePost({ data: { postId: item.id } }))}>
-                Remove
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <li>
+      <div>
+        <p className="talk-meta">
+          <strong>{item.author.name}</strong>
+          <span>{reviewPlace(item.scope)}</span>
+          <time dateTime={item.createdAt}>{formatWhen(item.createdAt)}</time>
+          {item.hidden ? <span className="talk-flag">Pending · {item.hiddenReason}</span> : null}
+          {item.reportCount > 0 ? <span className="talk-flag">{item.reportCount} reports</span> : null}
+          {strike ? <span>{strike}</span> : null}
+        </p>
+        {item.title ? <p className="talk-preview">{item.title}</p> : null}
+        <p className="talk-body">{item.body}</p>
+      </div>
+      <div className="talk-actions">
+        {item.hidden ? (
+          <button type="button" className="talk-btn" disabled={busy} onClick={() => run(() => restorePost({ data: { postId: item.id } }))}>
+            Approve
+          </button>
+        ) : null}
+        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => run(() => removePost({ data: { postId: item.id } }))}>
+          Delete
+        </button>
+        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => setBanOpen((open) => !open)} aria-expanded={banOpen}>
+          Ban
+        </button>
+      </div>
+      {banOpen ? (
+        <form
+          className="talk-form talk-inline"
+          onSubmit={(event) => {
+            event.preventDefault();
+            run(() => banUser({ data: { userId: item.author.id, reason: note } }));
+          }}
+        >
+          <label>
+            Ban {item.author.name}
+            <input value={note} onChange={(event) => setNote(event.target.value)} maxLength={300} placeholder="Optional note" />
+          </label>
+          <button className="btn btn-ghost talk-submit" type="submit" disabled={busy}>Ban account</button>
+        </form>
+      ) : null}
+    </li>
   );
 }
 

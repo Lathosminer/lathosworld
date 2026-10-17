@@ -15,9 +15,6 @@ export const REPORT_MAX = 8;
 /** Distinct reporters before a post is hidden for the owner to review. */
 export const REPORT_HIDE_AT = 3;
 export const DUPLICATE_MIN = 12;
-/** Third strike mutes for a day. Later strikes last longer. Six strikes ban. */
-export const STRIKES_FOR_MUTE = 3;
-export const STRIKES_FOR_BAN = 6;
 
 export const COMMUNITY_RULES =
   "Common courtesy. Be respectful.\nSlurs, threats, harassment, and spam get removed.";
@@ -106,7 +103,6 @@ export type TalkViewer = {
   image: string | null;
   isAdmin: boolean;
   banned: boolean;
-  mutedUntil: string | null;
 };
 
 export type TalkBan = {
@@ -125,6 +121,8 @@ export type TalkReview = {
   hidden: boolean;
   hiddenReason: string;
   reportCount: number;
+  /** Informational only. Holding a post does not mute or ban. */
+  proposedStrikes: number;
   author: TalkAuthor;
 };
 
@@ -142,7 +140,6 @@ export const ANON_VIEWER: TalkViewer = {
   image: null,
   isAdmin: false,
   banned: false,
-  mutedUntil: null,
 };
 
 export function isUuid(value: string): boolean {
@@ -303,24 +300,10 @@ export function shouldHideForReports(reportCount: number): boolean {
   return reportCount >= REPORT_HIDE_AT;
 }
 
-export type StrikePenalty = { muteHours: number; ban: boolean };
-
-/** 3 → 24h, 4 → 3 days, 5 → 7 days, 6+ → ban. */
-export function penaltyForStrikes(strikes: number): StrikePenalty {
-  if (strikes >= STRIKES_FOR_BAN) return { muteHours: 0, ban: true };
-  if (strikes >= 5) return { muteHours: 24 * 7, ban: false };
-  if (strikes >= 4) return { muteHours: 72, ban: false };
-  if (strikes >= STRIKES_FOR_MUTE) return { muteHours: 24, ban: false };
-  return { muteHours: 0, ban: false };
-}
-
-export function muteMessage(untilIso: string, now = Date.now()): string {
-  const until = Date.parse(untilIso);
-  if (!Number.isFinite(until) || until <= now) return "You're muted for a while.";
-  const hours = Math.max(1, Math.ceil((until - now) / 3_600_000));
-  if (hours < 48) return `You're muted for about ${hours} hour${hours === 1 ? "" : "s"}.`;
-  const days = Math.ceil(hours / 24);
-  return `You're muted for about ${days} days.`;
+/** Queue copy only. A count never mutes or bans on its own. */
+export function proposedStrikeNote(count: number): string | null {
+  if (count <= 0) return null;
+  return count === 1 ? "Proposed strike: 1" : `Proposed strikes: ${count}`;
 }
 
 export function depthError(parentDepth: number): string | null {
