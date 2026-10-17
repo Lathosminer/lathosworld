@@ -135,7 +135,11 @@ function Composer({
 }) {
   return (
     <div className="talk-compose">
-      <p className="talk-rules">{COMMUNITY_RULES}</p>
+      <div className="talk-rules">
+        {COMMUNITY_RULES.split("\n").map((line) => (
+          <p key={line}>{line}</p>
+        ))}
+      </div>
       {!canPost(viewer) ? (
         <SignIn viewer={viewer} />
       ) : (

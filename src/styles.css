@@ -1351,6 +1351,8 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
   font-size: 0.92rem;
   line-height: 1.45;
 }
+.talk-rules p { margin: 0; }
+.talk-rules p + p { margin-top: 0.2rem; }
 .talk-compose { min-width: 0; }
 .talk-form { display: grid; gap: 0.7rem; margin-top: 0.35rem; text-align: left; }
 .talk-form label {

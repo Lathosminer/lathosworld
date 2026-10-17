@@ -20,7 +20,7 @@ export const STRIKES_FOR_MUTE = 3;
 export const STRIKES_FOR_BAN = 6;
 
 export const COMMUNITY_RULES =
-  "Be decent. Slurs, threats, harassment, and spam get hidden. Trash talk is fine. Don't repeat the same post. Three reports hide a post until the owner reviews it. Three strikes mute you for a day, and it gets longer from there. Keep it up and the account is banned.";
+  "Common courtesy. Be respectful.\nSlurs, threats, harassment, and spam get removed.";
 
 export const HELD_NOTICE = "Held for review. It won't show until the owner clears it.";
 

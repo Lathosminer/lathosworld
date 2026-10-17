@@ -134,9 +134,9 @@ describe("discussion safety", () => {
     assert.deepEqual(penaltyForStrikes(5), { muteHours: 24 * 7, ban: false });
     assert.equal(penaltyForStrikes(STRIKES_FOR_BAN).ban, true);
     assert.match(muteMessage(new Date(NOW + 3 * 3_600_000).toISOString(), NOW), /3 hours/);
-    assert.match(COMMUNITY_RULES, /Three strikes/);
-    assert.equal(COMMUNITY_RULES.includes("caps"), false);
-    assert.equal(COMMUNITY_RULES.includes("New accounts"), false);
+    assert.equal(COMMUNITY_RULES.split("\n")[0], "Common courtesy. Be respectful.");
+    assert.match(COMMUNITY_RULES, /Slurs, threats, harassment, and spam get removed/);
+    assert.equal(COMMUNITY_RULES.includes("Three strikes"), false);
   });
 
   it("caps links", () => {
