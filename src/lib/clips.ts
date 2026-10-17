@@ -12,7 +12,7 @@ type Base = { title: string; description: string; game: string; tags: string[]; 
 
 /**
  * `blocked: "ps5-blue"` is the PS5 "can't stream this screen" card.
- * Those clips stay out of the featured set and the archive.
+ * Those clips stay off the site.
  */
 export type Clip = (
   | (Base & { kind: "mp4"; src: string; poster: string; duration: string })
@@ -139,7 +139,7 @@ export type DailyClipLayout = {
 /**
  * Six playable clips for the Chicago date. Demon Hunter clips in that set lead,
  * so the creator shoutout can sit directly under them. Otherwise it sits under
- * the whole featured grid. The archive keeps catalog order.
+ * the whole featured grid. Clips past the six are not shown on the site.
  */
 export function layoutDailyClips(clips: readonly Clip[], dateKey: string, count = FEATURED_COUNT): DailyClipLayout {
   const playable = clips.filter(isPlayableClip);
@@ -157,10 +157,15 @@ export function layoutDailyClips(clips: readonly Clip[], dateKey: string, count 
   };
 }
 
-export function clipThumb(clip: Clip, size: "featured" | "archive" = "featured"): string {
+/** Real frame: a local still, or YouTube's own hq frame. Not a generated stand-in. */
+export function clipThumb(clip: Clip): string {
   if (clip.kind !== "yt") return clip.poster;
-  const file = size === "archive" ? "mqdefault.jpg" : "hqdefault.jpg";
-  return `https://i.ytimg.com/vi/${clip.id}/${file}`;
+  return `https://i.ytimg.com/vi/${clip.id}/hqdefault.jpg`;
+}
+
+/** Videos tab on the LathosWorld YouTube channel. */
+export function youtubeVideosPage(channelId: string): string {
+  return `https://www.youtube.com/channel/${channelId}/videos`;
 }
 
 export function absoluteClipUrl(url: string): string {
@@ -190,8 +195,4 @@ export function clipsJsonLd(clips: readonly Clip[] = PLAYABLE_CLIPS): string {
           : { embedUrl: `https://www.youtube-nocookie.com/embed/${clip.id}`, url: `https://www.youtube.com/watch?v=${clip.id}` }),
     })),
   }).replace(/</g, "\\u003c");
-}
-
-export function clipGames(clips: readonly Clip[]): string[] {
-  return clips.map((clip) => clip.game).filter((game, index, all) => all.indexOf(game) === index);
 }

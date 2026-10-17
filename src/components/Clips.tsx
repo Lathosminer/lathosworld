@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { CreatorShoutout } from "@/components/CreatorShoutout";
 import {
   PLAYABLE_CLIPS,
   clipDiscussionId,
-  clipGames,
   clipThumb,
   clipsJsonLd,
   chicagoDateKey,
   layoutDailyClips,
+  youtubeVideosPage,
   type Clip,
   type DailyClipLayout,
 } from "@/lib/clips";
+import { YT_CHANNEL } from "@/lib/youtube-live.functions";
+
+const YOUTUBE_VIDEOS = youtubeVideosPage(YT_CHANNEL);
 
 const JSON_LD = clipsJsonLd();
 
@@ -51,13 +53,11 @@ function ClipCard({
   active,
   onPlay,
   comments,
-  thumbSize,
 }: {
   clip: Clip;
   active: boolean;
   onPlay: (id: string) => void;
   comments: boolean;
-  thumbSize: "featured" | "archive";
 }) {
   const id = clipDiscussionId(clip);
   const source = clip.kind === "yt" ? "YouTube" : "Twitch";
@@ -68,7 +68,7 @@ function ClipCard({
           <ClipEmbed clip={clip} />
         ) : (
           <button type="button" className="clip-facade" onClick={() => onPlay(id)} aria-label={`Play ${clip.title} (${source}, ${clip.game})`}>
-            <img src={clipThumb(clip, thumbSize)} alt={`${clip.title}: ${clip.game} on LathosWorld`} loading="lazy" decoding="async" width={640} height={360} />
+            <img src={clipThumb(clip)} alt={`${clip.title}: ${clip.game} on LathosWorld`} loading="lazy" decoding="async" width={640} height={360} />
             <span className="clip-play" aria-hidden="true">▶</span>
           </button>
         )}
@@ -101,7 +101,6 @@ function FeaturedGrid({
       active={playing === clipDiscussionId(clip)}
       onPlay={onPlay}
       comments={comments}
-      thumbSize="featured"
     />
   );
   const shoutout = <CreatorShoutout key="creator-shoutout" />;
@@ -115,61 +114,25 @@ function FeaturedGrid({
   );
 }
 
-function ClipArchive({
-  layout,
-  playing,
-  onPlay,
-  comments,
-}: {
-  layout: DailyClipLayout;
-  playing: string | null;
-  onPlay: (id: string) => void;
-  comments: boolean;
-}) {
-  const games = ["All", ...clipGames(PLAYABLE_CLIPS)];
-  const [game, setGame] = useState("All");
-  const shown = game === "All" ? layout.archive : layout.archive.filter((clip) => clip.game === game);
+function YouTubeArchiveLink() {
   return (
-    <section className="clip-archive" id="archive" aria-labelledby="archive-title">
-      <div className="banner">
-        <h2 id="archive-title">Archive</h2>
-      </div>
-      <p className="serif-line">The rest of the clips. A still frame until you press play.</p>
-      <div className="clip-filters" role="toolbar" aria-label="Filter the archive by game">
-        {games.map((name) => (
-          <button key={name} type="button" className={name === game ? "btn btn-cyan" : "btn btn-ghost"} onClick={() => setGame(name)} aria-pressed={name === game}>
-            {name}
-          </button>
-        ))}
-      </div>
-      {shown.length === 0 ? (
-        <p className="serif-line">{layout.archive.length === 0 ? "Today's clips are the whole list." : "Nothing in the archive for this game."}</p>
-      ) : (
-        <div className="clip-grid">
-          {shown.map((clip) => (
-            <ClipCard
-              key={clipDiscussionId(clip)}
-              clip={clip}
-              active={playing === clipDiscussionId(clip)}
-              onPlay={onPlay}
-              comments={comments}
-              thumbSize="archive"
-            />
-          ))}
-        </div>
-      )}
-    </section>
+    <div className="cta-row">
+      <a className="btn btn-cyan" href={YOUTUBE_VIDEOS} target="_blank" rel="noopener noreferrer">
+        See all clips & videos on YouTube
+        <span className="visually-hidden"> (opens in a new tab)</span>
+      </a>
+    </div>
   );
 }
 
-export function ClipBrowser({ filters = false, comments = false }: { filters?: boolean; comments?: boolean }) {
+export function ClipBrowser({ comments = false }: { comments?: boolean }) {
   const layout = layoutDailyClips(PLAYABLE_CLIPS, chicagoDateKey());
   const [playing, setPlaying] = useState<string | null>(null);
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
       <FeaturedGrid layout={layout} playing={playing} onPlay={setPlaying} comments={comments} />
-      {filters ? <ClipArchive layout={layout} playing={playing} onPlay={setPlaying} comments={comments} /> : null}
+      <YouTubeArchiveLink />
     </>
   );
 }
@@ -181,9 +144,7 @@ export function Clips() {
         <div className="banner">
           <h2 id="clips-title">Clips</h2>
         </div>
-        <p className="serif-line">
-          Today's clips from Twitch and YouTube. They change at midnight Central. <Link to="/clips" hash="archive">Archive</Link>
-        </p>
+        <p className="serif-line">Today's clips from Twitch and YouTube. They change at midnight Central.</p>
         <ClipBrowser />
       </div>
     </section>

@@ -11,8 +11,10 @@ import {
   isPlayableClip,
   layoutDailyClips,
   pickFeatured,
+  youtubeVideosPage,
   type Clip,
 } from "./clips.ts";
+import { YT_CHANNEL } from "./youtube-live.functions.ts";
 
 const blue: Clip = {
   kind: "yt",
@@ -51,6 +53,13 @@ function hunter(slug: string): Clip {
     uploadDate: "2026-10-09T05:32:05Z",
   };
 }
+
+describe("youtube archive", () => {
+  it("points at the videos tab for the channel the site already uses", () => {
+    assert.equal(YT_CHANNEL, "UCcV1q2gBovKyWlU8SnCI3ww");
+    assert.equal(youtubeVideosPage(YT_CHANNEL), "https://www.youtube.com/channel/UCcV1q2gBovKyWlU8SnCI3ww/videos");
+  });
+});
 
 describe("chicago date key", () => {
   it("rolls the featured day at midnight Central", () => {
