@@ -19,6 +19,7 @@ import {
   type TalkReview,
   type TalkViewer,
 } from "@/lib/discussion";
+import { CommunityPolls, usePollBoard } from "@/components/Poll";
 import {
   banUser,
   commentOnClip,
@@ -198,6 +199,7 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
     () => (threadId ? getThread({ data: { id: threadId } }) : listThreads()),
     [threadId],
   );
+  const polls = usePollBoard();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [busy, setBusy] = useState(false);
@@ -235,6 +237,7 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
 
   return (
     <div className="talk-column">
+      {!threadId ? <CommunityPolls part="board" state={polls} /> : null}
       {error ? <p className="wallet-error" role="alert">{error}</p> : null}
       {notice ? <p className="talk-note">{notice}</p> : null}
       {!feed ? <p className="lede">Opening the board…</p> : null}
@@ -294,6 +297,7 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
       ) : null}
       {feed && viewer?.isAdmin ? (
         <>
+          <CommunityPolls part="tools" state={polls} />
           <ReviewPanel
             items={feed.queue}
             notes={feed.noteQueue}

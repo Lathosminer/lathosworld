@@ -34,7 +34,7 @@ function CommunityPage() {
           </p>
           <p className="kicker">Fans</p>
           <h1>Community</h1>
-          <p className="serif-line">Threads and replies. Anyone can read. Sign in to post.</p>
+          <p className="serif-line">Threads, replies, and one poll a week. Anyone can read. Sign in to post or vote.</p>
           <CommunityBoard threadId={thread} />
         </div>
       </section>
