@@ -98,6 +98,8 @@ export type TalkNote = {
   helpful: number;
   notHelpful: number;
   myRating: "helpful" | "not" | null;
+  reportCount: number;
+  reportedByMe: boolean;
   status: TalkNoteStatus;
 };
 
@@ -152,7 +154,11 @@ export type TalkNoteReview = {
   postPreview: string;
   body: string;
   createdAt: string;
-  status: "pending" | "held";
+  status: TalkNoteStatus;
+  hiddenReason: string;
+  reportCount: number;
+  /** Informational only. Holding a note does not mute or ban. */
+  proposedStrikes: number;
   helpful: number;
   notHelpful: number;
   author: TalkAuthor;

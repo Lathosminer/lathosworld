@@ -28,7 +28,9 @@ import {
   listClipComments,
   listThreads,
   rateNote,
+  reportNote,
   removeNote,
+  restoreNote,
   removePost,
   replyToPost,
   reportPost,
@@ -117,6 +119,16 @@ function canPost(viewer: TalkViewer): boolean {
   return viewer.signedIn && !viewer.banned;
 }
 
+function CommunityRules() {
+  return (
+    <div className="talk-rules">
+      {COMMUNITY_RULES.split("\n").map((line) => (
+        <p key={line}>{line}</p>
+      ))}
+    </div>
+  );
+}
+
 function Composer({
   viewer,
   title,
@@ -140,11 +152,7 @@ function Composer({
 }) {
   return (
     <div className="talk-compose">
-      <div className="talk-rules">
-        {COMMUNITY_RULES.split("\n").map((line) => (
-          <p key={line}>{line}</p>
-        ))}
-      </div>
+      <CommunityRules />
       {!canPost(viewer) ? (
         <SignIn viewer={viewer} />
       ) : (
@@ -649,6 +657,7 @@ function CommunityNotes({
           viewer={viewer}
           busy={busy}
           onRate={(helpful) => run(() => rateNote({ data: { noteId: note.id, helpful } }), "")}
+          onReport={(reason) => run(() => reportNote({ data: { noteId: note.id, reason } }), "Report sent.")}
           onRemove={() => run(() => removeNote({ data: { noteId: note.id } }), "Note removed.")}
         />
       ))}
@@ -665,6 +674,7 @@ function CommunityNotes({
             run(() => createNote({ data: { postId: post.id, body: text } }), "Note proposed. It shows after enough helpful ratings.");
           }}
         >
+          <CommunityRules />
           <label>
             Add context
             <textarea
@@ -697,16 +707,21 @@ function NoteCard({
   viewer,
   busy,
   onRate,
+  onReport,
   onRemove,
 }: {
   note: TalkNote;
   viewer: TalkViewer;
   busy: boolean;
   onRate: (helpful: boolean) => void;
+  onReport: (reason: string) => void;
   onRemove: () => void;
 }) {
+  const [reporting, setReporting] = useState(false);
+  const [reason, setReason] = useState("");
   const mine = viewer.userId === note.author.id;
   const canRate = canPost(viewer) && !mine && note.status !== "held";
+  const canReport = canPost(viewer) && !mine && note.status !== "held";
   const label = note.status === "held" ? "Held for review" : note.status === "pending" ? "Waiting for ratings" : "Community note";
   return (
     <div className="talk-context-card">
@@ -714,6 +729,8 @@ function NoteCard({
         <span>{label}</span>
         <span>{note.author.name}</span>
         <time dateTime={note.createdAt}>{formatWhen(note.createdAt)}</time>
+        {viewer.isAdmin && note.reportCount > 0 ? <span className="talk-flag">{note.reportCount} reports</span> : null}
+        {note.reportedByMe ? <span>Reported</span> : null}
       </p>
       <p className="talk-body">
         <TalkText text={note.body} />
@@ -746,12 +763,34 @@ function NoteCard({
               </button>
             </>
           ) : null}
+          {canReport ? (
+            <button type="button" className="talk-btn" disabled={busy} aria-expanded={reporting} onClick={() => setReporting((open) => !open)}>
+              Report
+            </button>
+          ) : null}
           {viewer.isAdmin ? (
             <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={onRemove}>
               Remove note
             </button>
           ) : null}
         </div>
+      ) : null}
+      {reporting ? (
+        <form
+          className="talk-form talk-inline"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onReport(reason);
+            setReporting(false);
+            setReason("");
+          }}
+        >
+          <label>
+            Why report this note?
+            <input value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} placeholder="Optional" />
+          </label>
+          <button className="btn btn-ghost talk-submit" type="submit" disabled={busy}>Send report</button>
+        </form>
       ) : null}
     </div>
   );
@@ -777,7 +816,7 @@ function ReviewPanel({
   return (
     <section className="talk-bans talk-queue" aria-label="Review queue">
       <h2>Review queue</h2>
-      <p className="talk-note">Held posts stay hidden until you approve, delete, or ban. Notes stay here until readers rate them helpful, or you remove them.</p>
+      <p className="talk-note">Held posts and notes stay hidden until you approve, delete, or ban.</p>
       {items.length === 0 && notes.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
       <ul>
         {items.map((item) => (
@@ -829,15 +868,21 @@ function NoteQueueItem({
   setNotice: (value: string) => void;
   reload: () => void;
 }) {
-  function run() {
+  const [banOpen, setBanOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const strike = proposedStrikeNote(note.proposedStrikes);
+
+  function run(work: () => Promise<{ ok: true } | { ok: false; error: string }>) {
     setBusy(true);
     setError("");
     setNotice("");
-    removeNote({ data: { noteId: note.id } })
+    work()
       .then((result) => {
         if (!result.ok) setError(result.error);
         else {
-          setNotice("Note removed.");
+          setBanOpen(false);
+          setReason("");
+          setNotice("Done.");
           reload();
         }
       })
@@ -852,18 +897,41 @@ function NoteQueueItem({
           <strong>{note.author.name}</strong>
           <span>{note.place}</span>
           <time dateTime={note.createdAt}>{formatWhen(note.createdAt)}</time>
-          <span className="talk-flag">{note.status === "held" ? "Held" : "Waiting for ratings"}</span>
-          <span>{note.helpful} helpful</span>
-          <span>{note.notHelpful} not helpful</span>
+          {note.status === "held" ? <span className="talk-flag">Pending · {note.hiddenReason}</span> : null}
+          {note.reportCount > 0 ? <span className="talk-flag">{note.reportCount} reports</span> : null}
+          {strike ? <span>{strike}</span> : null}
         </p>
         <p className="talk-body">{note.body}</p>
         <p className="talk-preview">On: {note.postPreview}</p>
       </div>
       <div className="talk-actions">
-        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={run}>
-          Remove
+        {note.status === "held" ? (
+          <button type="button" className="talk-btn" disabled={busy} onClick={() => run(() => restoreNote({ data: { noteId: note.id } }))}>
+            Approve
+          </button>
+        ) : null}
+        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => run(() => removeNote({ data: { noteId: note.id } }))}>
+          Delete
+        </button>
+        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} aria-expanded={banOpen} onClick={() => setBanOpen((open) => !open)}>
+          Ban
         </button>
       </div>
+      {banOpen ? (
+        <form
+          className="talk-form talk-inline"
+          onSubmit={(event) => {
+            event.preventDefault();
+            run(() => banUser({ data: { userId: note.author.id, reason } }));
+          }}
+        >
+          <label>
+            Ban {note.author.name}
+            <input value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} placeholder="Optional note" />
+          </label>
+          <button className="btn btn-ghost talk-submit" type="submit" disabled={busy}>Ban account</button>
+        </form>
+      ) : null}
     </li>
   );
 }

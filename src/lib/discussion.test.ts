@@ -363,4 +363,35 @@ describe("discussion migration", () => {
     );
     await pg.close();
   });
+
+  it("lets each person report a note once", async () => {
+    const { PGlite } = await import("@electric-sql/pglite");
+    const pg = new PGlite();
+    await pg.waitReady;
+    await pg.exec(readFileSync(new URL("../../migrations/0005_discussion.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0006_moderation.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0007_community_notes.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0008_community_note_reports.sql", import.meta.url), "utf8"));
+    const postId = "12121212-1212-4121-8121-121212121212";
+    const noteId = "13131313-1313-4131-8131-131313131313";
+    await pg.query(
+      "insert into discussion_post (id, scope, parent_id, root_id, author_id, title, body) values ($1, 'board', null, $1, 'author', 'Raid', 'Who is on tonight for the raid?')",
+      [postId],
+    );
+    await pg.query(
+      "insert into discussion_note (id, post_id, author_id, body) values ($1, $2, 'fan', 'This raid was last week, not tonight.')",
+      [noteId, postId],
+    );
+    await pg.query(
+      "insert into discussion_note_report (id, note_id, reporter_id, reason) values ($1, $2, 'reader', '')",
+      ["14141414-1414-4141-8141-141414141414", noteId],
+    );
+    await assert.rejects(
+      pg.query(
+        "insert into discussion_note_report (id, note_id, reporter_id, reason) values ($1, $2, 'reader', 'again')",
+        ["15151515-1515-4151-8151-151515151515", noteId],
+      ),
+    );
+    await pg.close();
+  });
 });
