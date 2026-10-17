@@ -59,6 +59,23 @@ const OFFERS = [
   },
 ] as const;
 
+const SHOP = "https://lathosworld-shop.fourthwall.com";
+
+const SITE_LINKS = [
+  { name: "Clips", handle: "Twitch and YouTube", hint: "Watch", to: "/clips" },
+  { name: "Schedule", handle: "The week", hint: "Week", to: "/schedule" },
+  { name: "Survivors", handle: "Names on the wall", hint: "Names", to: "/survivors" },
+  { name: "The Official Shit List", handle: "A follow is the only ask", hint: "Join", to: "/list" },
+  { name: "Help desk", handle: "Never a seed phrase", hint: "Ask", to: "/help" },
+] as const;
+
+const CRYPTO_LINKS = [
+  { name: "Flap", handle: "Get $LWRLD", hint: "Buy", href: FLAP },
+  { name: "BscScan", handle: "Contract ends in 7777", hint: "Verify", href: SCAN },
+  { name: OFFERS[0].name, handle: OFFERS[0].handle, hint: OFFERS[0].hint, href: OFFERS[0].href },
+  { name: "LWRLD paper", handle: "Whitepaper", hint: "Read", href: PAPER },
+] as const;
+
 function TwitchEmbed() {
   const [parent, setParent] = useState("");
   const [on, setOn] = useState(false);
@@ -194,6 +211,7 @@ function Home() {
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
+          <a href={SHOP} target="_blank" rel="noopener">MERCH / Shop</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
         </nav>
       </header>
@@ -381,6 +399,34 @@ function Home() {
                   <b>{door.hint}</b>
                 </a>
               ))}
+              {SITE_LINKS.map((page) => (
+                <Link key={page.name} className="social" to={page.to}>
+                  <span className="social-lead" aria-hidden="true" />
+                  <span>
+                    <strong>{page.name}</strong>
+                    <em>{page.handle}</em>
+                  </span>
+                  <b>{page.hint}</b>
+                </Link>
+              ))}
+              <a className="social card-wide" href={SHOP} target="_blank" rel="noopener">
+                <span className="social-lead"><Mark name="merch" /></span>
+                <span>
+                  <strong>MERCH / Shop</strong>
+                  <em>LathosWorld Shop</em>
+                </span>
+                <b>Shop</b>
+              </a>
+              {CRYPTO_LINKS.map((door) => (
+                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
+                  <span className="social-lead" aria-hidden="true" />
+                  <span>
+                    <strong>{door.name}</strong>
+                    <em>{door.handle}</em>
+                  </span>
+                  <b>{door.hint}</b>
+                </a>
+              ))}
             </div>
           </div>
         </section>
@@ -463,6 +509,13 @@ function Mark({ name }: { name: string }) {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M5 3h16v11l-4 4h-4l-2 2H8v-2H3V6l2-3zm2 2v11h3v2h2l2-2h4l2-2V5H7zm8 2h2v5h-2V7zm-4 0h2v5h-2V7z" />
+      </svg>
+    );
+  }
+  if (name === "merch") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 7h12l-1 13H7L6 7zm2.1 2 .7 9h6.4l.7-9H8.1zM9 7l.6-2h4.8L15 7H9z" />
       </svg>
     );
   }

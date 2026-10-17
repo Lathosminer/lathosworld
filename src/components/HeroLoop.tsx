@@ -245,7 +245,7 @@ export function HeroLoop() {
             <source src="/hero-loop.mp4" type="video/mp4" />
           </video>
         )}
-        <img className="hero-loop-still" src="/hero-poster.jpg" width={1080} height={1080} alt="" />
+        <img className="hero-loop-still" src="/hero-poster.jpg" width={1080} height={1080} alt="LathosWorld" />
       </div>
       <button
         type="button"
