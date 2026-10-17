@@ -1,6 +1,8 @@
 import { isClipDiscussionId } from "./clips.ts";
 
 export const BOARD_SCOPE = "board";
+/** Comments on the /giveaway page. */
+export const GIVEAWAY_SCOPE = "giveaway";
 export const TITLE_MIN = 3;
 export const TITLE_MAX = 80;
 export const BODY_MIN = 2;
@@ -439,5 +441,6 @@ export function isAllowedClipId(value: string): boolean {
 export function reviewPlace(scope: string): string {
   if (scope === BOARD_SCOPE) return "Community";
   if (scope.startsWith("clip:")) return "Clip comment";
+  if (scope === GIVEAWAY_SCOPE) return "Giveaway comment";
   return "Post";
 }
