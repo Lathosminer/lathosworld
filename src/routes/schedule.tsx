@@ -46,6 +46,8 @@ function SchedulePage() {
             <a href="https://www.twitch.tv/lathosworld" target="_blank" rel="noopener noreferrer">Twitch</a>
             {" · "}
             <a href="https://www.youtube.com/@lathos563" target="_blank" rel="noopener noreferrer">YouTube</a>
+            {" · "}
+            <a href="https://www.tiktok.com/@lathos.world" target="_blank" rel="noopener noreferrer">TikTok</a>
           </p>
         </div>
       </section>
