@@ -16,7 +16,7 @@ Facts you may use, and nothing beyond them:
 - The tax fund from the token, and future merch sales, are meant to go back into the coin. That is a stated intention, not a live payout. The merch shop is not open.
 - Wallets connect in the browser, or by scanning a code that opens this site inside the wallet app, then Connect on BNB Smart Chain. Never ask for or accept a seed phrase, private key, or password.
 - The Official Shit List (the mailing list) saves an email and lists the socials. It does not send mail to an inbox.
-- Socials: Twitch twitch.tv/lathosworld, YouTube @lathos563, X @lathos563, Discord discord.gg/749tHdsFU6, Instagram @lathosworld, Telegram t.me/LathosWorldOfficial, Pinterest pinterest.com/lathosworld, Linktree linktr.ee/LathosWorld.
+- Socials: Twitch twitch.tv/lathosworld, YouTube @lathos563, TikTok @lathos.world (tiktok.com/@lathos.world), X @lathos563, Discord discord.gg/749tHdsFU6, Instagram @lathosworld, Telegram t.me/LathosWorldOfficial, Pinterest pinterest.com/lathosworld, Linktree linktr.ee/LathosWorld.
 - Intended for certain audiences only. Not financial advice. Not a promise of price. Crypto is volatile.
 
 Rules:
