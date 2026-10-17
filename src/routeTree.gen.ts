@@ -18,6 +18,7 @@ import { Route as ListRouteImport } from './routes/list'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SurvivorsRouteImport } from './routes/survivors'
+import { Route as ApiCommunityRouteImport } from './routes/api/community'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const SurvivorsRoute = SurvivorsRouteImport.update({
   path: '/survivors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCommunityRoute = ApiCommunityRouteImport.update({
+  id: '/api/community',
+  path: '/api/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
+  '/api/community': typeof ApiCommunityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
+  '/api/community': typeof ApiCommunityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
+  '/api/community': typeof ApiCommunityRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/schedule'
     | '/survivors'
+    | '/api/community'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/schedule'
     | '/survivors'
+    | '/api/community'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/schedule'
     | '/survivors'
+    | '/api/community'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ScheduleRoute: typeof ScheduleRoute
   SurvivorsRoute: typeof SurvivorsRoute
+  ApiCommunityRoute: typeof ApiCommunityRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SurvivorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/community': {
+      id: '/api/community'
+      path: '/api/community'
+      fullPath: '/api/community'
+      preLoaderRoute: typeof ApiCommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ScheduleRoute: ScheduleRoute,
   SurvivorsRoute: SurvivorsRoute,
+  ApiCommunityRoute: ApiCommunityRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

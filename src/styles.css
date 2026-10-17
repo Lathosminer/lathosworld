@@ -1089,3 +1089,76 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 .gate-wide h1 { margin: 0.25rem 0 0.5rem; font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 2.8rem); letter-spacing: 0.04em; line-height: 1.1; }
 /* Easter egg: taller card so the moving target never lands on the text or Close */
 .egg-card { min-height: 28rem; }
+
+.community { padding-bottom: 0.4rem; }
+.community-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+}
+.community-stat {
+  margin: 0;
+  padding: 0.95rem 1rem 0.85rem;
+  border: 1px solid var(--color-line);
+  background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+}
+.community-stat dt {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+.community-stat dd {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4vw, 2.3rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: var(--color-cyan);
+  text-shadow: 0 0 16px color-mix(in srgb, var(--color-cyan) 35%, transparent);
+}
+.community-stat span {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.ticker {
+  margin-top: 1rem;
+  overflow: hidden;
+  border-block: 1px solid color-mix(in srgb, var(--color-cyan) 35%, transparent);
+  background: #070c12;
+}
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: community-ticker 36s linear infinite;
+}
+.ticker-set {
+  display: flex;
+  gap: 2.2rem;
+  padding: 0.75rem 1.1rem;
+}
+.ticker-set span {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-ink);
+}
+.ticker-set b {
+  color: var(--color-cyan);
+  font-weight: 700;
+}
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@keyframes community-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; width: auto; }
+  .ticker-copy { display: none; }
+  .ticker-set { flex-wrap: wrap; width: auto; padding: 0.75rem 1rem; }
+}

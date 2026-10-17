@@ -9,6 +9,7 @@ import { TrustConnect } from "@/components/TrustConnect";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
 import { SurvivorEgg } from "@/components/SurvivorEgg";
+import { CommunityStats } from "@/components/CommunityStats";
 import { DESK_LABEL } from "@/lib/helpdesk";
 
 const MARK_SM = "/mark-sm.webp";
@@ -256,6 +257,7 @@ function Home() {
             <YouTubeEmbed />
           </div>
         </section>
+        <CommunityStats />
         <SwordRule />
         <Clips limit={3} />
         <SwordRule />
