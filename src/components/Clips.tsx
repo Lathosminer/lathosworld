@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { CreatorShoutout } from "@/components/CreatorShoutout";
+import { ClipComments } from "@/components/Talk";
+import { clipDiscussionId } from "@/lib/clip-ids";
 import { SHOUTOUT_LOGINS } from "@/lib/creators";
 
 const SITE = "https://lathosworld.com";
@@ -67,7 +69,7 @@ const JSON_LD = JSON.stringify({
   })),
 }).replace(/</g, "\\u003c");
 
-function ClipCard({ clip }: { clip: Clip }) {
+function ClipCard({ clip, comments = false }: { clip: Clip; comments?: boolean }) {
   const [on, setOn] = useState(false);
   const source = clip.kind === "yt" ? "YouTube" : "Twitch";
   return (
@@ -101,13 +103,14 @@ function ClipCard({ clip }: { clip: Clip }) {
         <span>{clip.description}</span>
         <span className="clip-tags">{source} · {clip.tags.map((t) => `#${t.replace(/[^A-Za-z0-9]/g, "")}`).join(" ")}</span>
       </figcaption>
+      {comments ? <ClipComments clipId={clipDiscussionId(clip)} /> : null}
     </figure>
   );
 }
 
 const isShoutoutClip = (clip: Clip) => clip.kind === "twitch" && SHOUTOUT_LOGINS.has(clip.channel);
 
-export function ClipBrowser({ filters = false, limit }: { filters?: boolean; limit?: number }) {
+export function ClipBrowser({ filters = false, limit, comments = false }: { filters?: boolean; limit?: number; comments?: boolean }) {
   const games = ["All", ...CLIPS.map((clip) => clip.game).filter((game, index, all) => all.indexOf(game) === index)];
   const [game, setGame] = useState("All");
   const pool = game === "All" ? CLIPS : CLIPS.filter((clip) => clip.game === game);
@@ -127,13 +130,13 @@ export function ClipBrowser({ filters = false, limit }: { filters?: boolean; lim
           ))}
         </div>
       ) : null}
-      <div className="clip-grid">
+      <div className={comments ? "clip-grid with-talk" : "clip-grid"}>
         {featuredShown.map((clip) => (
-          <ClipCard key={clip.title} clip={clip} />
+          <ClipCard key={clip.title} clip={clip} comments={comments} />
         ))}
         {featuredShown.length > 0 ? shoutout : null}
         {restShown.map((clip) => (
-          <ClipCard key={clip.title} clip={clip} />
+          <ClipCard key={clip.title} clip={clip} comments={comments} />
         ))}
         {featuredShown.length === 0 ? shoutout : null}
       </div>

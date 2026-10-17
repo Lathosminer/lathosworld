@@ -21,10 +21,15 @@ function ClipsPage() {
       </Link>
       <section className="section">
         <div className="wrap">
+          <p className="page-jump">
+            <Link to="/">Home</Link>
+            <Link to="/clips">Clips</Link>
+            <Link to="/community" search={{}}>Community</Link>
+          </p>
           <p className="kicker">Twitch and YouTube</p>
           <h1>Clips</h1>
-          <p className="serif-line">Filter by game. The featured clips stay first.</p>
-          <ClipBrowser filters />
+          <p className="serif-line">Filter by game. The featured clips stay first. Comments sit under each one.</p>
+          <ClipBrowser filters comments />
         </div>
       </section>
     </main>

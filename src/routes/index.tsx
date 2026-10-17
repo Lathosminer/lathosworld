@@ -212,6 +212,7 @@ function Home() {
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
+          <Link to="/community" search={{}}>Community</Link>
           <a href={SHOP} target="_blank" rel="noopener">MERCH / Shop</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
         </nav>
@@ -472,7 +473,7 @@ function Home() {
           <p className="way">Not financial advice.</p>
           <p className="thanks">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support. Thanks for reading my story. I hope to see you all soon. God bless and goodnight.</p>
           <p className="copy">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><Link to="/schedule">Schedule</Link> · <Link to="/survivors">Survivors</Link> · <Link to="/list">The Official Shit List</Link> · <Link to="/help">{DESK_LABEL}</Link></p>
+          <p className="copy"><Link to="/schedule">Schedule</Link> · <Link to="/clips">Clips</Link> · <Link to="/community" search={{}}>Community</Link> · <Link to="/survivors">Survivors</Link> · <Link to="/list">The Official Shit List</Link> · <Link to="/help">{DESK_LABEL}</Link></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>
