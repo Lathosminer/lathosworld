@@ -1152,6 +1152,92 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
   color: var(--color-cyan);
   font-weight: 700;
 }
+/* Creator shoutouts sit under clips from these channels. */
+.creator-shoutout {
+  grid-column: 1 / -1;
+  margin: 0.15rem 0;
+  padding: 1rem 0.95rem 1.05rem;
+  border: 1px solid rgba(95, 243, 240, 0.28);
+  background: rgba(8, 14, 22, 0.75);
+}
+.creator-shoutout h3 {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 2.5vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+.creator-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+}
+.creator-card {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  margin: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--color-line);
+  background: #070c12;
+}
+.creator-avatar,
+.creator-initial {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 50%;
+  border: 1px solid rgba(95, 243, 240, 0.45);
+}
+.creator-avatar { object-fit: cover; display: block; background: #000; }
+.creator-initial {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--color-cyan);
+  background: #0b1118;
+}
+.creator-card h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+}
+.creator-card p {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.creator-links { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.creator-links a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(95, 243, 240, 0.35);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.creator-links a:first-child {
+  border-color: var(--color-cyan);
+  color: var(--color-bg);
+  background: var(--color-cyan);
+}
+.creator-links a:hover {
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 14px rgba(95, 243, 240, 0.35);
+}
+@media (min-width: 720px) {
+  .creator-grid { grid-template-columns: 1fr 1fr; }
+}
+
 .ticker:hover .ticker-track { animation-play-state: paused; }
 @keyframes community-ticker {
   from { transform: translateX(0); }
