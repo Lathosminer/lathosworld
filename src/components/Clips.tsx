@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { CreatorShoutout } from "@/components/CreatorShoutout";
+import { SHOUTOUT_LOGINS } from "@/lib/creators";
 
 const SITE = "https://lathosworld.com";
 const TWITCH_VOD = "https://www.twitch.tv/videos/2900991343";
@@ -103,11 +105,17 @@ function ClipCard({ clip }: { clip: Clip }) {
   );
 }
 
+const isShoutoutClip = (clip: Clip) => clip.kind === "twitch" && SHOUTOUT_LOGINS.has(clip.channel);
+
 export function ClipBrowser({ filters = false, limit }: { filters?: boolean; limit?: number }) {
   const games = ["All", ...CLIPS.map((clip) => clip.game).filter((game, index, all) => all.indexOf(game) === index)];
   const [game, setGame] = useState("All");
   const pool = game === "All" ? CLIPS : CLIPS.filter((clip) => clip.game === game);
-  const shown = limit ? pool.slice(0, limit) : pool;
+  const featured = pool.filter(isShoutoutClip);
+  const rest = pool.filter((clip) => !isShoutoutClip(clip));
+  const featuredShown = limit ? featured.slice(0, limit) : featured;
+  const restShown = limit ? rest.slice(0, Math.max(0, limit - featuredShown.length)) : rest;
+  const shoutout = <CreatorShoutout />;
   return (
     <>
       {filters ? (
@@ -120,9 +128,14 @@ export function ClipBrowser({ filters = false, limit }: { filters?: boolean; lim
         </div>
       ) : null}
       <div className="clip-grid">
-        {shown.map((clip) => (
+        {featuredShown.map((clip) => (
           <ClipCard key={clip.title} clip={clip} />
         ))}
+        {featuredShown.length > 0 ? shoutout : null}
+        {restShown.map((clip) => (
+          <ClipCard key={clip.title} clip={clip} />
+        ))}
+        {featuredShown.length === 0 ? shoutout : null}
       </div>
     </>
   );
