@@ -8,7 +8,7 @@ export const Route = createFileRoute("/clips")({
     pageHead({
       path: "/clips",
       title: "Clips · LathosWorld",
-      description: "LathosWorld clips from Twitch and YouTube. Filter by game. the_demon_hunter3 clips stay first.",
+      description: "Today's LathosWorld clips, the same set until midnight Central. The archive filters by game and plays one clip at a time.",
     }),
 });
 
@@ -23,8 +23,8 @@ function ClipsPage() {
         <div className="wrap">
           <p className="kicker">Twitch and YouTube</p>
           <h1>Clips</h1>
-          <p className="serif-line">Filter by game. The featured clips stay first.</p>
-          <ClipBrowser filters />
+          <p className="serif-line">Today's clips. Everyone sees the same set until midnight Central.</p>
+          <ClipBrowser filters comments />
         </div>
       </section>
     </main>
