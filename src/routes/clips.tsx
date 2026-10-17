@@ -21,9 +21,14 @@ function ClipsPage() {
       </Link>
       <section className="section">
         <div className="wrap">
+          <p className="page-jump">
+            <Link to="/">Home</Link>
+            <Link to="/clips">Clips</Link>
+            <Link to="/community" search={{}}>Community</Link>
+          </p>
           <p className="kicker">Twitch and YouTube</p>
           <h1>Clips</h1>
-          <p className="serif-line">Today's clips. Everyone sees the same set until midnight Central.</p>
+          <p className="serif-line">Today's clips. Everyone sees the same set until midnight Central. Comments sit under each one.</p>
           <ClipBrowser comments />
         </div>
       </section>

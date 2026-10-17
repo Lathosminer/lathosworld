@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { CreatorShoutout } from "@/components/CreatorShoutout";
+import { ClipComments } from "@/components/Talk";
 import {
   PLAYABLE_CLIPS,
+  chicagoDateKey,
   clipDiscussionId,
   clipThumb,
   clipsJsonLd,
-  chicagoDateKey,
   layoutDailyClips,
   youtubeVideosPage,
   type Clip,
@@ -16,11 +17,6 @@ import { YT_CHANNEL } from "@/lib/youtube-live.functions";
 const YOUTUBE_VIDEOS = youtubeVideosPage(YT_CHANNEL);
 
 const JSON_LD = clipsJsonLd();
-
-/** Mount point for per-clip discussion. Keyed by clipDiscussionId. Empty until comments render. */
-export function ClipCommentHook({ clipId }: { clipId: string }) {
-  return <div className="clip-comments" data-clip-id={clipId} />;
-}
 
 function ClipEmbed({ clip }: { clip: Clip }) {
   if (clip.kind === "twitch") {
@@ -78,7 +74,7 @@ function ClipCard({
         <span>{clip.description}</span>
         <span className="clip-tags">{source} · {clip.tags.map((tag) => `#${tag.replace(/[^A-Za-z0-9]/g, "")}`).join(" ")}</span>
       </figcaption>
-      {comments ? <ClipCommentHook clipId={id} /> : null}
+      {comments ? <ClipComments clipId={id} /> : null}
     </figure>
   );
 }
@@ -105,7 +101,7 @@ function FeaturedGrid({
   );
   const shoutout = <CreatorShoutout key="creator-shoutout" />;
   return (
-    <div className="clip-grid">
+    <div className={comments ? "clip-grid with-talk" : "clip-grid"}>
       {layout.lead.map(card)}
       {layout.shoutout === "under-demon-hunter" ? shoutout : null}
       {layout.rest.map(card)}

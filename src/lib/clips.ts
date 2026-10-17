@@ -73,6 +73,15 @@ export const PLAYABLE_CLIPS: Clip[] = CLIPS.filter(isPlayableClip);
 /** Allowlist for clip comments. Order follows the catalog. */
 export const CLIP_DISCUSSION_IDS: readonly string[] = PLAYABLE_CLIPS.map(clipDiscussionId);
 
+export function isClipDiscussionId(value: string): boolean {
+  return (CLIP_DISCUSSION_IDS as readonly string[]).includes(value);
+}
+
+/** Stored on `discussion_post.scope` as `clip:<id>`. */
+export function clipScope(clipId: string): string {
+  return `clip:${clipId}`;
+}
+
 export function isDemonHunterClip(clip: Clip): boolean {
   return clip.kind === "twitch" && clip.channel === DEMON_HUNTER_LOGIN;
 }

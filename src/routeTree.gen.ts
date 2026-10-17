@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ClipsRouteImport } from './routes/clips'
+import { Route as CommunityRouteImport } from './routes/community'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LetterRouteImport } from './routes/letter'
 import { Route as ListRouteImport } from './routes/list'
@@ -34,6 +35,11 @@ const AccountRoute = AccountRouteImport.update({
 const ClipsRoute = ClipsRouteImport.update({
   id: '/clips',
   path: '/clips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
+  '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
+  '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
+  '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/clips'
+    | '/community'
     | '/help'
     | '/letter'
     | '/list'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/clips'
+    | '/community'
     | '/help'
     | '/letter'
     | '/list'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/clips'
+    | '/community'
     | '/help'
     | '/letter'
     | '/list'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   ClipsRoute: typeof ClipsRoute
+  CommunityRoute: typeof CommunityRoute
   HelpRoute: typeof HelpRoute
   LetterRoute: typeof LetterRoute
   ListRoute: typeof ListRoute
@@ -194,6 +207,13 @@ declare module '@tanstack/react-router' {
       path: '/clips'
       fullPath: '/clips'
       preLoaderRoute: typeof ClipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -259,6 +279,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   ClipsRoute: ClipsRoute,
+  CommunityRoute: CommunityRoute,
   HelpRoute: HelpRoute,
   LetterRoute: LetterRoute,
   ListRoute: ListRoute,
