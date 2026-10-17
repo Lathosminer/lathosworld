@@ -1403,6 +1403,35 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 .talk-bans ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.45rem; }
 .talk-bans li { justify-content: space-between; gap: 0.6rem; }
 .talk-queue li { align-items: flex-start; }
+.talk-queue h3 {
+  margin: 0.9rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.talk-context {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.talk-context-card {
+  border-left: 2px solid var(--color-cyan);
+  padding: 0.45rem 0.65rem 0.55rem;
+  background: color-mix(in srgb, var(--color-cyan) 7%, transparent);
+  min-width: 0;
+}
+.talk-context-card .talk-body {
+  margin: 0.15rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.talk-btn-on {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+}
+.talk-context .talk-inline textarea { min-height: 3.4rem; }
 .talk-queue .talk-body { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.25rem 0 0; }
 .talk-clip {
   padding: 0.15rem 0.9rem 0.95rem;

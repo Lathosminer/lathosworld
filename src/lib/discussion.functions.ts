@@ -10,6 +10,10 @@
  * returned immediately. Slurs, threats, and harassment are held hidden for
  * the owner to approve, delete, or ban. Nothing here mutes or bans on its own.
  * Link spam and duplicate posts are rejected.
+ *
+ * Community notes are short context on someone else's post. They stay off the
+ * public post until enough readers mark them helpful. Severe language is held
+ * for the owner, who can remove a note from the review queue.
  */
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { getSql, type Sql } from "@/lib/db";
@@ -23,15 +27,22 @@ import {
   isAdminEmail,
   isAllowedClipId,
   isUuid,
+  noteStatus,
+  noteVisibleTo,
+  previewText,
   rateLimitError,
   reportRateError,
+  reviewPlace,
   safeAvatarUrl,
   shouldHideForReports,
   validateBody,
+  validateNote,
   validateReason,
   validateTitle,
   type TalkBan,
   type TalkFeed,
+  type TalkNote,
+  type TalkNoteReview,
   type TalkPost,
   type TalkReview,
   type TalkViewer,
@@ -199,7 +210,92 @@ function mapPost(row: PostRow, isAdmin: boolean): TalkPost {
     replyCount: count(row.reply_count),
     reportCount: isAdmin ? count(row.report_count) : 0,
     reportedByMe: flagged(row.reported_by_me),
+    notes: [],
   };
+}
+
+type NoteRow = {
+  id: string;
+  post_id: string;
+  body: string;
+  created_at: unknown;
+  hidden_at: unknown;
+  author_id: string;
+  author_name: string | null;
+  author_image: string | null;
+  helpful: number | null;
+  not_helpful: number | null;
+  my_rating: string | null;
+};
+
+function mapNote(row: NoteRow, viewer: TalkViewer): TalkNote | null {
+  const helpful = count(row.helpful);
+  const notHelpful = count(row.not_helpful);
+  const status = noteStatus(present(row.hidden_at), helpful, notHelpful);
+  if (!noteVisibleTo(status, row.author_id, viewer)) return null;
+  const rating = row.my_rating === "helpful" || row.my_rating === "not" ? row.my_rating : null;
+  return {
+    id: row.id,
+    postId: row.post_id,
+    body: row.body,
+    createdAt: stamp(row.created_at),
+    author: {
+      id: row.author_id,
+      name: displayName(row.author_name, row.author_id),
+      image: safeAvatarUrl(row.author_image),
+    },
+    helpful,
+    notHelpful,
+    myRating: viewer.signedIn ? rating : null,
+    status,
+  };
+}
+
+async function loadNotesForPosts(sql: Sql, postIds: string[], viewerId: string): Promise<NoteRow[]> {
+  if (postIds.length === 0) return [];
+  const slots = postIds.map((_, index) => `$${index + 1}`).join(", ");
+  const viewerSlot = `$${postIds.length + 1}`;
+  return sql.query<NoteRow>(
+    `
+    select
+      n.id,
+      n.post_id,
+      n.body,
+      n.created_at,
+      n.hidden_at,
+      n.author_id,
+      u."name" as author_name,
+      u."image" as author_image,
+      coalesce(sum(case when r.helpful is true then 1 else 0 end), 0)::int as helpful,
+      coalesce(sum(case when r.helpful is false then 1 else 0 end), 0)::int as not_helpful,
+      max(case when r.rater_id = ${viewerSlot} then case when r.helpful is true then 'helpful' else 'not' end end) as my_rating
+    from discussion_note n
+    left join "user" u on u.id = n.author_id
+    left join discussion_note_rating r on r.note_id = n.id
+    where n.deleted_at is null
+      and n.post_id in (${slots})
+    group by n.id, n.post_id, n.body, n.created_at, n.hidden_at, n.author_id, u."name", u."image"
+    order by n.created_at asc
+    `,
+    [...postIds, viewerId],
+  );
+}
+
+async function attachNotes(sql: Sql, posts: TalkPost[], viewer: TalkViewer): Promise<void> {
+  const rows = await loadNotesForPosts(
+    sql,
+    posts.map((post) => post.id),
+    viewer.userId ?? "",
+  );
+  const byPost = new Map<string, TalkNote[]>();
+  for (const row of rows) {
+    const note = mapNote(row, viewer);
+    if (!note) continue;
+    const list = byPost.get(note.postId) ?? [];
+    list.push(note);
+    byPost.set(note.postId, list);
+  }
+  for (const post of posts) post.notes = byPost.get(post.id) ?? [];
 }
 
 async function selectPosts(sql: Sql, where: string, params: unknown[], viewerId: string): Promise<PostRow[]> {
@@ -298,6 +394,77 @@ async function listQueue(sql: Sql): Promise<TalkReview[]> {
       image: safeAvatarUrl(row.author_image),
     },
   }));
+}
+
+async function listNoteQueue(sql: Sql): Promise<TalkNoteReview[]> {
+  const rows = await sql<{
+    id: string;
+    post_id: string;
+    body: string;
+    created_at: unknown;
+    hidden_at: unknown;
+    scope: string;
+    post_title: string | null;
+    post_body: string;
+    author_id: string;
+    author_name: string | null;
+    author_image: string | null;
+    helpful: number | null;
+    not_helpful: number | null;
+  }>`
+    select
+      n.id,
+      n.post_id,
+      n.body,
+      n.created_at,
+      n.hidden_at,
+      p.scope,
+      p.title as post_title,
+      p.body as post_body,
+      n.author_id,
+      u."name" as author_name,
+      u."image" as author_image,
+      coalesce(sum(case when r.helpful is true then 1 else 0 end), 0)::int as helpful,
+      coalesce(sum(case when r.helpful is false then 1 else 0 end), 0)::int as not_helpful
+    from discussion_note n
+    join discussion_post p on p.id = n.post_id
+    left join "user" u on u.id = n.author_id
+    left join discussion_note_rating r on r.note_id = n.id
+    where n.deleted_at is null
+      and p.deleted_at is null
+    group by n.id, n.post_id, n.body, n.created_at, n.hidden_at, p.scope, p.title, p.body, n.author_id, u."name", u."image"
+    having n.hidden_at is not null
+      or coalesce(sum(case when r.helpful is true then 1 else 0 end), 0) < 3
+      or coalesce(sum(case when r.helpful is true then 1 else 0 end), 0)
+         <= coalesce(sum(case when r.helpful is false then 1 else 0 end), 0)
+    order by n.hidden_at desc nulls last, n.created_at desc
+    limit 50
+  `;
+  const items: TalkNoteReview[] = [];
+  for (const row of rows) {
+    const helpful = count(row.helpful);
+    const notHelpful = count(row.not_helpful);
+    const status = noteStatus(present(row.hidden_at), helpful, notHelpful);
+    if (status === "live") continue;
+    const preview = previewText(row.post_body, 80);
+    items.push({
+      id: row.id,
+      postId: row.post_id,
+      place: reviewPlace(row.scope),
+      postPreview: row.post_title ? `${row.post_title} — ${preview}` : preview,
+      body: row.body,
+      createdAt: stamp(row.created_at),
+      status,
+      helpful,
+      notHelpful,
+      author: {
+        id: row.author_id,
+        name: displayName(row.author_name, row.author_id),
+        image: safeAvatarUrl(row.author_image),
+      },
+    });
+  }
+  return items;
 }
 
 async function rateMessage(sql: Sql, userId: string): Promise<string | null> {
@@ -406,6 +573,7 @@ async function feed(sql: Sql, viewer: TalkViewer, posts: TalkPost[], withQueue: 
     viewer,
     bans: viewer.isAdmin ? await listBans(sql) : [],
     queue: viewer.isAdmin && withQueue ? await listQueue(sql) : [],
+    noteQueue: viewer.isAdmin && withQueue ? await listNoteQueue(sql) : [],
   };
 }
 
@@ -444,12 +612,9 @@ export const getThread = createServerFn({ method: "POST" })
     if (!rows.some((row) => row.id === data && row.parent_id == null)) {
       throw new Error("That thread is not here.");
     }
-    return feed(
-      sql,
-      viewer,
-      rows.map((row) => mapPost(row, viewer.isAdmin)),
-      true,
-    );
+    const posts = rows.map((row) => mapPost(row, viewer.isAdmin));
+    await attachNotes(sql, posts, viewer);
+    return feed(sql, viewer, posts, true);
   });
 
 export const listClipComments = createServerFn({ method: "POST" })
@@ -465,12 +630,9 @@ export const listClipComments = createServerFn({ method: "POST" })
       [clipScope(data)],
       viewer.userId ?? "",
     );
-    return feed(
-      sql,
-      viewer,
-      rows.map((row) => mapPost(row, viewer.isAdmin)),
-      false,
-    );
+    const posts = rows.map((row) => mapPost(row, viewer.isAdmin));
+    await attachNotes(sql, posts, viewer);
+    return feed(sql, viewer, posts, false);
   });
 
 export const createThread = createServerFn({ method: "POST" })
@@ -697,6 +859,116 @@ export const banUser = createServerFn({ method: "POST" })
       on conflict (user_id) do update
         set reason = excluded.reason, banned_by = excluded.banned_by, created_at = now()
     `;
+    return { ok: true };
+  });
+
+async function noteRateMessage(sql: Sql, userId: string): Promise<string | null> {
+  const rows = await sql<{ n: number; ago: number | null }>`
+    select count(*)::int as n,
+           extract(epoch from (now() - max(created_at))) as ago
+    from discussion_note
+    where author_id = ${userId}
+      and created_at > now() - interval '10 minutes'
+  `;
+  const recent = count(rows[0]?.n);
+  const ago = rows[0]?.ago;
+  const ms = ago == null ? null : count(ago) * 1000;
+  return rateLimitError(recent, recent === 0 ? null : ms);
+}
+
+export const createNote = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { postId?: unknown; body?: unknown }) => ({
+    postId: String(input?.postId ?? "").trim(),
+    body: input?.body,
+  }))
+  .handler(async ({ context, data }): Promise<OkId | Fail> => {
+    if (!isUuid(data.postId)) return failed("That post is not here.");
+    const body = validateNote(data.body);
+    if (!body.ok) return body;
+    const ready = await requireActor(context.userId);
+    if ("ok" in ready) return ready;
+    const posts = await ready.sql<{ author_id: string; deleted_at: unknown; hidden_at: unknown }>`
+      select author_id, deleted_at, hidden_at from discussion_post where id = ${data.postId} limit 1
+    `;
+    const post = posts[0];
+    if (!post || present(post.deleted_at) || present(post.hidden_at)) return failed("That post is not here.");
+    if (post.author_id === ready.actor.id) return failed("Add context on someone else's post.");
+    const recent = await ready.sql<{ body: string }>`
+      select body from discussion_note
+      where author_id = ${ready.actor.id}
+        and deleted_at is null
+        and created_at > now() - interval '1 day'
+      order by created_at desc
+      limit 20
+    `;
+    const dup = duplicateError(body.body, null, recent.map((row) => ({ title: null, body: row.body })));
+    if (dup) return failed(dup);
+    const limited = await noteRateMessage(ready.sql, ready.actor.id);
+    if (limited) return failed(limited);
+    const id = crypto.randomUUID();
+    try {
+      await ready.sql`
+        insert into discussion_note (id, post_id, author_id, body, hidden_at, hidden_reason)
+        values (
+          ${id},
+          ${data.postId},
+          ${ready.actor.id},
+          ${body.body},
+          ${body.hold ? new Date().toISOString() : null},
+          ${body.hold ? "language" : ""}
+        )
+      `;
+    } catch (err) {
+      if (isUniqueViolation(err)) return failed("You already added a note on this post.");
+      throw err;
+    }
+    return { ok: true, id, held: body.hold };
+  });
+
+export const rateNote = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { noteId?: unknown; helpful?: unknown }) => ({
+    noteId: String(input?.noteId ?? "").trim(),
+    helpful: input?.helpful === true,
+  }))
+  .handler(async ({ context, data }): Promise<Ok | Fail> => {
+    if (!isUuid(data.noteId)) return failed("That note is not here.");
+    const ready = await requireActor(context.userId);
+    if ("ok" in ready) return ready;
+    const notes = await ready.sql<{ author_id: string; hidden_at: unknown; post_deleted: unknown; post_hidden: unknown }>`
+      select n.author_id, n.hidden_at, p.deleted_at as post_deleted, p.hidden_at as post_hidden
+      from discussion_note n
+      join discussion_post p on p.id = n.post_id
+      where n.id = ${data.noteId} and n.deleted_at is null
+      limit 1
+    `;
+    const note = notes[0];
+    if (!note || present(note.post_deleted) || present(note.post_hidden)) return failed("That note is not here.");
+    if (present(note.hidden_at)) return failed("That note is not open for ratings.");
+    if (note.author_id === ready.actor.id) return failed("You can't rate your own note.");
+    await ready.sql`
+      insert into discussion_note_rating (id, note_id, rater_id, helpful)
+      values (${crypto.randomUUID()}, ${data.noteId}, ${ready.actor.id}, ${data.helpful})
+      on conflict (note_id, rater_id) do update set helpful = excluded.helpful
+    `;
+    return { ok: true };
+  });
+
+export const removeNote = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { noteId?: unknown }) => String(input?.noteId ?? "").trim())
+  .handler(async ({ context, data }): Promise<Ok | Fail> => {
+    if (!isUuid(data)) return failed("That note is not here.");
+    const sql = await getSql();
+    const actor = await loadActor(sql, context.userId, null);
+    if (!actor.isAdmin) return failed("Only the site owner can do that.");
+    const notes = await sql<{ id: string }>`
+      update discussion_note set deleted_at = now()
+      where id = ${data} and deleted_at is null
+      returning id
+    `;
+    if (!notes[0]) return failed("That note is not here.");
     return { ok: true };
   });
 

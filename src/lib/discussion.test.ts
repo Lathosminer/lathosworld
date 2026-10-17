@@ -12,11 +12,15 @@ import {
   depthError,
   duplicateError,
   formatWhen,
+  ANON_VIEWER,
   hasProfanity,
   isAdminEmail,
   isAllowedClipId,
   isUuid,
   linkSpamError,
+  noteIsLive,
+  noteStatus,
+  noteVisibleTo,
   postsByParent,
   proposedStrikeNote,
   previewText,
@@ -26,6 +30,7 @@ import {
   severeLanguage,
   shouldHideForReports,
   validateBody,
+  validateNote,
   validateReason,
   validateTitle,
   type TalkPost,
@@ -45,6 +50,7 @@ function post(id: string, parentId: string | null): TalkPost {
     replyCount: 0,
     reportCount: 0,
     reportedByMe: false,
+    notes: [],
   };
 }
 
@@ -130,6 +136,34 @@ describe("discussion safety", () => {
     assert.equal(proposedStrikeNote(3), "Proposed strikes: 3");
     assert.equal(COMMUNITY_RULES.split("\n")[0], "Common courtesy. Be respectful.");
     assert.match(COMMUNITY_RULES, /Slurs, threats, harassment, and spam get removed/);
+  });
+
+  it("shows a community note only after enough helpful ratings", () => {
+    assert.equal(noteIsLive(2, 0), false);
+    assert.equal(noteIsLive(3, 0), true);
+    assert.equal(noteIsLive(3, 3), false);
+    assert.equal(noteIsLive(4, 3), true);
+    assert.equal(noteStatus(true, 5, 0), "held");
+    assert.equal(noteStatus(false, 1, 0), "pending");
+    assert.equal(noteStatus(false, 3, 0), "live");
+    assert.equal(noteVisibleTo("live", "fan", ANON_VIEWER), true);
+    assert.equal(noteVisibleTo("pending", "fan", ANON_VIEWER), false);
+    assert.equal(noteVisibleTo("pending", "fan", { signedIn: true, userId: "other", isAdmin: false }), true);
+    assert.equal(noteVisibleTo("held", "fan", { signedIn: true, userId: "other", isAdmin: false }), false);
+    assert.equal(noteVisibleTo("held", "fan", { signedIn: true, userId: "fan", isAdmin: false }), true);
+    assert.equal(noteVisibleTo("held", "fan", { signedIn: true, userId: "owner", isAdmin: true }), true);
+  });
+
+  it("holds a slur in a note and lets trash talk through", () => {
+    const trash = validateNote("this clip is bullshit, he whiffed the boss");
+    assert.equal(trash.ok, true);
+    if (trash.ok) assert.equal(trash.hold, false);
+    const held = validateNote("context: you n1gger lied about the raid");
+    assert.equal(held.ok, true);
+    if (held.ok) assert.equal(held.hold, true);
+    assert.equal(validateNote("too short").ok, false);
+    const spam = validateNote("see https://a.test and https://b.test and https://c.test please");
+    assert.equal(spam.ok, false);
   });
 
   it("caps links", () => {
@@ -286,6 +320,47 @@ describe("discussion migration", () => {
       "select count(*)::int as n from discussion_mute where user_id = 'fan' and until > now()",
     );
     assert.equal(Number(muted.rows[0]?.n), 1);
+    await pg.close();
+  });
+
+  it("allows one live note per person per post and one rating each", async () => {
+    const { PGlite } = await import("@electric-sql/pglite");
+    const pg = new PGlite();
+    await pg.waitReady;
+    await pg.exec(readFileSync(new URL("../../migrations/0005_discussion.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0006_moderation.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0007_community_notes.sql", import.meta.url), "utf8"));
+    const postId = "88888888-8888-4888-8888-888888888888";
+    const noteId = "99999999-9999-4999-8999-999999999999";
+    await pg.query(
+      "insert into discussion_post (id, scope, parent_id, root_id, author_id, title, body) values ($1, 'board', null, $1, 'author', 'Raid', 'Who is on tonight for the raid?')",
+      [postId],
+    );
+    await pg.query(
+      "insert into discussion_note (id, post_id, author_id, body) values ($1, $2, 'fan', 'This raid was last week, not tonight.')",
+      [noteId, postId],
+    );
+    await assert.rejects(
+      pg.query(
+        "insert into discussion_note (id, post_id, author_id, body) values ($1, $2, 'fan', 'A second note should not stick.')",
+        ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", postId],
+      ),
+    );
+    await pg.query("update discussion_note set deleted_at = now() where id = $1", [noteId]);
+    await pg.query(
+      "insert into discussion_note (id, post_id, author_id, body) values ($1, $2, 'fan', 'Rewritten after the first note was removed.')",
+      ["bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", postId],
+    );
+    await pg.query(
+      "insert into discussion_note_rating (id, note_id, rater_id, helpful) values ($1, $2, 'reader', true)",
+      ["cccccccc-cccc-4ccc-8ccc-cccccccccccc", noteId],
+    );
+    await assert.rejects(
+      pg.query(
+        "insert into discussion_note_rating (id, note_id, rater_id, helpful) values ($1, $2, 'reader', false)",
+        ["dddddddd-dddd-4ddd-8ddd-dddddddddddd", noteId],
+      ),
+    );
     await pg.close();
   });
 });

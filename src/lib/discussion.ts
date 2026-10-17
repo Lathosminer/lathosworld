@@ -15,6 +15,10 @@ export const REPORT_MAX = 8;
 /** Distinct reporters before a post is hidden for the owner to review. */
 export const REPORT_HIDE_AT = 3;
 export const DUPLICATE_MIN = 12;
+export const NOTE_MIN = 12;
+export const NOTE_MAX = 280;
+/** Helpful ratings a note needs before it shows under the post. */
+export const NOTE_HELPFUL_MIN = 3;
 
 export const COMMUNITY_RULES =
   "Common courtesy. Be respectful.\nSlurs, threats, harassment, and spam get removed.";
@@ -83,6 +87,20 @@ export type TalkAuthor = {
   image: string | null;
 };
 
+export type TalkNoteStatus = "live" | "pending" | "held";
+
+export type TalkNote = {
+  id: string;
+  postId: string;
+  body: string;
+  createdAt: string;
+  author: TalkAuthor;
+  helpful: number;
+  notHelpful: number;
+  myRating: "helpful" | "not" | null;
+  status: TalkNoteStatus;
+};
+
 export type TalkPost = {
   id: string;
   parentId: string | null;
@@ -94,6 +112,7 @@ export type TalkPost = {
   replyCount: number;
   reportCount: number;
   reportedByMe: boolean;
+  notes: TalkNote[];
 };
 
 export type TalkViewer = {
@@ -126,11 +145,25 @@ export type TalkReview = {
   author: TalkAuthor;
 };
 
+export type TalkNoteReview = {
+  id: string;
+  postId: string;
+  place: string;
+  postPreview: string;
+  body: string;
+  createdAt: string;
+  status: "pending" | "held";
+  helpful: number;
+  notHelpful: number;
+  author: TalkAuthor;
+};
+
 export type TalkFeed = {
   posts: TalkPost[];
   viewer: TalkViewer;
   bans: TalkBan[];
   queue: TalkReview[];
+  noteQueue: TalkNoteReview[];
 };
 
 export const ANON_VIEWER: TalkViewer = {
@@ -263,6 +296,38 @@ export function validateTitle(value: unknown): { ok: true; title: string; hold: 
   if (severeLanguage(title)) return { ok: true, title, hold: true };
   if (linkSpamError(title)) return { ok: false, error: "Put the title in words, not links." };
   return { ok: true, title, hold: false };
+}
+
+export function validateNote(value: unknown): { ok: true; body: string; hold: boolean } | { ok: false; error: string } {
+  const body = cleanText(value).replace(/\s+/g, " ");
+  if (body.length < NOTE_MIN) return { ok: false, error: `Add a little more context (at least ${NOTE_MIN} characters).` };
+  if (body.length > NOTE_MAX) return { ok: false, error: `Keep the note under ${NOTE_MAX} characters.` };
+  if (!/[a-z0-9]/i.test(body)) return { ok: false, error: "Write something with words." };
+  if (severeLanguage(body)) return { ok: true, body, hold: true };
+  const links = linkSpamError(body);
+  if (links) return { ok: false, error: links };
+  return { ok: true, body, hold: false };
+}
+
+/** Public once enough people mark it helpful, and more say helpful than not. */
+export function noteIsLive(helpful: number, notHelpful: number): boolean {
+  return helpful >= NOTE_HELPFUL_MIN && helpful > notHelpful;
+}
+
+export function noteStatus(hidden: boolean, helpful: number, notHelpful: number): TalkNoteStatus {
+  if (hidden) return "held";
+  return noteIsLive(helpful, notHelpful) ? "live" : "pending";
+}
+
+export function noteVisibleTo(
+  status: TalkNoteStatus,
+  authorId: string,
+  viewer: { signedIn: boolean; userId: string | null; isAdmin: boolean },
+): boolean {
+  if (status === "live") return true;
+  if (!viewer.signedIn || !viewer.userId) return false;
+  if (status === "pending") return true;
+  return viewer.isAdmin || viewer.userId === authorId;
 }
 
 export function validateBody(value: unknown): { ok: true; body: string; hold: boolean } | { ok: false; error: string } {

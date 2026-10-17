@@ -4,6 +4,7 @@ import {
   BODY_MAX,
   COMMUNITY_RULES,
   HELD_NOTICE,
+  NOTE_MAX,
   TITLE_MAX,
   formatWhen,
   initial,
@@ -12,6 +13,8 @@ import {
   proposedStrikeNote,
   reviewPlace,
   type TalkFeed,
+  type TalkNote,
+  type TalkNoteReview,
   type TalkPost,
   type TalkReview,
   type TalkViewer,
@@ -19,10 +22,13 @@ import {
 import {
   banUser,
   commentOnClip,
+  createNote,
   createThread,
   getThread,
   listClipComments,
   listThreads,
+  rateNote,
+  removeNote,
   removePost,
   replyToPost,
   reportPost,
@@ -280,7 +286,15 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
       ) : null}
       {feed && viewer?.isAdmin ? (
         <>
-          <ReviewPanel items={feed.queue} busy={busy} setBusy={setBusy} setError={setError} setNotice={setNotice} reload={reload} />
+          <ReviewPanel
+            items={feed.queue}
+            notes={feed.noteQueue}
+            busy={busy}
+            setBusy={setBusy}
+            setError={setError}
+            setNotice={setNotice}
+            reload={reload}
+          />
           <BanPanel bans={feed.bans} busy={busy} setBusy={setBusy} setError={setError} reload={reload} />
         </>
       ) : null}
@@ -553,6 +567,17 @@ function PostCard({
               <button className="btn btn-ghost talk-submit" type="submit" disabled={busy}>Ban account</button>
             </form>
           ) : null}
+          {post.deleted ? null : (
+            <CommunityNotes
+              post={post}
+              viewer={viewer}
+              busy={busy}
+              setBusy={setBusy}
+              setError={setError}
+              setNotice={setNotice}
+              reload={reload}
+            />
+          )}
         </div>
       </div>
       <PostTree
@@ -572,8 +597,169 @@ function PostCard({
   );
 }
 
+function CommunityNotes({
+  post,
+  viewer,
+  busy,
+  setBusy,
+  setError,
+  setNotice,
+  reload,
+}: {
+  post: TalkPost;
+  viewer: TalkViewer;
+  busy: boolean;
+  setBusy: (value: boolean) => void;
+  setError: (value: string) => void;
+  setNotice: (value: string) => void;
+  reload: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const notes = post.notes;
+  const already = viewer.userId != null && notes.some((note) => note.author.id === viewer.userId);
+  const canAdd = canPost(viewer) && viewer.userId !== post.author.id && !already;
+  if (notes.length === 0 && !canAdd) return null;
+
+  function run(work: () => Promise<{ ok: true; held?: boolean } | { ok: false; error: string }>, done: string) {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    work()
+      .then((result) => {
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setOpen(false);
+        setText("");
+        if (done) setNotice(result.held ? HELD_NOTICE : done);
+        reload();
+      })
+      .catch((err: unknown) => setError(messageOf(err)))
+      .finally(() => setBusy(false));
+  }
+
+  return (
+    <section className="talk-context" aria-label="Community notes">
+      {notes.map((note) => (
+        <NoteCard
+          key={note.id}
+          note={note}
+          viewer={viewer}
+          busy={busy}
+          onRate={(helpful) => run(() => rateNote({ data: { noteId: note.id, helpful } }), "")}
+          onRemove={() => run(() => removeNote({ data: { noteId: note.id } }), "Note removed.")}
+        />
+      ))}
+      {canAdd && !open ? (
+        <button type="button" className="talk-btn" onClick={() => setOpen(true)}>
+          Add context
+        </button>
+      ) : null}
+      {canAdd && open ? (
+        <form
+          className="talk-form talk-inline"
+          onSubmit={(event) => {
+            event.preventDefault();
+            run(() => createNote({ data: { postId: post.id, body: text } }), "Note proposed. It shows after enough helpful ratings.");
+          }}
+        >
+          <label>
+            Add context
+            <textarea
+              value={text}
+              onChange={(event) => setText(event.target.value)}
+              maxLength={NOTE_MAX}
+              required
+              rows={3}
+              placeholder="What should readers know about this post?"
+            />
+          </label>
+          <p className="talk-meta">It shows publicly after enough people mark it helpful.</p>
+          <div className="talk-form-row">
+            <button className="btn btn-cyan talk-submit" type="submit" disabled={busy}>
+              Propose note
+            </button>
+            <button type="button" className="talk-btn" onClick={() => setOpen(false)} disabled={busy}>
+              Cancel
+            </button>
+            <span className="talk-count">{text.length}/{NOTE_MAX}</span>
+          </div>
+        </form>
+      ) : null}
+    </section>
+  );
+}
+
+function NoteCard({
+  note,
+  viewer,
+  busy,
+  onRate,
+  onRemove,
+}: {
+  note: TalkNote;
+  viewer: TalkViewer;
+  busy: boolean;
+  onRate: (helpful: boolean) => void;
+  onRemove: () => void;
+}) {
+  const mine = viewer.userId === note.author.id;
+  const canRate = canPost(viewer) && !mine && note.status !== "held";
+  const label = note.status === "held" ? "Held for review" : note.status === "pending" ? "Waiting for ratings" : "Community note";
+  return (
+    <div className="talk-context-card">
+      <p className="talk-meta">
+        <span>{label}</span>
+        <span>{note.author.name}</span>
+        <time dateTime={note.createdAt}>{formatWhen(note.createdAt)}</time>
+      </p>
+      <p className="talk-body">
+        <TalkText text={note.body} />
+      </p>
+      <p className="talk-meta">
+        <span>{note.helpful} helpful</span>
+        <span>{note.notHelpful} not helpful</span>
+      </p>
+      {canRate || viewer.isAdmin ? (
+        <div className="talk-actions">
+          {canRate ? (
+            <>
+              <button
+                type="button"
+                className={note.myRating === "helpful" ? "talk-btn talk-btn-on" : "talk-btn"}
+                aria-pressed={note.myRating === "helpful"}
+                disabled={busy}
+                onClick={() => onRate(true)}
+              >
+                Helpful
+              </button>
+              <button
+                type="button"
+                className={note.myRating === "not" ? "talk-btn talk-btn-on" : "talk-btn"}
+                aria-pressed={note.myRating === "not"}
+                disabled={busy}
+                onClick={() => onRate(false)}
+              >
+                Not helpful
+              </button>
+            </>
+          ) : null}
+          {viewer.isAdmin ? (
+            <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={onRemove}>
+              Remove note
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function ReviewPanel({
   items,
+  notes,
   busy,
   setBusy,
   setError,
@@ -581,6 +767,7 @@ function ReviewPanel({
   reload,
 }: {
   items: TalkReview[];
+  notes: TalkNoteReview[];
   busy: boolean;
   setBusy: (value: boolean) => void;
   setError: (value: string) => void;
@@ -590,8 +777,8 @@ function ReviewPanel({
   return (
     <section className="talk-bans talk-queue" aria-label="Review queue">
       <h2>Review queue</h2>
-      <p className="talk-note">Held posts stay hidden until you approve, delete, or ban.</p>
-      {items.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
+      <p className="talk-note">Held posts stay hidden until you approve, delete, or ban. Notes stay here until readers rate them helpful, or you remove them.</p>
+      {items.length === 0 && notes.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
       <ul>
         {items.map((item) => (
           <QueueItem
@@ -605,7 +792,79 @@ function ReviewPanel({
           />
         ))}
       </ul>
+      {notes.length > 0 ? (
+        <>
+          <h3>Community notes</h3>
+          <ul>
+            {notes.map((note) => (
+              <NoteQueueItem
+                key={note.id}
+                note={note}
+                busy={busy}
+                setBusy={setBusy}
+                setError={setError}
+                setNotice={setNotice}
+                reload={reload}
+              />
+            ))}
+          </ul>
+        </>
+      ) : null}
     </section>
+  );
+}
+
+function NoteQueueItem({
+  note,
+  busy,
+  setBusy,
+  setError,
+  setNotice,
+  reload,
+}: {
+  note: TalkNoteReview;
+  busy: boolean;
+  setBusy: (value: boolean) => void;
+  setError: (value: string) => void;
+  setNotice: (value: string) => void;
+  reload: () => void;
+}) {
+  function run() {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    removeNote({ data: { noteId: note.id } })
+      .then((result) => {
+        if (!result.ok) setError(result.error);
+        else {
+          setNotice("Note removed.");
+          reload();
+        }
+      })
+      .catch((err: unknown) => setError(messageOf(err)))
+      .finally(() => setBusy(false));
+  }
+
+  return (
+    <li>
+      <div>
+        <p className="talk-meta">
+          <strong>{note.author.name}</strong>
+          <span>{note.place}</span>
+          <time dateTime={note.createdAt}>{formatWhen(note.createdAt)}</time>
+          <span className="talk-flag">{note.status === "held" ? "Held" : "Waiting for ratings"}</span>
+          <span>{note.helpful} helpful</span>
+          <span>{note.notHelpful} not helpful</span>
+        </p>
+        <p className="talk-body">{note.body}</p>
+        <p className="talk-preview">On: {note.postPreview}</p>
+      </div>
+      <div className="talk-actions">
+        <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={run}>
+          Remove
+        </button>
+      </div>
+    </li>
   );
 }
 
