@@ -175,12 +175,12 @@ function PollFace({
           </p>
         </>
       ) : null}
-      {viewer && !viewer.signedIn ? (
+      {poll && viewer && !viewer.signedIn ? (
         <p className="talk-signin">
           <Link className="btn btn-ghost talk-submit" to="/login">Sign in to vote</Link>
         </p>
       ) : null}
-      {viewer?.banned ? <p className="talk-note">This account can't vote.</p> : null}
+      {poll && viewer?.banned ? <p className="talk-note">This account can't vote.</p> : null}
       {!compact && viewer?.signedIn && !viewer.banned ? (
         openSuggest ? (
           <SuggestForm
