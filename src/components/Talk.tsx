@@ -2,13 +2,18 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BODY_MAX,
+  COMMUNITY_RULES,
+  HELD_NOTICE,
   TITLE_MAX,
   formatWhen,
   initial,
+  muteMessage,
   postsByParent,
   previewText,
+  reviewPlace,
   type TalkFeed,
   type TalkPost,
+  type TalkReview,
   type TalkViewer,
 } from "@/lib/discussion";
 import {
@@ -21,6 +26,7 @@ import {
   removePost,
   replyToPost,
   reportPost,
+  restorePost,
   unbanUser,
 } from "@/lib/discussion.functions";
 
@@ -98,7 +104,12 @@ function SignIn({ viewer }: { viewer: TalkViewer }) {
     );
   }
   if (viewer.banned) return <p className="talk-note">This account can't post.</p>;
+  if (viewer.mutedUntil) return <p className="talk-note">{muteMessage(viewer.mutedUntil)}</p>;
   return null;
+}
+
+function canPost(viewer: TalkViewer): boolean {
+  return viewer.signedIn && !viewer.banned && !viewer.mutedUntil;
 }
 
 function Composer({
@@ -122,8 +133,12 @@ function Composer({
   submitLabel: string;
   placeholder: string;
 }) {
-  if (!viewer.signedIn || viewer.banned) return <SignIn viewer={viewer} />;
   return (
+    <div className="talk-compose">
+      <p className="talk-rules">{COMMUNITY_RULES}</p>
+      {!canPost(viewer) ? (
+        <SignIn viewer={viewer} />
+      ) : (
     <form className="talk-form" onSubmit={onSubmit}>
       {viewer.name ? (
         <p className="talk-as">
@@ -155,6 +170,8 @@ function Composer({
         <span className="talk-count">{body.length}/{BODY_MAX}</span>
       </div>
     </form>
+      )}
+    </div>
   );
 }
 
@@ -182,6 +199,11 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
       }
       setTitle("");
       setBody("");
+      if (result.held) {
+        setNotice(HELD_NOTICE);
+        reload();
+        return;
+      }
       await navigate({ to: "/community", search: { thread: result.id } });
     } catch (err) {
       setError(messageOf(err));
@@ -253,7 +275,12 @@ export function CommunityBoard({ threadId }: { threadId?: string }) {
           />
         </>
       ) : null}
-      {feed && viewer?.isAdmin ? <BanPanel bans={feed.bans} busy={busy} setBusy={setBusy} setError={setError} reload={reload} /> : null}
+      {feed && viewer?.isAdmin ? (
+        <>
+          <ReviewPanel items={feed.queue} busy={busy} setBusy={setBusy} setError={setError} setNotice={setNotice} reload={reload} />
+          <BanPanel bans={feed.bans} busy={busy} setBusy={setBusy} setError={setError} reload={reload} />
+        </>
+      ) : null}
     </div>
   );
 }
@@ -277,7 +304,7 @@ export function ClipComments({ clipId }: { clipId: string }) {
         return;
       }
       setBody("");
-      setNotice("Posted.");
+      setNotice(result.held ? HELD_NOTICE : "Posted.");
       reload();
     } catch (err) {
       setError(messageOf(err));
@@ -403,9 +430,9 @@ function PostCard({
   const [open, setOpen] = useState<"reply" | "report" | "ban" | "remove" | null>(null);
   const [text, setText] = useState("");
   const mine = viewer.userId === post.author.id;
-  const canWrite = viewer.signedIn && !viewer.banned;
+  const canWrite = canPost(viewer);
 
-  async function act(work: () => Promise<{ ok: true } | { ok: false; error: string }>) {
+  async function act(work: () => Promise<{ ok: true; held?: boolean } | { ok: false; error: string }>) {
     setBusy(true);
     setError("");
     setNotice("");
@@ -417,7 +444,7 @@ function PostCard({
       }
       setOpen(null);
       setText("");
-      setNotice("Done.");
+      setNotice(result.held ? HELD_NOTICE : "Done.");
       reload();
     } catch (err) {
       setError(messageOf(err));
@@ -539,6 +566,72 @@ function PostCard({
         depth={depth + 1}
       />
     </article>
+  );
+}
+
+function ReviewPanel({
+  items,
+  busy,
+  setBusy,
+  setError,
+  setNotice,
+  reload,
+}: {
+  items: TalkReview[];
+  busy: boolean;
+  setBusy: (value: boolean) => void;
+  setError: (value: string) => void;
+  setNotice: (value: string) => void;
+  reload: () => void;
+}) {
+  function run(work: () => Promise<{ ok: true } | { ok: false; error: string }>) {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    work()
+      .then((result) => {
+        if (!result.ok) setError(result.error);
+        else {
+          setNotice("Done.");
+          reload();
+        }
+      })
+      .catch((err: unknown) => setError(messageOf(err)))
+      .finally(() => setBusy(false));
+  }
+
+  return (
+    <section className="talk-bans talk-queue" aria-label="Review queue">
+      <h2>Review queue</h2>
+      {items.length === 0 ? <p className="talk-empty">Nothing waiting for review.</p> : null}
+      <ul>
+        {items.map((item) => (
+          <li key={item.id}>
+            <div>
+              <p className="talk-meta">
+                <strong>{item.author.name}</strong>
+                <span>{reviewPlace(item.scope)}</span>
+                <time dateTime={item.createdAt}>{formatWhen(item.createdAt)}</time>
+                {item.hidden ? <span className="talk-flag">Hidden · {item.hiddenReason}</span> : null}
+                {item.reportCount > 0 ? <span className="talk-flag">{item.reportCount} reports</span> : null}
+              </p>
+              {item.title ? <p className="talk-preview">{item.title}</p> : null}
+              <p className="talk-body">{item.body}</p>
+            </div>
+            <div className="talk-actions">
+              {item.hidden ? (
+                <button type="button" className="talk-btn" disabled={busy} onClick={() => run(() => restorePost({ data: { postId: item.id } }))}>
+                  Restore
+                </button>
+              ) : null}
+              <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => run(() => removePost({ data: { postId: item.id } }))}>
+                Remove
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

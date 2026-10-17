@@ -260,7 +260,7 @@ function Home() {
         </section>
         <CommunityStats />
         <SwordRule />
-        <Clips limit={3} />
+        <Clips />
         <SwordRule />
         <section className="section emblem" aria-label="Lathos' World emblem">
           <div className="gif-lightning emblem-frame">

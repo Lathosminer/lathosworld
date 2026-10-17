@@ -1,20 +1,36 @@
-import { env } from "@/lib/env.server";
-import { YT_CHANNEL } from "@/lib/youtube-live.functions";
+import { env } from "./env.server.ts";
+import { YT_CHANNEL } from "./youtube-live.functions.ts";
 import {
   EMPTY_COMMUNITY,
   parseTwitchFollowers,
   parseXFollowers,
   parseYouTubeSubscribers,
   type CommunityPayload,
-} from "@/lib/community";
+} from "./community.ts";
 
 const TTL_MS = 8 * 60 * 1000;
 const FAIL_TTL_MS = 30 * 1000;
 const TWITCH_LOGIN = "lathosworld";
 const X_USERNAME = "lathos563";
+const TOKEN_URL = "https://id.twitch.tv/oauth2/token";
+/** Drop the cached user access token this many seconds before Twitch says it expires. */
+const USER_TOKEN_SKEW_S = 120;
 
 let statsCache: { at: number; body: CommunityPayload } | null = null;
 let appTokenCache: { token: string; exp: number } | null = null;
+let userTokenCache: { token: string; exp: number } | null = null;
+/** Latest refresh token from Twitch. The env value is only the cold-start seed. */
+let refreshTokenMemory: string | null = null;
+let userTokenInflight: Promise<string | null> | null = null;
+
+/** Clears cached stats and Twitch tokens. Used by unit tests. */
+export function resetCommunityCaches(): void {
+  statsCache = null;
+  appTokenCache = null;
+  userTokenCache = null;
+  refreshTokenMemory = null;
+  userTokenInflight = null;
+}
 
 async function readJson(res: Response): Promise<unknown> {
   try {
@@ -24,10 +40,77 @@ async function readJson(res: Response): Promise<unknown> {
   }
 }
 
+function userTokenExpiry(expiresIn: unknown): number {
+  const seconds =
+    typeof expiresIn === "number" && Number.isFinite(expiresIn) && expiresIn > 0 ? expiresIn : 3600;
+  const skew = Math.min(USER_TOKEN_SKEW_S, Math.max(1, Math.floor(seconds / 2)));
+  return Date.now() + (seconds - skew) * 1000;
+}
+
+function readRefreshToken(): string | undefined {
+  return refreshTokenMemory || env("TWITCH_REFRESH_TOKEN");
+}
+
+async function requestUserToken(clientId: string, secret: string): Promise<string | null> {
+  const refreshToken = readRefreshToken();
+  if (!refreshToken) return null;
+  try {
+    const res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: secret,
+      }),
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    const json = (await readJson(res)) as {
+      access_token?: unknown;
+      expires_in?: unknown;
+      refresh_token?: unknown;
+    } | null;
+    if (!json || typeof json.access_token !== "string" || !json.access_token) return null;
+    if (typeof json.refresh_token === "string" && json.refresh_token) {
+      refreshTokenMemory = json.refresh_token;
+    }
+    userTokenCache = { token: json.access_token, exp: userTokenExpiry(json.expires_in) };
+    return json.access_token;
+  } catch {
+    return null;
+  }
+}
+
+/** One network refresh at a time so two callers cannot rotate the same refresh token. */
+function forceRefreshUserToken(clientId: string, secret: string): Promise<string | null> {
+  if (userTokenInflight) return userTokenInflight;
+  const pending = requestUserToken(clientId, secret);
+  userTokenInflight = pending;
+  void pending.finally(() => {
+    if (userTokenInflight === pending) userTokenInflight = null;
+  });
+  return pending;
+}
+
+async function userAccessToken(clientId: string, secret: string): Promise<string | null> {
+  if (userTokenCache && Date.now() < userTokenCache.exp) return userTokenCache.token;
+  return forceRefreshUserToken(clientId, secret);
+}
+
+async function resolveUserToken(
+  clientId: string,
+  secret: string | undefined,
+): Promise<string | null> {
+  if (secret && readRefreshToken()) return userAccessToken(clientId, secret);
+  return env("TWITCH_USER_TOKEN") ?? null;
+}
+
 async function twitchAppToken(clientId: string, secret: string): Promise<string | null> {
   if (appTokenCache && Date.now() < appTokenCache.exp) return appTokenCache.token;
   try {
-    const res = await fetch("https://id.twitch.tv/oauth2/token", {
+    const res = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -41,7 +124,10 @@ async function twitchAppToken(clientId: string, secret: string): Promise<string 
     const json = (await readJson(res)) as { access_token?: unknown; expires_in?: unknown } | null;
     if (!json || typeof json.access_token !== "string" || !json.access_token) return null;
     const expires = typeof json.expires_in === "number" ? json.expires_in : 3600;
-    appTokenCache = { token: json.access_token, exp: Date.now() + Math.max(60, expires - 120) * 1000 };
+    appTokenCache = {
+      token: json.access_token,
+      exp: Date.now() + Math.max(60, expires - 120) * 1000,
+    };
     return json.access_token;
   } catch {
     return null;
@@ -67,27 +153,66 @@ async function twitchUserId(clientId: string, token: string): Promise<string | n
   }
 }
 
-async function twitchFollowers(clientId: string, token: string, broadcasterId: string, first: number) {
+type HelixFollowers =
+  | { ok: true; total: number | null; recent: CommunityPayload["recent"] }
+  | { ok: false; status: number };
+
+async function twitchFollowers(
+  clientId: string,
+  token: string,
+  broadcasterId: string,
+  first: number,
+): Promise<HelixFollowers | null> {
   try {
     const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${encodeURIComponent(broadcasterId)}&first=${first}`;
     const res = await fetch(url, {
       headers: helixHeaders(clientId, token),
       signal: AbortSignal.timeout(6000),
     });
-    if (!res.ok) return null;
-    return parseTwitchFollowers(await readJson(res));
+    if (!res.ok) return { ok: false, status: res.status };
+    const parsed = parseTwitchFollowers(await readJson(res));
+    return { ok: true, total: parsed.total, recent: parsed.recent };
   } catch {
     return null;
   }
 }
 
+/** Recent followers need a user token. A 401 refreshes that token once and retries. */
+async function recentFollowers(
+  clientId: string,
+  secret: string | undefined,
+  token: string,
+  broadcasterId: string,
+): Promise<{ total: number | null; recent: CommunityPayload["recent"] } | null> {
+  let current = token;
+  let refresh = Boolean(secret && readRefreshToken());
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const listed = await twitchFollowers(clientId, current, broadcasterId, 20);
+    if (listed?.ok) return { total: listed.total, recent: listed.recent };
+    const unauthorized = listed?.status === 401;
+    if (!unauthorized || !refresh || !secret) {
+      if (unauthorized) userTokenCache = null;
+      return null;
+    }
+    userTokenCache = null;
+    const next = await forceRefreshUserToken(clientId, secret);
+    refresh = false;
+    if (!next) return null;
+    current = next;
+  }
+  return null;
+}
+
 async function loadTwitch(): Promise<Pick<CommunityPayload, "twitch" | "recent">> {
   const clientId = env("TWITCH_CLIENT_ID");
   const secret = env("TWITCH_CLIENT_SECRET");
-  const userToken = env("TWITCH_USER_TOKEN");
-  if (!clientId || (!secret && !userToken)) return { twitch: null, recent: [] };
+  const staticUserToken = env("TWITCH_USER_TOKEN");
+  if (!clientId || (!secret && !staticUserToken)) return { twitch: null, recent: [] };
 
-  const appToken = secret ? await twitchAppToken(clientId, secret) : null;
+  const [appToken, userToken] = await Promise.all([
+    secret ? twitchAppToken(clientId, secret) : Promise.resolve(null),
+    resolveUserToken(clientId, secret),
+  ]);
   const lookup = appToken ?? userToken;
   if (!lookup) return { twitch: null, recent: [] };
   const broadcasterId = await twitchUserId(clientId, lookup);
@@ -95,14 +220,14 @@ async function loadTwitch(): Promise<Pick<CommunityPayload, "twitch" | "recent">
 
   // The recent list needs a broadcaster (or moderator) user token. That call also returns total.
   if (userToken) {
-    const listed = await twitchFollowers(clientId, userToken, broadcasterId, 20);
+    const listed = await recentFollowers(clientId, secret, userToken, broadcasterId);
     if (listed) return { twitch: listed.total, recent: listed.recent };
   }
 
   // App access token: counts only. Twitch may reject this; then the Twitch stat stays hidden.
   if (appToken) {
     const counted = await twitchFollowers(clientId, appToken, broadcasterId, 1);
-    if (counted?.total != null) return { twitch: counted.total, recent: [] };
+    if (counted?.ok && counted.total != null) return { twitch: counted.total, recent: [] };
   }
 
   return { twitch: null, recent: [] };
@@ -160,7 +285,8 @@ export async function getCommunityStats(): Promise<CommunityPayload> {
   } catch {
     body = EMPTY_COMMUNITY;
   }
-  const fresh = body.twitch != null || body.youtube != null || body.x != null || body.recent.length > 0;
+  const fresh =
+    body.twitch != null || body.youtube != null || body.x != null || body.recent.length > 0;
   statsCache = { at: fresh ? now : now - (TTL_MS - FAIL_TTL_MS), body };
   return body;
 }

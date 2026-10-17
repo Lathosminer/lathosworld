@@ -1,4 +1,4 @@
-import { isClipDiscussionId } from "./clip-ids.ts";
+import { isClipDiscussionId } from "./clips.ts";
 
 export const BOARD_SCOPE = "board";
 export const TITLE_MIN = 3;
@@ -12,43 +12,89 @@ export const RATE_WINDOW_MS = 10 * 60 * 1000;
 export const RATE_MAX_POSTS = 6;
 export const RATE_MIN_GAP_MS = 3 * 1000;
 export const REPORT_MAX = 8;
+/** Distinct reporters before a post is hidden for the owner to review. */
+export const REPORT_HIDE_AT = 3;
+export const NEW_ACCOUNT_WINDOW_MS = 24 * 60 * 60 * 1000;
+export const RATE_MAX_NEW = 2;
+export const RATE_MIN_GAP_NEW_MS = 30 * 1000;
+export const CAPS_MIN_LETTERS = 12;
+export const CAPS_RATIO = 0.7;
+export const EMOJI_MIN = 8;
+export const EMOJI_HARD_CAP = 24;
+export const DUPLICATE_MIN = 12;
+/** Third strike mutes for a day. Later strikes last longer. Six strikes ban. */
+export const STRIKES_FOR_MUTE = 3;
+export const STRIKES_FOR_BAN = 6;
+
+export const COMMUNITY_RULES =
+  "Be decent. No slurs, threats, harassment, or spam. Don't repeat yourself, flood caps, or stack emoji. New accounts post slowly. Three reports hide a post until the owner reviews it. Three strikes mute you for a day, and it gets longer from there. Keep it up and the account is banned.";
+
+export const HELD_NOTICE = "Held for review. It won't show until the owner clears it.";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Whole words, plus a short suffix (fucking, shitty) and light separator evasion
  * (f.u.c.k). Short words stay bounded so "classic", "cocktail", and "Scunthorpe"
- * are not flagged.
+ * are not flagged. Mild words are rejected. Severe words are hidden for review.
  */
-const BLOCKED_WORDS = [
-  "fuck",
-  "shit",
-  "bitch",
-  "cunt",
-  "dick",
-  "cock",
-  "porn",
-  "whore",
-  "slut",
-  "fag",
+const MILD_WORDS = ["fuck", "shit", "bitch", "cunt", "dick", "cock", "porn", "whore", "slut"] as const;
+
+const SEVERE_WORDS = [
   "faggot",
+  "fag",
   "nigger",
   "nigga",
   "retard",
-  "rape",
   "rapist",
+  "rape",
+  "kike",
+  "spic",
+  "chink",
+  "gook",
+  "wetback",
+  "beaner",
+  "tranny",
+  "coon",
+  "paki",
+  "raghead",
+  "towelhead",
 ] as const;
 
 const LINK_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']+|\b(?:discord\.gg|bit\.ly|tinyurl\.com|t\.co|t\.me|goo\.gl)\/[^\s<>"']+/gi;
+const EMOJI_RE = /\p{Extended_Pictographic}/gu;
 
-const WORD_PATTERNS = BLOCKED_WORDS.map((word) => {
+function wordPattern(word: string, suffixes: string): RegExp {
   const parts = word.split("").map((letter) => `${letter}+`);
   const body = parts.join("[^a-z]{0,2}");
-  return new RegExp(`(?<![a-z])${body}(?:es|s|y|ty|ing|er|ers|ed)?(?![a-z])`, "i");
-});
+  return new RegExp(`(?<![a-z])${body}(?:${suffixes})?(?![a-z])`, "i");
+}
+
+function spaced(words: string[]): RegExp {
+  const chunk = (word: string) => word.split("").map((letter) => `${letter}+`).join("[^a-z]{0,2}");
+  const body = words.map(chunk).join("[^a-z]{1,4}");
+  return new RegExp(`(?<![a-z])${body}(?![a-z])`, "i");
+}
+
+const MILD_PATTERNS = MILD_WORDS.map((word) => wordPattern(word, "es|s|y|ty|ing|er|ers|ed"));
+const SEVERE_PATTERNS = SEVERE_WORDS.map((word) => wordPattern(word, "es|s|ed|y"));
 
 /** f*ck / fck, without matching "flick" or "feedback". */
 const FUCK_EVASION = /(?<![a-z])f+[^a-z]{0,2}c+[^a-z]{0,2}k+(?:s|ing|er|ed)?(?![a-z])/i;
+
+const SEVERE_PHRASES = [
+  spaced(["kys"]),
+  spaced(["kms"]),
+  spaced(["kill", "yourself"]),
+  spaced(["kill", "urself"]),
+  spaced(["neck", "yourself"]),
+  spaced(["go", "die"]),
+  spaced(["hope", "you", "die"]),
+  spaced(["hope", "u", "die"]),
+  spaced(["you", "should", "die"]),
+  /(?<![a-z])(?:ill|i will|iwill|im gonna|imgonna|im going to|gonna|going to)\s+kill\s+(?:you|u|ya|them|him|her|everyone)(?![a-z])/i,
+  /(?<![a-z])(?:ill|i will|iwill|im gonna|imgonna|im going to|gonna|going to)\s+rape\s+(?:you|u|ya|them|him|her)(?![a-z])/i,
+];
 
 export type TalkAuthor = {
   id: string;
@@ -76,6 +122,7 @@ export type TalkViewer = {
   image: string | null;
   isAdmin: boolean;
   banned: boolean;
+  mutedUntil: string | null;
 };
 
 export type TalkBan = {
@@ -85,10 +132,23 @@ export type TalkBan = {
   createdAt: string;
 };
 
+export type TalkReview = {
+  id: string;
+  scope: string;
+  title: string | null;
+  body: string;
+  createdAt: string;
+  hidden: boolean;
+  hiddenReason: string;
+  reportCount: number;
+  author: TalkAuthor;
+};
+
 export type TalkFeed = {
   posts: TalkPost[];
   viewer: TalkViewer;
   bans: TalkBan[];
+  queue: TalkReview[];
 };
 
 export const ANON_VIEWER: TalkViewer = {
@@ -98,6 +158,7 @@ export const ANON_VIEWER: TalkViewer = {
   image: null,
   isAdmin: false,
   banned: false,
+  mutedUntil: null,
 };
 
 export function isUuid(value: string): boolean {
@@ -142,20 +203,45 @@ function fold(text: string): string {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/\p{M}/gu, "")
+    .replace(/['’`]/g, "")
     .replace(/[@4]/g, "a")
-    .replace(/3/g, "e")
+    .replace(/[3€]/g, "e")
     .replace(/1/g, "i")
     .replace(/0/g, "o")
-    .replace(/5/g, "s")
-    .replace(/\$/g, "s")
-    .replace(/7/g, "t");
+    .replace(/[5$]/g, "s")
+    .replace(/7/g, "t")
+    .replace(/9/g, "g")
+    .replace(/\u0430/g, "a")
+    .replace(/\u0435/g, "e")
+    .replace(/\u043e/g, "o")
+    .replace(/\u0440/g, "p")
+    .replace(/\u0441/g, "c")
+    .replace(/\u0443/g, "y")
+    .replace(/\u0445/g, "x")
+    .replace(/\u0456/g, "i");
+}
+
+/** Second pass so n!gger and f|g still match, without turning "shit!" into a miss. */
+function leet(text: string): string {
+  return fold(text).replace(/[!|]/g, "i");
+}
+
+function matchesAny(text: string, patterns: readonly RegExp[]): boolean {
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+export function severeLanguage(text: string): boolean {
+  const forms = [fold(text), leet(text)];
+  return forms.some((form) => matchesAny(form, SEVERE_PHRASES) || matchesAny(form, SEVERE_PATTERNS));
+}
+
+export function mildProfanity(text: string): boolean {
+  const forms = [fold(text), leet(text)];
+  return forms.some((form) => FUCK_EVASION.test(form) || matchesAny(form, MILD_PATTERNS));
 }
 
 export function hasProfanity(text: string): boolean {
-  const folded = fold(text);
-  if (/\bkill\s+yourself\b/.test(folded) || /\bkys\b/.test(folded)) return true;
-  if (FUCK_EVASION.test(folded)) return true;
-  return WORD_PATTERNS.some((pattern) => pattern.test(folded));
+  return severeLanguage(text) || mildProfanity(text);
 }
 
 export function linkSpamError(text: string): string | null {
@@ -170,24 +256,80 @@ export function linkSpamError(text: string): string | null {
   return null;
 }
 
-export function validateTitle(value: unknown): { ok: true; title: string } | { ok: false; error: string } {
+export function capsFloodError(text: string): string | null {
+  const letters = text.match(/\p{L}/gu) ?? [];
+  if (letters.length < CAPS_MIN_LETTERS) return null;
+  const upper = letters.filter((letter) => letter.toUpperCase() === letter && letter.toLowerCase() !== letter).length;
+  if (upper / letters.length >= CAPS_RATIO) return "Ease off the caps lock.";
+  return null;
+}
+
+export function emojiFloodError(text: string): string | null {
+  const emoji = text.match(EMOJI_RE) ?? [];
+  if (emoji.length >= EMOJI_HARD_CAP) return "Ease off the emoji.";
+  const letters = text.match(/\p{L}/gu) ?? [];
+  const denom = emoji.length + letters.length;
+  if (emoji.length >= EMOJI_MIN && denom > 0 && emoji.length / denom >= 0.45) return "Ease off the emoji.";
+  return null;
+}
+
+export function normalizePost(text: string): string {
+  return fold(cleanText(text))
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+export function duplicateError(
+  body: string,
+  title: string | null,
+  recent: readonly { title: string | null; body: string }[],
+): string | null {
+  const bodyKey = normalizePost(body);
+  const fullKey = normalizePost(`${title ?? ""} ${body}`);
+  if (bodyKey.length < DUPLICATE_MIN && fullKey.length < DUPLICATE_MIN) return null;
+  for (const item of recent) {
+    const prevBody = normalizePost(item.body);
+    const prevFull = normalizePost(`${item.title ?? ""} ${item.body}`);
+    if (bodyKey.length >= DUPLICATE_MIN && prevBody === bodyKey) return "You already said that.";
+    if (fullKey.length >= DUPLICATE_MIN && prevFull === fullKey) return "You already said that.";
+  }
+  return null;
+}
+
+export function isNewAccount(createdAtMs: number | null, now = Date.now()): boolean {
+  if (createdAtMs == null || !Number.isFinite(createdAtMs)) return false;
+  const age = now - createdAtMs;
+  return age >= 0 && age < NEW_ACCOUNT_WINDOW_MS;
+}
+
+export function validateTitle(value: unknown): { ok: true; title: string; hold: boolean } | { ok: false; error: string } {
   const title = cleanText(value).replace(/\s+/g, " ");
   if (title.length < TITLE_MIN) return { ok: false, error: `Give the thread a title of at least ${TITLE_MIN} characters.` };
   if (title.length > TITLE_MAX) return { ok: false, error: `Keep the title under ${TITLE_MAX} characters.` };
-  if (hasProfanity(title)) return { ok: false, error: "Take the language down a notch and try again." };
+  if (severeLanguage(title)) return { ok: true, title, hold: true };
+  if (mildProfanity(title)) return { ok: false, error: "Take the language down a notch and try again." };
   if (linkSpamError(title)) return { ok: false, error: "Put the title in words, not links." };
-  return { ok: true, title };
+  const caps = capsFloodError(title);
+  if (caps) return { ok: false, error: caps };
+  const emoji = emojiFloodError(title);
+  if (emoji) return { ok: false, error: emoji };
+  return { ok: true, title, hold: false };
 }
 
-export function validateBody(value: unknown): { ok: true; body: string } | { ok: false; error: string } {
+export function validateBody(value: unknown): { ok: true; body: string; hold: boolean } | { ok: false; error: string } {
   const body = cleanText(value);
   if (body.length < BODY_MIN) return { ok: false, error: "Write a little more than that." };
   if (body.length > BODY_MAX) return { ok: false, error: `Keep it under ${BODY_MAX} characters.` };
   if (!/[a-z0-9]/i.test(body)) return { ok: false, error: "Write something with words." };
-  if (hasProfanity(body)) return { ok: false, error: "Take the language down a notch and try again." };
+  if (severeLanguage(body)) return { ok: true, body, hold: true };
+  if (mildProfanity(body)) return { ok: false, error: "Take the language down a notch and try again." };
   const links = linkSpamError(body);
   if (links) return { ok: false, error: links };
-  return { ok: true, body };
+  const caps = capsFloodError(body);
+  if (caps) return { ok: false, error: caps };
+  const emoji = emojiFloodError(body);
+  if (emoji) return { ok: false, error: emoji };
+  return { ok: true, body, hold: false };
 }
 
 export function validateReason(value: unknown): { ok: true; reason: string } | { ok: false; error: string } {
@@ -197,17 +339,47 @@ export function validateReason(value: unknown): { ok: true; reason: string } | {
   return { ok: true, reason };
 }
 
-export function rateLimitError(recentCount: number, msSinceLast: number | null): string | null {
-  if (msSinceLast != null && msSinceLast >= 0 && msSinceLast < RATE_MIN_GAP_MS) {
-    return "Slow down a moment, then post again.";
+export function rateLimitError(recentCount: number, msSinceLast: number | null, fresh = false): string | null {
+  const gap = fresh ? RATE_MIN_GAP_NEW_MS : RATE_MIN_GAP_MS;
+  const max = fresh ? RATE_MAX_NEW : RATE_MAX_POSTS;
+  if (msSinceLast != null && msSinceLast >= 0 && msSinceLast < gap) {
+    return fresh ? "New accounts post slowly. Wait a moment and try again." : "Slow down a moment, then post again.";
   }
-  if (recentCount >= RATE_MAX_POSTS) return "That's enough for a few minutes. Take a breath, then post again.";
+  if (recentCount >= max) {
+    return fresh
+      ? "New accounts can only post a couple of times at first. Try again later."
+      : "That's enough for a few minutes. Take a breath, then post again.";
+  }
   return null;
 }
 
 export function reportRateError(recentCount: number): string | null {
   if (recentCount >= REPORT_MAX) return "That's enough reports for now.";
   return null;
+}
+
+export function shouldHideForReports(reportCount: number): boolean {
+  return reportCount >= REPORT_HIDE_AT;
+}
+
+export type StrikePenalty = { muteHours: number; ban: boolean };
+
+/** 3 → 24h, 4 → 3 days, 5 → 7 days, 6+ → ban. */
+export function penaltyForStrikes(strikes: number): StrikePenalty {
+  if (strikes >= STRIKES_FOR_BAN) return { muteHours: 0, ban: true };
+  if (strikes >= 5) return { muteHours: 24 * 7, ban: false };
+  if (strikes >= 4) return { muteHours: 72, ban: false };
+  if (strikes >= STRIKES_FOR_MUTE) return { muteHours: 24, ban: false };
+  return { muteHours: 0, ban: false };
+}
+
+export function muteMessage(untilIso: string, now = Date.now()): string {
+  const until = Date.parse(untilIso);
+  if (!Number.isFinite(until) || until <= now) return "You're muted for a while.";
+  const hours = Math.max(1, Math.ceil((until - now) / 3_600_000));
+  if (hours < 48) return `You're muted for about ${hours} hour${hours === 1 ? "" : "s"}.`;
+  const days = Math.ceil(hours / 24);
+  return `You're muted for about ${days} days.`;
 }
 
 export function depthError(parentDepth: number): string | null {
@@ -259,4 +431,10 @@ export function initial(name: string): string {
 
 export function isAllowedClipId(value: string): boolean {
   return isClipDiscussionId(value);
+}
+
+export function reviewPlace(scope: string): string {
+  if (scope === BOARD_SCOPE) return "Community";
+  if (scope.startsWith("clip:")) return "Clip comment";
+  return "Post";
 }

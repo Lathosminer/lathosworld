@@ -1,24 +1,38 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { CLIP_DISCUSSION_IDS, clipDiscussionId, clipScope } from "./clip-ids.ts";
+import { CLIP_DISCUSSION_IDS, clipScope } from "./clips.ts";
 import {
   BODY_MAX,
+  COMMUNITY_RULES,
   MAX_DEPTH,
+  RATE_MAX_NEW,
   RATE_MAX_POSTS,
   RATE_MIN_GAP_MS,
+  RATE_MIN_GAP_NEW_MS,
+  REPORT_HIDE_AT,
+  STRIKES_FOR_BAN,
+  STRIKES_FOR_MUTE,
+  capsFloodError,
   depthError,
+  duplicateError,
+  emojiFloodError,
   formatWhen,
   hasProfanity,
   isAdminEmail,
   isAllowedClipId,
+  isNewAccount,
   isUuid,
   linkSpamError,
+  muteMessage,
+  penaltyForStrikes,
   postsByParent,
   previewText,
   rateLimitError,
   reportRateError,
   safeAvatarUrl,
+  severeLanguage,
+  shouldHideForReports,
   validateBody,
   validateReason,
   validateTitle,
@@ -58,10 +72,74 @@ describe("discussion safety", () => {
     assert.equal(validateBody("this is shit").ok, false);
   });
 
+  it("hides slurs, threats, and leetspeak instead of publishing them", () => {
+    const held = validateBody("you n1gger");
+    assert.equal(held.ok, true);
+    if (held.ok) assert.equal(held.hold, true);
+    const dotted = validateBody("f.a.g.g.o.t off");
+    assert.equal(dotted.ok, true);
+    if (dotted.ok) assert.equal(dotted.hold, true);
+    assert.equal(severeLanguage("I'll kill you"), true);
+    assert.equal(severeLanguage("k y s"), true);
+    assert.equal(severeLanguage("n!gger"), true);
+    const titled = validateTitle("go kys now");
+    assert.equal(titled.ok, true);
+    if (titled.ok) assert.equal(titled.hold, true);
+    const clean = validateBody("The rooftop clip was great");
+    assert.equal(clean.ok, true);
+    if (clean.ok) assert.equal(clean.hold, false);
+  });
+
   it("does not flag ordinary words that only look similar", () => {
-    for (const text of ["classic bass line", "assassin", "cocktail", "Scunthorpe", "grape", "therapist", "assignment"]) {
+    for (const text of [
+      "classic bass line",
+      "assassin",
+      "cocktail",
+      "Scunthorpe",
+      "grape",
+      "therapist",
+      "assignment",
+      "Pakistan",
+      "raccoon",
+      "spice",
+      "flick the switch",
+      "feedback",
+    ]) {
       assert.equal(hasProfanity(text), false, text);
+      assert.equal(severeLanguage(text), false, text);
     }
+  });
+
+  it("blocks caps floods, emoji floods, and duplicate posts", () => {
+    assert.equal(capsFloodError("PLEASE STOP YELLING IN THIS THREAD"), "Ease off the caps lock.");
+    assert.equal(capsFloodError("OK"), null);
+    assert.equal(capsFloodError("This Is A Normal Title Case Sentence"), null);
+    assert.equal(emojiFloodError(`hi ${"🔥".repeat(10)}`), "Ease off the emoji.");
+    assert.equal(emojiFloodError("Nice clip 🔥"), null);
+    assert.equal(validateBody("PLEASE STOP YELLING IN THIS THREAD").ok, false);
+    const again = duplicateError("Who is on for the raid tonight?", null, [
+      { title: null, body: "Who   is ON for the raid tonight?" },
+    ]);
+    assert.equal(again, "You already said that.");
+    assert.equal(duplicateError("gg", null, [{ title: null, body: "gg" }]), null);
+  });
+
+  it("rate limits new accounts harder and escalates strikes", () => {
+    assert.equal(isNewAccount(NOW - 60_000, NOW), true);
+    assert.equal(isNewAccount(NOW - 48 * 60 * 60 * 1000, NOW), false);
+    assert.equal(isNewAccount(null, NOW), false);
+    assert.equal(rateLimitError(1, RATE_MIN_GAP_NEW_MS - 1, true), "New accounts post slowly. Wait a moment and try again.");
+    assert.equal(rateLimitError(1, RATE_MIN_GAP_NEW_MS, true), null);
+    assert.ok(rateLimitError(RATE_MAX_NEW, 60_000, true));
+    assert.equal(shouldHideForReports(REPORT_HIDE_AT - 1), false);
+    assert.equal(shouldHideForReports(REPORT_HIDE_AT), true);
+    assert.deepEqual(penaltyForStrikes(STRIKES_FOR_MUTE - 1), { muteHours: 0, ban: false });
+    assert.deepEqual(penaltyForStrikes(STRIKES_FOR_MUTE), { muteHours: 24, ban: false });
+    assert.deepEqual(penaltyForStrikes(4), { muteHours: 72, ban: false });
+    assert.deepEqual(penaltyForStrikes(5), { muteHours: 24 * 7, ban: false });
+    assert.equal(penaltyForStrikes(STRIKES_FOR_BAN).ban, true);
+    assert.match(muteMessage(new Date(NOW + 3 * 3_600_000).toISOString(), NOW), /3 hours/);
+    assert.match(COMMUNITY_RULES, /Three strikes/);
   });
 
   it("caps links", () => {
@@ -129,17 +207,14 @@ describe("discussion safety", () => {
 });
 
 describe("clip discussion ids", () => {
-  it("covers every clip on the clips page", () => {
-    const source = readFileSync(new URL("../components/Clips.tsx", import.meta.url), "utf8");
-    const slugs = [...source.matchAll(/slug:\s*"([^"]+)"/g)].map((match) => match[1]);
-    const videos = [...source.matchAll(/kind:\s*"yt",\s*id:\s*"([^"]+)"/g)].map((match) => match[1]);
-    const files = [...source.matchAll(/src:\s*"([^"]+\.mp4)"/g)].map((match) => match[1]);
-    const expected = [
-      ...slugs.map((slug) => clipDiscussionId({ kind: "twitch", slug })),
-      ...videos.map((id) => clipDiscussionId({ kind: "yt", id })),
-      ...files.map((src) => clipDiscussionId({ kind: "mp4", src })),
-    ];
-    assert.deepEqual([...CLIP_DISCUSSION_IDS].sort(), [...expected].sort());
+  it("allows comments on every playable clip in the catalog", () => {
+    assert.ok(CLIP_DISCUSSION_IDS.length > 0);
+    for (const id of CLIP_DISCUSSION_IDS) {
+      assert.equal(isAllowedClipId(id), true, id);
+      assert.equal(clipScope(id), `clip:${id}`);
+    }
+    assert.equal(isAllowedClipId("file:/clips/once-human-moving-base-v1.mp4"), false);
+    assert.equal(CLIP_DISCUSSION_IDS.some((id) => id.startsWith("mp4:")), true);
   });
 });
 
@@ -188,6 +263,39 @@ describe("discussion migration", () => {
         id,
       ]),
     );
+    await pg.close();
+  });
+
+  it("hides posts, records one strike per post, and stores a mute", async () => {
+    const { PGlite } = await import("@electric-sql/pglite");
+    const pg = new PGlite();
+    await pg.waitReady;
+    await pg.exec(readFileSync(new URL("../../migrations/0005_discussion.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0006_moderation.sql", import.meta.url), "utf8"));
+    const id = "55555555-5555-4555-8555-555555555555";
+    await pg.query(
+      "insert into discussion_post (id, scope, parent_id, root_id, author_id, title, body, hidden_at, hidden_reason) values ($1, 'board', null, $1, 'fan', 'Held', 'bad', now(), 'language')",
+      [id],
+    );
+    await pg.query("insert into discussion_strike (id, user_id, post_id, reason) values ($1, 'fan', $2, 'language')", [
+      "66666666-6666-4666-8666-666666666666",
+      id,
+    ]);
+    await assert.rejects(
+      pg.query("insert into discussion_strike (id, user_id, post_id, reason) values ($1, 'fan', $2, 'reports')", [
+        "77777777-7777-4777-8777-777777777777",
+        id,
+      ]),
+    );
+    const visible = await pg.query<{ n: number }>(
+      "select count(*)::int as n from discussion_post where hidden_at is null",
+    );
+    assert.equal(Number(visible.rows[0]?.n), 0);
+    await pg.query("insert into discussion_mute (user_id, until) values ('fan', now() + interval '24 hours')");
+    const muted = await pg.query<{ n: number }>(
+      "select count(*)::int as n from discussion_mute where user_id = 'fan' and until > now()",
+    );
+    assert.equal(Number(muted.rows[0]?.n), 1);
     await pg.close();
   });
 });
