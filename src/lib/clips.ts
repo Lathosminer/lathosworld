@@ -1,6 +1,14 @@
 import { CREATORS } from "./creators.ts";
 
 const SITE = "https://lathosworld.com";
+const SAME_AS = [
+  "https://www.twitch.tv/lathosworld",
+  "https://www.youtube.com/@lathos563",
+  "https://www.tiktok.com/@lathos.world",
+  "https://x.com/lathos563",
+  "https://www.instagram.com/lathosworld",
+  "https://t.me/LathosWorldOfficial",
+];
 const TWITCH_VOD = "https://www.twitch.tv/videos/2900991343";
 const VOD_DATE = "2026-10-15T00:04:41Z"; // Twitch VOD 2900991343 broadcast start
 
@@ -192,7 +200,7 @@ export function clipsJsonLd(clips: readonly Clip[] = PLAYABLE_CLIPS): string {
       uploadDate: clip.uploadDate,
       keywords: clip.tags.join(", "),
       genre: clip.game,
-      author: { "@type": "Person", name: "Lathos", url: SITE },
+      author: { "@type": "Person", name: "Lathos", url: SITE, sameAs: SAME_AS },
       ...(clip.kind === "mp4"
         ? { contentUrl: absoluteClipUrl(clip.src), duration: clip.duration, isBasedOn: TWITCH_VOD }
         : clip.kind === "twitch"
