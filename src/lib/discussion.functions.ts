@@ -21,9 +21,11 @@ import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { getSql, type Sql } from "@/lib/db";
 import { clipScope } from "@/lib/clips";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { giveawayState, isEntryWindowOpen } from "@/lib/giveaway";
 import {
   ANON_VIEWER,
   BOARD_SCOPE,
+  GIVEAWAY_SCOPE,
   depthError,
   duplicateError,
   isAdminEmail,
@@ -702,6 +704,9 @@ export const replyToPost = createServerFn({ method: "POST" })
     `;
     const parent = parents[0];
     if (!parent || present(parent.deleted_at) || present(parent.hidden_at)) return failed("That post is not here.");
+    if (parent.scope === GIVEAWAY_SCOPE && !giveawayCommentsOpen(ready.actor.isAdmin)) {
+      return failed("Giveaway comments are closed.");
+    }
     const depth = await parentDepth(ready.sql, data.parentId);
     if (depth == null) return failed("That post is not here.");
     const tooDeep = depthError(depth);
@@ -754,6 +759,82 @@ export const commentOnClip = createServerFn({ method: "POST" })
     }
     return savePost(ready.sql, ready.actor, {
       scope,
+      parentId,
+      rootId,
+      title: null,
+      body: body.body,
+      hold: body.hold,
+    });
+  });
+
+/** Giveaway comments are open while the giveaway is live. Admins can always post (preview). */
+function giveawayCommentsOpen(isAdmin: boolean): boolean {
+  if (isAdmin) return true;
+  return giveawayState(process.env["GIVEAWAY_OPEN"]) === "open" && isEntryWindowOpen();
+}
+
+function giveawayVisible(isAdmin: boolean): boolean {
+  return isAdmin || giveawayState(process.env["GIVEAWAY_OPEN"]) !== "hidden";
+}
+
+export const listGiveawayComments = createServerFn({ method: "POST" })
+  .middleware([optionalSession])
+  .handler(async ({ context }): Promise<TalkFeed> => {
+    const sql = await getSql();
+    const { viewer } = await viewerFor(sql, context.session);
+    if (!giveawayVisible(viewer.isAdmin)) throw new Error("Nothing here yet.");
+    const rows = await selectPosts(
+      sql,
+      `p.scope = $1 and p.hidden_at is null order by p.created_at asc limit 300`,
+      [GIVEAWAY_SCOPE],
+      viewer.userId ?? "",
+    );
+    const posts = rows.map((row) => mapPost(row, viewer.isAdmin));
+    await attachNotes(sql, posts, viewer);
+    return feed(sql, viewer, posts, false);
+  });
+
+export const commentOnGiveaway = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { parentId?: unknown; body?: unknown }) => ({
+    parentId: input?.parentId == null || input.parentId === "" ? null : String(input.parentId).trim(),
+    body: input?.body,
+  }))
+  .handler(async ({ context, data }): Promise<OkId | Fail> => {
+    const body = validateBody(data.body);
+    if (!body.ok) return body;
+    const ready = await requireActor(context.userId);
+    if ("ok" in ready) return ready;
+    if (!giveawayCommentsOpen(ready.actor.isAdmin)) return failed("Giveaway comments are closed.");
+    const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, null);
+    if (dup) return failed(dup);
+    const limited = await rateMessage(ready.sql, ready.actor.id);
+    if (limited) return failed(limited);
+    let parentId: string | null = null;
+    let rootId = "";
+    if (data.parentId) {
+      if (!isUuid(data.parentId)) return failed("That comment is not here.");
+      const parents = await ready.sql<{ scope: string; root_id: string; deleted_at: unknown; hidden_at: unknown }>`
+        select scope, root_id, deleted_at, hidden_at from discussion_post where id = ${data.parentId} limit 1
+      `;
+      const parent = parents[0];
+      if (!parent || parent.scope !== GIVEAWAY_SCOPE || present(parent.deleted_at) || present(parent.hidden_at)) {
+        return failed("That comment is not here.");
+      }
+      const depth = await parentDepth(ready.sql, data.parentId);
+      if (depth == null) return failed("That comment is not here.");
+      const tooDeep = depthError(depth);
+      if (tooDeep) return failed(tooDeep);
+      parentId = data.parentId;
+      rootId = parent.root_id;
+    }
+    // Commenting makes you an entrant, so your comment entries show on the admin list.
+    await ready.sql`
+      insert into giveaway_entrant (user_id) values (${ready.actor.id})
+      on conflict (user_id) do nothing
+    `;
+    return savePost(ready.sql, ready.actor, {
+      scope: GIVEAWAY_SCOPE,
       parentId,
       rootId,
       title: null,

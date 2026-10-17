@@ -23,10 +23,12 @@ import { CommunityPolls, usePollBoard } from "@/components/Poll";
 import {
   banUser,
   commentOnClip,
+  commentOnGiveaway,
   createNote,
   createThread,
   getThread,
   listClipComments,
+  listGiveawayComments,
   listThreads,
   rateNote,
   reportNote,
@@ -381,6 +383,79 @@ export function ClipComments({ clipId }: { clipId: string }) {
   );
 }
 
+/**
+ * Comments on /giveaway. Same posts, moderation, reports, notes, and admin queue
+ * as the community board. Each visible comment can earn a giveaway entry
+ * (capped per day; see `COMMENT_ENTRIES_PER_DAY`).
+ */
+export function GiveawayComments({ onPosted, closed }: { onPosted?: () => void; closed?: boolean }) {
+  const { feed, error, setError, reload } = useFeed(() => listGiveawayComments(), ["giveaway"]);
+  const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  async function onComment(event: FormEvent) {
+    event.preventDefault();
+    if (!feed) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await commentOnGiveaway({ data: { body } });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setBody("");
+      setNotice(result.held ? HELD_NOTICE : "Posted.");
+      reload();
+      onPosted?.();
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const posts = feed?.posts ?? [];
+  const top = postsByParent(posts, null);
+
+  return (
+    <div className="talk-clip giveaway-comments">
+      <h3>Comments</h3>
+      {error ? <p className="wallet-error" role="alert">{error}</p> : null}
+      {notice ? <p className="talk-note">{notice}</p> : null}
+      {!feed && !error ? <p className="talk-meta">Loading comments…</p> : null}
+      {feed && top.length === 0 ? <p className="talk-empty">No comments yet. Be the first.</p> : null}
+      {feed ? (
+        <PostTree
+          posts={posts}
+          parentId={null}
+          viewer={feed.viewer}
+          busy={busy}
+          setBusy={setBusy}
+          setError={setError}
+          setNotice={setNotice}
+          reload={reload}
+          mode="giveaway"
+        />
+      ) : null}
+      {feed && closed && !feed.viewer.isAdmin ? <p className="talk-note">Comments are closed.</p> : null}
+      {feed && (!closed || feed.viewer.isAdmin) ? (
+        <Composer
+          viewer={feed.viewer}
+          body={body}
+          onBody={setBody}
+          onSubmit={onComment}
+          busy={busy}
+          submitLabel="Comment"
+          placeholder="Say hi, tell us what you'd build in LathosWorld."
+        />
+      ) : null}
+    </div>
+  );
+}
+
 function PostTree({
   posts,
   parentId,
@@ -402,7 +477,7 @@ function PostTree({
   setError: (value: string) => void;
   setNotice: (value: string) => void;
   reload: () => void;
-  mode: "board" | "clip";
+  mode: "board" | "clip" | "giveaway";
   clipId?: string;
   depth?: number;
 }) {
@@ -452,7 +527,7 @@ function PostCard({
   setError: (value: string) => void;
   setNotice: (value: string) => void;
   reload: () => void;
-  mode: "board" | "clip";
+  mode: "board" | "clip" | "giveaway";
   clipId?: string;
   depth: number;
 }) {
@@ -485,9 +560,11 @@ function PostCard({
   async function onReply(event: FormEvent) {
     event.preventDefault();
     await act(() =>
-      mode === "clip" && clipId
-        ? commentOnClip({ data: { clipId, parentId: post.id, body: text } })
-        : replyToPost({ data: { parentId: post.id, body: text } }),
+      mode === "giveaway"
+        ? commentOnGiveaway({ data: { parentId: post.id, body: text } })
+        : mode === "clip" && clipId
+          ? commentOnClip({ data: { clipId, parentId: post.id, body: text } })
+          : replyToPost({ data: { parentId: post.id, body: text } }),
     );
   }
 
