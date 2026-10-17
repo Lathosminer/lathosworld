@@ -6,9 +6,9 @@
  * restore a hidden post, and ban users. The variable is read on the server
  * only — never a `VITE_` key.
  *
- * Clean posts are inserted and returned immediately. Slurs, threats, and
- * harassment are stored hidden for the review queue. Link spam, duplicates,
- * caps floods, and emoji floods are rejected and never stored.
+ * Clean posts, including ordinary swearing and trash talk, are inserted and
+ * returned immediately. Slurs, threats, and harassment are stored hidden for
+ * the review queue. Link spam and duplicate posts are rejected.
  */
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { getSql, type Sql } from "@/lib/db";
@@ -21,7 +21,6 @@ import {
   duplicateError,
   isAdminEmail,
   isAllowedClipId,
-  isNewAccount,
   isUuid,
   muteMessage,
   penaltyForStrikes,
@@ -47,7 +46,6 @@ type Actor = {
   isAdmin: boolean;
   banned: boolean;
   mutedUntil: string | null;
-  createdAtMs: number | null;
 };
 
 type Session = { id: string; email: string | null } | null;
@@ -125,16 +123,6 @@ function stamp(value: unknown): string {
   return new Date().toISOString();
 }
 
-function timeMs(value: unknown): number | null {
-  if (value instanceof Date) return value.getTime();
-  if (typeof value === "string" && value) {
-    const parsed = Date.parse(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  return null;
-}
-
 function count(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -156,8 +144,8 @@ function isUniqueViolation(err: unknown): boolean {
 }
 
 async function loadActor(sql: Sql, userId: string, fallbackEmail: string | null): Promise<Actor> {
-  const users = await sql<{ name: string | null; email: string | null; image: string | null; created_at: unknown }>`
-    select "name" as name, "email" as email, "image" as image, "createdAt" as created_at
+  const users = await sql<{ name: string | null; email: string | null; image: string | null }>`
+    select "name" as name, "email" as email, "image" as image
     from "user"
     where id = ${userId}
     limit 1
@@ -179,7 +167,6 @@ async function loadActor(sql: Sql, userId: string, fallbackEmail: string | null)
     isAdmin,
     banned: Boolean(bans[0]) && !isAdmin,
     mutedUntil: isAdmin || !mutes[0] ? null : stamp(mutes[0].until),
-    createdAtMs: timeMs(row?.created_at),
   };
 }
 
@@ -317,7 +304,7 @@ async function listQueue(sql: Sql): Promise<TalkReview[]> {
   }));
 }
 
-async function rateMessage(sql: Sql, userId: string, fresh: boolean): Promise<string | null> {
+async function rateMessage(sql: Sql, userId: string): Promise<string | null> {
   const rows = await sql<{ n: number; ago: number | null }>`
     select count(*)::int as n,
            extract(epoch from (now() - max(created_at))) as ago
@@ -328,7 +315,7 @@ async function rateMessage(sql: Sql, userId: string, fresh: boolean): Promise<st
   const recent = count(rows[0]?.n);
   const ago = rows[0]?.ago;
   const ms = ago == null ? null : count(ago) * 1000;
-  return rateLimitError(recent, recent === 0 ? null : ms, fresh);
+  return rateLimitError(recent, recent === 0 ? null : ms);
 }
 
 async function duplicateMessage(sql: Sql, userId: string, body: string, title: string | null): Promise<string | null> {
@@ -542,7 +529,7 @@ export const createThread = createServerFn({ method: "POST" })
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, title.title);
     if (dup) return failed(dup);
-    const limited = await rateMessage(ready.sql, ready.actor.id, !ready.actor.isAdmin && isNewAccount(ready.actor.createdAtMs));
+    const limited = await rateMessage(ready.sql, ready.actor.id);
     if (limited) return failed(limited);
     return savePost(ready.sql, ready.actor, {
       scope: BOARD_SCOPE,
@@ -568,7 +555,7 @@ export const replyToPost = createServerFn({ method: "POST" })
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, null);
     if (dup) return failed(dup);
-    const limited = await rateMessage(ready.sql, ready.actor.id, !ready.actor.isAdmin && isNewAccount(ready.actor.createdAtMs));
+    const limited = await rateMessage(ready.sql, ready.actor.id);
     if (limited) return failed(limited);
     const parents = await ready.sql<{ scope: string; root_id: string; deleted_at: unknown; hidden_at: unknown }>`
       select scope, root_id, deleted_at, hidden_at from discussion_post where id = ${data.parentId} limit 1
@@ -604,7 +591,7 @@ export const commentOnClip = createServerFn({ method: "POST" })
     if ("ok" in ready) return ready;
     const dup = await duplicateMessage(ready.sql, ready.actor.id, body.body, null);
     if (dup) return failed(dup);
-    const limited = await rateMessage(ready.sql, ready.actor.id, !ready.actor.isAdmin && isNewAccount(ready.actor.createdAtMs));
+    const limited = await rateMessage(ready.sql, ready.actor.id);
     if (limited) return failed(limited);
     const scope = clipScope(data.clipId);
     let parentId: string | null = null;

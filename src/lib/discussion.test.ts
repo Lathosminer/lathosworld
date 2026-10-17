@@ -6,22 +6,17 @@ import {
   BODY_MAX,
   COMMUNITY_RULES,
   MAX_DEPTH,
-  RATE_MAX_NEW,
   RATE_MAX_POSTS,
   RATE_MIN_GAP_MS,
-  RATE_MIN_GAP_NEW_MS,
   REPORT_HIDE_AT,
   STRIKES_FOR_BAN,
   STRIKES_FOR_MUTE,
-  capsFloodError,
   depthError,
   duplicateError,
-  emojiFloodError,
   formatWhen,
   hasProfanity,
   isAdminEmail,
   isAllowedClipId,
-  isNewAccount,
   isUuid,
   linkSpamError,
   muteMessage,
@@ -64,24 +59,36 @@ describe("discussion safety", () => {
     assert.equal(validateBody(text).ok, true);
   });
 
-  it("rejects profanity, separator evasion, and harassment", () => {
-    assert.equal(hasProfanity("what the fuck"), true);
-    assert.equal(hasProfanity("f.u.c.k this"), true);
-    assert.equal(hasProfanity("sh1t"), true);
-    assert.equal(hasProfanity("go kys"), true);
-    assert.equal(validateBody("this is shit").ok, false);
+  it("lets swearing, caps, emoji, and gamer trash talk through", () => {
+    for (const text of [
+      "what the fuck",
+      "f.u.c.k this boss",
+      "sh1t happens",
+      "this is shit",
+      "I'll kill you next round",
+      "PLEASE STOP YELLING IN THIS THREAD",
+      `nice clip ${"🔥".repeat(12)}`,
+    ]) {
+      assert.equal(severeLanguage(text), false, text);
+      const checked = validateBody(text);
+      assert.equal(checked.ok, true, text);
+      if (checked.ok) assert.equal(checked.hold, false, text);
+    }
   });
 
-  it("hides slurs, threats, and leetspeak instead of publishing them", () => {
+  it("hides slurs, threats, and harassment instead of publishing them", () => {
     const held = validateBody("you n1gger");
     assert.equal(held.ok, true);
     if (held.ok) assert.equal(held.hold, true);
     const dotted = validateBody("f.a.g.g.o.t off");
     assert.equal(dotted.ok, true);
     if (dotted.ok) assert.equal(dotted.hold, true);
-    assert.equal(severeLanguage("I'll kill you"), true);
+    assert.equal(severeLanguage("I'll kill you next round"), false);
+    assert.equal(severeLanguage("kill yourself"), true);
+    assert.equal(severeLanguage("I will rape you"), true);
     assert.equal(severeLanguage("k y s"), true);
     assert.equal(severeLanguage("n!gger"), true);
+    assert.equal(hasProfanity("go kys"), true);
     const titled = validateTitle("go kys now");
     assert.equal(titled.ok, true);
     if (titled.ok) assert.equal(titled.hold, true);
@@ -110,13 +117,7 @@ describe("discussion safety", () => {
     }
   });
 
-  it("blocks caps floods, emoji floods, and duplicate posts", () => {
-    assert.equal(capsFloodError("PLEASE STOP YELLING IN THIS THREAD"), "Ease off the caps lock.");
-    assert.equal(capsFloodError("OK"), null);
-    assert.equal(capsFloodError("This Is A Normal Title Case Sentence"), null);
-    assert.equal(emojiFloodError(`hi ${"🔥".repeat(10)}`), "Ease off the emoji.");
-    assert.equal(emojiFloodError("Nice clip 🔥"), null);
-    assert.equal(validateBody("PLEASE STOP YELLING IN THIS THREAD").ok, false);
+  it("blocks duplicate posts and leaves short repeats alone", () => {
     const again = duplicateError("Who is on for the raid tonight?", null, [
       { title: null, body: "Who   is ON for the raid tonight?" },
     ]);
@@ -124,13 +125,7 @@ describe("discussion safety", () => {
     assert.equal(duplicateError("gg", null, [{ title: null, body: "gg" }]), null);
   });
 
-  it("rate limits new accounts harder and escalates strikes", () => {
-    assert.equal(isNewAccount(NOW - 60_000, NOW), true);
-    assert.equal(isNewAccount(NOW - 48 * 60 * 60 * 1000, NOW), false);
-    assert.equal(isNewAccount(null, NOW), false);
-    assert.equal(rateLimitError(1, RATE_MIN_GAP_NEW_MS - 1, true), "New accounts post slowly. Wait a moment and try again.");
-    assert.equal(rateLimitError(1, RATE_MIN_GAP_NEW_MS, true), null);
-    assert.ok(rateLimitError(RATE_MAX_NEW, 60_000, true));
+  it("hides a post after three reports and escalates strikes", () => {
     assert.equal(shouldHideForReports(REPORT_HIDE_AT - 1), false);
     assert.equal(shouldHideForReports(REPORT_HIDE_AT), true);
     assert.deepEqual(penaltyForStrikes(STRIKES_FOR_MUTE - 1), { muteHours: 0, ban: false });
@@ -140,6 +135,8 @@ describe("discussion safety", () => {
     assert.equal(penaltyForStrikes(STRIKES_FOR_BAN).ban, true);
     assert.match(muteMessage(new Date(NOW + 3 * 3_600_000).toISOString(), NOW), /3 hours/);
     assert.match(COMMUNITY_RULES, /Three strikes/);
+    assert.equal(COMMUNITY_RULES.includes("caps"), false);
+    assert.equal(COMMUNITY_RULES.includes("New accounts"), false);
   });
 
   it("caps links", () => {

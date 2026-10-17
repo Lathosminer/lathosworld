@@ -14,32 +14,23 @@ export const RATE_MIN_GAP_MS = 3 * 1000;
 export const REPORT_MAX = 8;
 /** Distinct reporters before a post is hidden for the owner to review. */
 export const REPORT_HIDE_AT = 3;
-export const NEW_ACCOUNT_WINDOW_MS = 24 * 60 * 60 * 1000;
-export const RATE_MAX_NEW = 2;
-export const RATE_MIN_GAP_NEW_MS = 30 * 1000;
-export const CAPS_MIN_LETTERS = 12;
-export const CAPS_RATIO = 0.7;
-export const EMOJI_MIN = 8;
-export const EMOJI_HARD_CAP = 24;
 export const DUPLICATE_MIN = 12;
 /** Third strike mutes for a day. Later strikes last longer. Six strikes ban. */
 export const STRIKES_FOR_MUTE = 3;
 export const STRIKES_FOR_BAN = 6;
 
 export const COMMUNITY_RULES =
-  "Be decent. No slurs, threats, harassment, or spam. Don't repeat yourself, flood caps, or stack emoji. New accounts post slowly. Three reports hide a post until the owner reviews it. Three strikes mute you for a day, and it gets longer from there. Keep it up and the account is banned.";
+  "Be decent. Slurs, threats, harassment, and spam get hidden. Trash talk is fine. Don't repeat the same post. Three reports hide a post until the owner reviews it. Three strikes mute you for a day, and it gets longer from there. Keep it up and the account is banned.";
 
 export const HELD_NOTICE = "Held for review. It won't show until the owner clears it.";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
- * Whole words, plus a short suffix (fucking, shitty) and light separator evasion
- * (f.u.c.k). Short words stay bounded so "classic", "cocktail", and "Scunthorpe"
- * are not flagged. Mild words are rejected. Severe words are hidden for review.
+ * Slurs and hate only. Ordinary swearing and gamer trash talk are left alone.
+ * Patterns stay bounded so "classic", "cocktail", "Scunthorpe", and "grape"
+ * are not flagged. A hit is hidden for review, not rejected.
  */
-const MILD_WORDS = ["fuck", "shit", "bitch", "cunt", "dick", "cock", "porn", "whore", "slut"] as const;
-
 const SEVERE_WORDS = [
   "faggot",
   "fag",
@@ -62,7 +53,6 @@ const SEVERE_WORDS = [
 ] as const;
 
 const LINK_RE = /\b(?:https?:\/\/|www\.)[^\s<>"']+|\b(?:discord\.gg|bit\.ly|tinyurl\.com|t\.co|t\.me|goo\.gl)\/[^\s<>"']+/gi;
-const EMOJI_RE = /\p{Extended_Pictographic}/gu;
 
 function wordPattern(word: string, suffixes: string): RegExp {
   const parts = word.split("").map((letter) => `${letter}+`);
@@ -76,23 +66,17 @@ function spaced(words: string[]): RegExp {
   return new RegExp(`(?<![a-z])${body}(?![a-z])`, "i");
 }
 
-const MILD_PATTERNS = MILD_WORDS.map((word) => wordPattern(word, "es|s|y|ty|ing|er|ers|ed"));
 const SEVERE_PATTERNS = SEVERE_WORDS.map((word) => wordPattern(word, "es|s|ed|y"));
 
-/** f*ck / fck, without matching "flick" or "feedback". */
-const FUCK_EVASION = /(?<![a-z])f+[^a-z]{0,2}c+[^a-z]{0,2}k+(?:s|ing|er|ed)?(?![a-z])/i;
-
+/** Harassment and real threats. "I'll kill you" in a match is trash talk and stays up. */
 const SEVERE_PHRASES = [
   spaced(["kys"]),
   spaced(["kms"]),
   spaced(["kill", "yourself"]),
   spaced(["kill", "urself"]),
   spaced(["neck", "yourself"]),
-  spaced(["go", "die"]),
   spaced(["hope", "you", "die"]),
   spaced(["hope", "u", "die"]),
-  spaced(["you", "should", "die"]),
-  /(?<![a-z])(?:ill|i will|iwill|im gonna|imgonna|im going to|gonna|going to)\s+kill\s+(?:you|u|ya|them|him|her|everyone)(?![a-z])/i,
   /(?<![a-z])(?:ill|i will|iwill|im gonna|imgonna|im going to|gonna|going to)\s+rape\s+(?:you|u|ya|them|him|her)(?![a-z])/i,
 ];
 
@@ -235,13 +219,9 @@ export function severeLanguage(text: string): boolean {
   return forms.some((form) => matchesAny(form, SEVERE_PHRASES) || matchesAny(form, SEVERE_PATTERNS));
 }
 
-export function mildProfanity(text: string): boolean {
-  const forms = [fold(text), leet(text)];
-  return forms.some((form) => FUCK_EVASION.test(form) || matchesAny(form, MILD_PATTERNS));
-}
-
+/** True only for slurs, hate, threats, and harassment. Swearing is not included. */
 export function hasProfanity(text: string): boolean {
-  return severeLanguage(text) || mildProfanity(text);
+  return severeLanguage(text);
 }
 
 export function linkSpamError(text: string): string | null {
@@ -253,23 +233,6 @@ export function linkSpamError(text: string): string | null {
     return "That reads like link spam. Add a sentence.";
   }
   if (links.length >= 2 && compact.length < 40) return "That reads like link spam. Add a sentence.";
-  return null;
-}
-
-export function capsFloodError(text: string): string | null {
-  const letters = text.match(/\p{L}/gu) ?? [];
-  if (letters.length < CAPS_MIN_LETTERS) return null;
-  const upper = letters.filter((letter) => letter.toUpperCase() === letter && letter.toLowerCase() !== letter).length;
-  if (upper / letters.length >= CAPS_RATIO) return "Ease off the caps lock.";
-  return null;
-}
-
-export function emojiFloodError(text: string): string | null {
-  const emoji = text.match(EMOJI_RE) ?? [];
-  if (emoji.length >= EMOJI_HARD_CAP) return "Ease off the emoji.";
-  const letters = text.match(/\p{L}/gu) ?? [];
-  const denom = emoji.length + letters.length;
-  if (emoji.length >= EMOJI_MIN && denom > 0 && emoji.length / denom >= 0.45) return "Ease off the emoji.";
   return null;
 }
 
@@ -296,23 +259,12 @@ export function duplicateError(
   return null;
 }
 
-export function isNewAccount(createdAtMs: number | null, now = Date.now()): boolean {
-  if (createdAtMs == null || !Number.isFinite(createdAtMs)) return false;
-  const age = now - createdAtMs;
-  return age >= 0 && age < NEW_ACCOUNT_WINDOW_MS;
-}
-
 export function validateTitle(value: unknown): { ok: true; title: string; hold: boolean } | { ok: false; error: string } {
   const title = cleanText(value).replace(/\s+/g, " ");
   if (title.length < TITLE_MIN) return { ok: false, error: `Give the thread a title of at least ${TITLE_MIN} characters.` };
   if (title.length > TITLE_MAX) return { ok: false, error: `Keep the title under ${TITLE_MAX} characters.` };
   if (severeLanguage(title)) return { ok: true, title, hold: true };
-  if (mildProfanity(title)) return { ok: false, error: "Take the language down a notch and try again." };
   if (linkSpamError(title)) return { ok: false, error: "Put the title in words, not links." };
-  const caps = capsFloodError(title);
-  if (caps) return { ok: false, error: caps };
-  const emoji = emojiFloodError(title);
-  if (emoji) return { ok: false, error: emoji };
   return { ok: true, title, hold: false };
 }
 
@@ -322,13 +274,8 @@ export function validateBody(value: unknown): { ok: true; body: string; hold: bo
   if (body.length > BODY_MAX) return { ok: false, error: `Keep it under ${BODY_MAX} characters.` };
   if (!/[a-z0-9]/i.test(body)) return { ok: false, error: "Write something with words." };
   if (severeLanguage(body)) return { ok: true, body, hold: true };
-  if (mildProfanity(body)) return { ok: false, error: "Take the language down a notch and try again." };
   const links = linkSpamError(body);
   if (links) return { ok: false, error: links };
-  const caps = capsFloodError(body);
-  if (caps) return { ok: false, error: caps };
-  const emoji = emojiFloodError(body);
-  if (emoji) return { ok: false, error: emoji };
   return { ok: true, body, hold: false };
 }
 
@@ -339,17 +286,11 @@ export function validateReason(value: unknown): { ok: true; reason: string } | {
   return { ok: true, reason };
 }
 
-export function rateLimitError(recentCount: number, msSinceLast: number | null, fresh = false): string | null {
-  const gap = fresh ? RATE_MIN_GAP_NEW_MS : RATE_MIN_GAP_MS;
-  const max = fresh ? RATE_MAX_NEW : RATE_MAX_POSTS;
-  if (msSinceLast != null && msSinceLast >= 0 && msSinceLast < gap) {
-    return fresh ? "New accounts post slowly. Wait a moment and try again." : "Slow down a moment, then post again.";
+export function rateLimitError(recentCount: number, msSinceLast: number | null): string | null {
+  if (msSinceLast != null && msSinceLast >= 0 && msSinceLast < RATE_MIN_GAP_MS) {
+    return "Slow down a moment, then post again.";
   }
-  if (recentCount >= max) {
-    return fresh
-      ? "New accounts can only post a couple of times at first. Try again later."
-      : "That's enough for a few minutes. Take a breath, then post again.";
-  }
+  if (recentCount >= RATE_MAX_POSTS) return "That's enough for a few minutes. Take a breath, then post again.";
   return null;
 }
 
