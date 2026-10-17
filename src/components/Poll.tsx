@@ -308,6 +308,57 @@ function SuggestForm({
   );
 }
 
+function queueFlag(status: string, reason: string): string {
+  if (status === "approved") return "Approved · up next";
+  if (reason === "language") return "Pending · language";
+  return "Waiting for approval";
+}
+
+function QueueList({
+  title,
+  items,
+  busy,
+  run,
+}: {
+  title: string;
+  items: PollBoard["suggestions"];
+  busy: boolean;
+  run: (work: () => Promise<{ ok: true } | { ok: false; error: string }>) => Promise<void>;
+}) {
+  if (items.length === 0) {
+    return title ? <p className="talk-empty">No fan ideas waiting.</p> : null;
+  }
+  return (
+    <div>
+      {title ? <p className="talk-meta">{title}</p> : null}
+      <ul className="poll-queue-list">
+        {items.map((item) => (
+          <li key={item.id}>
+            <div>
+              <p className="talk-meta">
+                <strong>{item.authorName}</strong>
+                <span className="talk-flag">{queueFlag(item.status, item.reason)}</span>
+              </p>
+              <p className="talk-body">{item.question}</p>
+              <p className="talk-preview">{item.options.join(" · ")}</p>
+            </div>
+            <div className="talk-actions">
+              {item.status === "pending" ? (
+                <button type="button" className="talk-btn" disabled={busy} onClick={() => void run(() => approveSuggestion({ data: { pollId: item.id } }))}>
+                  Approve
+                </button>
+              ) : null}
+              <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => void run(() => removeSuggestion({ data: { pollId: item.id } }))}>
+                Delete
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function PollTools({
   board,
   error,
@@ -347,7 +398,10 @@ function PollTools({
   return (
     <section className="talk-bans talk-queue poll-tools" aria-label="Poll queue">
       <h2>Polls</h2>
-      <p className="talk-note">Suggestions stay here until you approve them. Close a poll to archive its results.</p>
+      <p className="talk-note">
+        Seeded questions and fan ideas stay pending until you approve them. Each Monday, the next approved poll
+        goes up. If none are waiting, the current poll stays.
+      </p>
       {error ? <p className="wallet-error" role="alert">{error}</p> : null}
       {featured ? (
         <div className="poll-card">
@@ -390,7 +444,7 @@ function PollTools({
           ) : null}
         </div>
       ) : (
-        <p className="talk-empty">No poll is open.</p>
+        <p className="talk-empty">No poll is open. Approve one below and it will go on the board.</p>
       )}
       {creating ? (
         <form
@@ -405,8 +459,9 @@ function PollTools({
             <input value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={POLL_Q_MAX} required />
           </label>
           <ChoiceFields options={options} setOptions={setOptions} />
+          <p className="talk-meta">This waits for approval, the same as a seeded question.</p>
           <button className="btn btn-cyan talk-submit" type="submit" disabled={busy}>
-            Feature this poll
+            Add to the queue
           </button>
         </form>
       ) : (
@@ -423,32 +478,21 @@ function PollTools({
           Create a poll
         </button>
       )}
-      {board.suggestions.length > 0 ? (
-        <ul>
-          {board.suggestions.map((item) => (
-            <li key={item.id}>
-              <div>
-                <p className="talk-meta">
-                  <strong>{item.authorName}</strong>
-                  <span className="talk-flag">{item.reason === "language" ? "Pending · language" : "Waiting for approval"}</span>
-                </p>
-                <p className="talk-body">{item.question}</p>
-                <p className="talk-preview">{item.options.join(" · ")}</p>
-              </div>
-              <div className="talk-actions">
-                <button type="button" className="talk-btn" disabled={busy} onClick={() => void run(() => approveSuggestion({ data: { pollId: item.id } }))}>
-                  Approve
-                </button>
-                <button type="button" className="talk-btn talk-btn-danger" disabled={busy} onClick={() => void run(() => removeSuggestion({ data: { pollId: item.id } }))}>
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="talk-empty">No poll ideas waiting.</p>
-      )}
+      <QueueList
+        title="From fans"
+        items={board.suggestions.filter((item) => item.source === "fan")}
+        busy={busy}
+        run={run}
+      />
+      <details className="poll-archive" open>
+        <summary>Seeded questions</summary>
+        <QueueList
+          title=""
+          items={board.suggestions.filter((item) => item.source === "bank")}
+          busy={busy}
+          run={run}
+        />
+      </details>
     </section>
   );
 }

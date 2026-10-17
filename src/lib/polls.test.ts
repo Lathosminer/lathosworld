@@ -4,8 +4,8 @@ import { describe, it } from "node:test";
 import {
   POLL_BANK,
   chicagoWeekKey,
-  featuredBankPoll,
   pollPercents,
+  rotationChoice,
   validatePoll,
 } from "./polls.ts";
 
@@ -22,17 +22,34 @@ describe("community polls", () => {
     }
   });
 
-  it("rotates on the Chicago Monday, and stays put the rest of the week", () => {
+  it("rotates on Monday only when an approved poll is waiting", () => {
     assert.equal(chicagoWeekKey("2026-10-12"), "2026-10-12");
     assert.equal(chicagoWeekKey("2026-10-17"), "2026-10-12");
     assert.equal(chicagoWeekKey("2026-10-18"), "2026-10-12");
     assert.equal(chicagoWeekKey("2026-10-11"), "2026-10-05");
     assert.equal(chicagoWeekKey("2026-10-19"), "2026-10-19");
-    const week = featuredBankPoll(chicagoWeekKey("2026-10-12"));
-    assert.equal(featuredBankPoll(chicagoWeekKey("2026-10-17")).id, week.id);
-    assert.equal(featuredBankPoll(chicagoWeekKey("2026-10-18")).id, week.id);
-    assert.equal(featuredBankPoll("2026-10-12").id, week.id);
-    assert.notEqual(featuredBankPoll(chicagoWeekKey("2026-10-19")).id, week.id);
+    const live = { id: "live", weekKey: "2026-10-12" };
+    assert.deepEqual(rotationChoice({ weekKey: "2026-10-19", current: live, nextApprovedId: null }), {
+      action: "keep",
+      pollId: "live",
+    });
+    assert.deepEqual(rotationChoice({ weekKey: "2026-10-19", current: live, nextApprovedId: "next" }), {
+      action: "feature",
+      pollId: "next",
+      closeId: "live",
+    });
+    assert.deepEqual(rotationChoice({ weekKey: "2026-10-12", current: live, nextApprovedId: "next" }), {
+      action: "keep",
+      pollId: "live",
+    });
+    assert.deepEqual(rotationChoice({ weekKey: "2026-10-12", current: null, nextApprovedId: "next" }), {
+      action: "feature",
+      pollId: "next",
+      closeId: null,
+    });
+    assert.deepEqual(rotationChoice({ weekKey: "2026-10-12", current: null, nextApprovedId: null }), {
+      action: "none",
+    });
   });
 
   it("publishes opinions and holds only a slur, threat, or spam", () => {
@@ -64,6 +81,7 @@ describe("poll migration", () => {
     const pg = new PGlite();
     await pg.waitReady;
     await pg.exec(readFileSync(new URL("../../migrations/0009_polls.sql", import.meta.url), "utf8"));
+    await pg.exec(readFileSync(new URL("../../migrations/0010_poll_approval.sql", import.meta.url), "utf8"));
     await pg.query(
       "insert into discussion_poll (id, week_key, question, status, featured) values ('poll-1', '2026-10-12', 'Swords or guns?', 'open', true)",
     );
@@ -81,6 +99,15 @@ describe("poll migration", () => {
       "select count(*)::int as n, max(option_id) as option_id from discussion_poll_vote where poll_id = 'poll-1'",
     );
     assert.equal(Number(votes.rows[0]?.n), 1);
+    await pg.query(
+      "insert into discussion_poll (id, question, status, featured) values ('poll-pending', 'Best snack?', 'pending', false)",
+    );
+    await pg.query(
+      "insert into discussion_poll (id, question, status, featured, approved_at) values ('poll-ok', 'Swords or guns tonight?', 'approved', false, now())",
+    );
+    await assert.rejects(
+      pg.query("insert into discussion_poll (id, question, status) values ('poll-bad', 'Nope question', 'draft')"),
+    );
     await pg.close();
   });
 });

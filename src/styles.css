@@ -1484,6 +1484,7 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 .poll-archive summary { cursor: pointer; }
 .poll-archive ul { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 0.8rem; }
 .poll-tools { margin-top: 1rem; }
+.poll-queue-list { max-height: 22rem; overflow: auto; }
 .talk-clip h3 {
   margin: 0.35rem 0 0.45rem;
   font-family: var(--font-display);

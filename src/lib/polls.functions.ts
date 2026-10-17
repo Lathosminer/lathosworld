@@ -1,18 +1,20 @@
 /**
- * One featured community poll. The bank rotates each Chicago week, the same
- * clock as the daily clips. Signed-in fans get one vote. Suggestions stay
- * hidden until the owner approves them. Slurs, threats, harassment, and spam
- * are the only automatic holds. Nothing here bans anyone.
+ * One featured community poll. Seeded questions and fan ideas start pending.
+ * Monday rotation, on the same clock as the daily clips, only features a poll
+ * the owner has approved. If none is waiting, the current poll stays up.
+ * Slurs, threats, harassment, and spam are the only automatic holds.
+ * Nothing here bans anyone.
  */
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql, type Sql } from "@/lib/db";
-import { ANON_VIEWER, duplicateError, isAdminEmail, isUuid, rateLimitError, type TalkViewer } from "@/lib/discussion";
+import { ANON_VIEWER, duplicateError, isAdminEmail, rateLimitError, type TalkViewer } from "@/lib/discussion";
 import {
-  bankPollId,
+  POLL_BANK,
   chicagoWeekKey,
-  featuredBankPoll,
   pollPercents,
+  rotationChoice,
+  seedPollId,
   validatePoll,
   type PollCard,
   type PollChoice,
@@ -196,50 +198,91 @@ async function myVotes(sql: Sql, userId: string, pollIds: string[]): Promise<Map
   return mine;
 }
 
-async function ensureFeatured(sql: Sql): Promise<void> {
-  const weekKey = chicagoWeekKey();
+function isPollId(value: string): boolean {
+  return value.length > 0 && value.length <= 80 && /^[a-z0-9:-]+$/i.test(value);
+}
+
+async function ensureBank(sql: Sql): Promise<void> {
+  const existing = await sql<{ bank_id: string }>`
+    select bank_id from discussion_poll where bank_id is not null
+  `;
+  const have = new Set(existing.map((row) => row.bank_id));
+  for (const bank of POLL_BANK) {
+    if (have.has(bank.id)) continue;
+    const id = seedPollId(bank.id);
+    try {
+      await sql`
+        insert into discussion_poll (id, bank_id, question, status, featured, hidden_at, hidden_reason)
+        values (${id}, ${bank.id}, ${bank.question}, 'pending', false, ${new Date().toISOString()}, 'approval')
+      `;
+    } catch (err) {
+      if (!isUniqueViolation(err)) throw err;
+    }
+    for (let index = 0; index < bank.options.length; index += 1) {
+      try {
+        await sql`
+          insert into discussion_poll_option (id, poll_id, label, position)
+          values (${`${id}:${index}`}, ${id}, ${bank.options[index] ?? ""}, ${index})
+        `;
+      } catch (err) {
+        if (!isUniqueViolation(err)) throw err;
+      }
+    }
+    have.add(bank.id);
+  }
+}
+
+async function holdUnapprovedBank(sql: Sql): Promise<void> {
   await sql`
     update discussion_poll
-    set status = 'closed', featured = false, closed_at = coalesce(closed_at, now())
+    set status = 'pending',
+        featured = false,
+        hidden_at = coalesce(hidden_at, now()),
+        hidden_reason = case when hidden_reason = '' then 'approval' else hidden_reason end
     where status = 'open'
-      and week_key is not null
-      and week_key <> ${weekKey}
       and deleted_at is null
+      and bank_id is not null
+      and approved_at is null
   `;
-  const open = await sql<{ id: string }>`
-    select id from discussion_poll
+}
+
+async function featureApproved(sql: Sql, id: string, weekKey: string): Promise<void> {
+  await sql`
+    update discussion_poll
+    set status = 'open',
+        featured = true,
+        week_key = ${weekKey},
+        approved_at = coalesce(approved_at, now()),
+        hidden_at = null,
+        hidden_reason = ''
+    where id = ${id} and deleted_at is null and status = 'approved'
+  `;
+}
+
+async function ensureFeatured(sql: Sql): Promise<void> {
+  await holdUnapprovedBank(sql);
+  await ensureBank(sql);
+  const weekKey = chicagoWeekKey();
+  const currentRows = await sql<{ id: string; week_key: string | null }>`
+    select id, week_key from discussion_poll
     where featured = true and status = 'open' and deleted_at is null
     limit 1
   `;
-  if (open[0]) return;
-  const bank = featuredBankPoll(weekKey);
-  const id = bankPollId(weekKey, bank.id);
-  const existing = await sql<{ status: string }>`
-    select status from discussion_poll where id = ${id} and deleted_at is null limit 1
+  const nextRows = await sql<{ id: string }>`
+    select id from discussion_poll
+    where status = 'approved' and deleted_at is null
+    order by approved_at asc nulls last, created_at asc
+    limit 1
   `;
-  if (existing[0]?.status === "closed") return;
-  if (existing[0]?.status === "open") {
-    await sql`update discussion_poll set featured = true where id = ${id}`;
-  } else {
-    try {
-      await sql`
-        insert into discussion_poll (id, bank_id, week_key, question, status, featured)
-        values (${id}, ${bank.id}, ${weekKey}, ${bank.question}, 'open', true)
-      `;
-    } catch (err) {
-      if (!isUniqueViolation(err)) throw err;
-    }
-  }
-  for (let index = 0; index < bank.options.length; index += 1) {
-    try {
-      await sql`
-        insert into discussion_poll_option (id, poll_id, label, position)
-        values (${`${id}:${index}`}, ${id}, ${bank.options[index] ?? ""}, ${index})
-      `;
-    } catch (err) {
-      if (!isUniqueViolation(err)) throw err;
-    }
-  }
+  const current = currentRows[0];
+  const decision = rotationChoice({
+    weekKey,
+    current: current ? { id: current.id, weekKey: current.week_key } : null,
+    nextApprovedId: nextRows[0]?.id ?? null,
+  });
+  if (decision.action !== "feature") return;
+  if (decision.closeId) await closeFeatured(sql);
+  await featureApproved(sql, decision.pollId, weekKey);
 }
 
 async function closeFeatured(sql: Sql): Promise<void> {
@@ -283,7 +326,9 @@ async function loadBoard(sql: Sql, viewer: TalkViewer): Promise<PollBoard> {
     const suggested = await sql<{
       id: string;
       question: string;
+      status: string;
       hidden_reason: string | null;
+      bank_id: string | null;
       created_at: unknown;
       author_name: string | null;
       label: string;
@@ -292,7 +337,9 @@ async function loadBoard(sql: Sql, viewer: TalkViewer): Promise<PollBoard> {
       select
         p.id,
         p.question,
+        p.status,
         p.hidden_reason,
+        p.bank_id,
         p.created_at,
         u."name" as author_name,
         o.label,
@@ -300,27 +347,44 @@ async function loadBoard(sql: Sql, viewer: TalkViewer): Promise<PollBoard> {
       from discussion_poll p
       join discussion_poll_option o on o.poll_id = p.id
       left join "user" u on u.id = p.author_id
-      where p.status = 'suggested' and p.deleted_at is null
-      order by p.created_at desc, o.position
-      limit 80
+      where p.status in ('pending', 'approved') and p.deleted_at is null
+      order by p.created_at asc, o.position
+      limit 400
     `;
-    const map = new Map<string, PollSuggestionView>();
+    const map = new Map<string, PollSuggestionView & { bankIndex: number }>();
     for (const row of suggested) {
       let item = map.get(row.id);
       if (!item) {
+        const bankIndex = POLL_BANK.findIndex((poll) => poll.id === row.bank_id);
+        const fromBank = bankIndex >= 0;
+        const status = row.status === "approved" ? "approved" : "pending";
         item = {
           id: row.id,
           question: row.question,
           options: [],
-          authorName: String(row.author_name ?? "Fan").replace(/\s+/g, " ").trim().slice(0, 80) || "Fan",
+          authorName: fromBank
+            ? "Question bank"
+            : String(row.author_name ?? "Fan").replace(/\s+/g, " ").trim().slice(0, 80) || "Fan",
           createdAt: stamp(row.created_at),
-          reason: row.hidden_reason || "approval",
+          reason: status === "approved" ? "queued" : row.hidden_reason || "approval",
+          source: fromBank ? "bank" : "fan",
+          status,
+          bankIndex: fromBank ? bankIndex : 0,
         };
         map.set(row.id, item);
       }
       item.options[count(row.position)] = row.label;
     }
-    suggestions = [...map.values()].map((item) => ({ ...item, options: item.options.filter(Boolean) }));
+    suggestions = [...map.values()]
+      .sort((a, b) => {
+        const statusDelta = (a.status === "pending" ? 0 : 1) - (b.status === "pending" ? 0 : 1);
+        if (statusDelta) return statusDelta;
+        const sourceDelta = (a.source === "fan" ? 0 : 1) - (b.source === "fan" ? 0 : 1);
+        if (sourceDelta) return sourceDelta;
+        if (a.source === "bank" && b.source === "bank") return a.bankIndex - b.bankIndex;
+        return a.createdAt.localeCompare(b.createdAt);
+      })
+      .map(({ bankIndex: _bankIndex, ...item }) => ({ ...item, options: item.options.filter(Boolean) }));
   }
   return { featured, archive, suggestions, viewer };
 }
@@ -425,7 +489,7 @@ export const suggestPoll = createServerFn({ method: "POST" })
       values (
         ${id},
         ${checked.question},
-        'suggested',
+        'pending',
         false,
         ${new Date().toISOString()},
         ${checked.hold ? "language" : "approval"},
@@ -460,11 +524,18 @@ export const createPoll = createServerFn({ method: "POST" })
     if (checked.hold) return failed("Rephrase that before it goes on the board.");
     const ready = await requireAdmin(context.userId);
     if ("ok" in ready) return ready;
-    await closeFeatured(ready.sql);
     const id = crypto.randomUUID();
     await ready.sql`
-      insert into discussion_poll (id, week_key, question, status, featured, author_id)
-      values (${id}, ${chicagoWeekKey()}, ${checked.question}, 'open', true, ${ready.actor.id})
+      insert into discussion_poll (id, question, status, featured, hidden_at, hidden_reason, author_id)
+      values (
+        ${id},
+        ${checked.question},
+        'pending',
+        false,
+        ${new Date().toISOString()},
+        'approval',
+        ${ready.actor.id}
+      )
     `;
     for (let index = 0; index < checked.options.length; index += 1) {
       await ready.sql`
@@ -535,6 +606,7 @@ export const closePoll = createServerFn({ method: "POST" })
       returning id
     `;
     if (!rows[0]) return failed("That poll is not open.");
+    await ensureFeatured(ready.sql);
     return { ok: true };
   });
 
@@ -542,21 +614,17 @@ export const approveSuggestion = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { pollId?: unknown }) => String(input?.pollId ?? "").trim())
   .handler(async ({ context, data }): Promise<{ ok: true } | Fail> => {
-    if (!isUuid(data)) return failed("That suggestion is not here.");
+    if (!isPollId(data)) return failed("That suggestion is not here.");
     const ready = await requireAdmin(context.userId);
     if ("ok" in ready) return ready;
     const rows = await ready.sql<{ id: string }>`
-      select id from discussion_poll
-      where id = ${data} and status = 'suggested' and deleted_at is null
-      limit 1
+      update discussion_poll
+      set status = 'approved', approved_at = coalesce(approved_at, now()), hidden_at = null, hidden_reason = ''
+      where id = ${data} and status = 'pending' and deleted_at is null
+      returning id
     `;
     if (!rows[0]) return failed("That suggestion is not here.");
-    await closeFeatured(ready.sql);
-    await ready.sql`
-      update discussion_poll
-      set status = 'open', featured = true, week_key = ${chicagoWeekKey()}, hidden_at = null, hidden_reason = ''
-      where id = ${data}
-    `;
+    await ensureFeatured(ready.sql);
     return { ok: true };
   });
 
@@ -564,12 +632,12 @@ export const removeSuggestion = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { pollId?: unknown }) => String(input?.pollId ?? "").trim())
   .handler(async ({ context, data }): Promise<{ ok: true } | Fail> => {
-    if (!isUuid(data)) return failed("That suggestion is not here.");
+    if (!isPollId(data)) return failed("That suggestion is not here.");
     const ready = await requireAdmin(context.userId);
     if ("ok" in ready) return ready;
     const rows = await ready.sql<{ id: string }>`
       update discussion_poll set deleted_at = now()
-      where id = ${data} and status = 'suggested' and deleted_at is null
+      where id = ${data} and status in ('pending', 'approved') and deleted_at is null
       returning id
     `;
     if (!rows[0]) return failed("That suggestion is not here.");

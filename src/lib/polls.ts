@@ -13,7 +13,7 @@ export type BankPoll = {
   options: readonly string[];
 };
 
-/** Fun questions about gaming, streaming, and LathosWorld. One is featured each week. */
+/** Fun questions about gaming, streaming, and LathosWorld. Each one starts pending. */
 export const POLL_BANK: readonly BankPoll[] = [
   { id: "borderlands", question: "Best Borderlands character?", options: ["Lilith", "Zer0", "Maya", "Tiny Tina"] },
   { id: "snacks", question: "Snacks for a 6-hour stream?", options: ["Chips", "Candy", "Something hot", "Just a drink"] },
@@ -70,7 +70,38 @@ export type PollSuggestionView = {
   authorName: string;
   createdAt: string;
   reason: string;
+  source: "bank" | "fan";
+  status: "pending" | "approved";
 };
+
+/** Stable id for a seeded question. It stays pending until the owner approves it. */
+export function seedPollId(bankId: string): string {
+  return `poll:bank:${bankId}`;
+}
+
+export type RotationDecision =
+  | { action: "keep"; pollId: string }
+  | { action: "feature"; pollId: string; closeId: string | null }
+  | { action: "none" };
+
+/**
+ * Monday rotation only. An unapproved poll is never featured.
+ * A live poll stays up when nothing approved is waiting, including into the next week.
+ * A new approved poll does not replace one that already belongs to this week.
+ */
+export function rotationChoice(input: {
+  weekKey: string;
+  current: { id: string; weekKey: string | null } | null;
+  nextApprovedId: string | null;
+}): RotationDecision {
+  const current = input.current;
+  const next = input.nextApprovedId;
+  if (current && (current.weekKey === input.weekKey || !next)) {
+    return { action: "keep", pollId: current.id };
+  }
+  if (next) return { action: "feature", pollId: next, closeId: current?.id ?? null };
+  return { action: "none" };
+}
 
 /** Monday of the Chicago calendar week, `YYYY-MM-DD`. A new poll starts that morning. */
 export function chicagoWeekKey(dateKey: string = chicagoDateKey()): string {
@@ -83,21 +114,6 @@ export function chicagoWeekKey(dateKey: string = chicagoDateKey()): string {
   const month = String(monday.getUTCMonth() + 1).padStart(2, "0");
   const date = String(monday.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${date}`;
-}
-
-/** Same week always features the same bank question for every visitor. */
-export function featuredBankPoll(weekKey: string, bank: readonly BankPoll[] = POLL_BANK): BankPoll {
-  let hash = 2166136261;
-  const seed = `lathosworld-poll:${weekKey}`;
-  for (let i = 0; i < seed.length; i++) {
-    hash ^= seed.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return bank[(hash >>> 0) % bank.length]!;
-}
-
-export function bankPollId(weekKey: string, bankId: string): string {
-  return `poll:${weekKey}:${bankId}`;
 }
 
 export function pollPercents(counts: readonly number[]): number[] {
