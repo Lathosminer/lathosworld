@@ -169,7 +169,7 @@ const PHONE = [
   { name: "Phantom", href: phantomDeepLink, open: openPhantom },
 ] as const;
 
-function QrImg({ value }: { value: string }) {
+function QrImg({ value, alt }: { value: string; alt: string }) {
   const [src, setSrc] = useState("");
   useEffect(() => {
     let dead = false;
@@ -179,7 +179,7 @@ function QrImg({ value }: { value: string }) {
     return () => { dead = true; };
   }, [value]);
   if (!src) return <div className="qr-slot" aria-hidden="true" />;
-  return <img className="qr" src={src} width={168} height={168} alt="" />;
+  return <img className="qr" src={src} width={220} height={220} alt={alt} />;
 }
 
 export function TrustConnect({ compact = false }: { compact?: boolean }) {
@@ -232,7 +232,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
         <div className="qr-grid">
           {primaryPhone.map((item) => (
             <div key={item.name} className="qr-card">
-              <QrImg value={item.href()} />
+              <QrImg value={item.href()} alt={`QR code to open this page in ${item.name}`} />
               <button className={item.name === "Trust Wallet" ? "btn btn-cyan" : "btn btn-ghost"} type="button" onClick={item.open}>{item.name}</button>
             </div>
           ))}
@@ -256,7 +256,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
             <div className="qr-grid">
               {morePhone.map((item) => (
                 <div key={item.name} className="qr-card">
-                  <QrImg value={item.href()} />
+                  <QrImg value={item.href()} alt={`QR code to open this page in ${item.name}`} />
                   <button className="btn btn-ghost" type="button" onClick={item.open}>{item.name}</button>
                 </div>
               ))}
