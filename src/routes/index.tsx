@@ -6,6 +6,7 @@ import EmblemArc from "@/components/EmblemArc";
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TrustConnect } from "@/components/TrustConnect";
+import { AccountBadge } from "@/components/AccountBadge";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
 import { SurvivorEgg } from "@/components/SurvivorEgg";
@@ -218,6 +219,7 @@ function Home() {
           <a href={SHOP} target="_blank" rel="noopener">MERCH / Shop</a>
           <a className="btn btn-cyan nav-buy" href={FLAP} target="_blank" rel="noopener noreferrer"><MiniSword />Get $LWRLD</a>
         </nav>
+        <AccountBadge inNav />
       </header>
       <main id="top">
         <HeroLoop />
