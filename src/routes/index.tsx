@@ -13,6 +13,7 @@ import { SurvivorEgg } from "@/components/SurvivorEgg";
 import { CommunityStats } from "@/components/CommunityStats";
 import { PollWidget } from "@/components/Poll";
 import { DESK_LABEL } from "@/lib/helpdesk";
+import { DaneTribute } from "@/components/DaneTribute";
 
 const MARK_SM = "/mark-sm.webp";
 
@@ -239,6 +240,8 @@ function Home() {
           </nav>
         </section>
         <h1 className="visually-hidden">LathosWorld</h1>
+        <DaneTribute />
+        <SwordRule />
         <section className="hero" aria-label="Story">
           <div className="hero-copy">
             <p className="sell-line">I am a gamer and a streamer.</p>
