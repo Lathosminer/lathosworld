@@ -1,14 +1,24 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { authClient, authEnabled } from "@/lib/auth/client";
+import { safeNext } from "@/lib/safe-next";
 import { SECURITY_QUESTIONS, recoveryQuestions, resetWithSecurity, saveSecurity } from "@/lib/security.functions";
 
-export const Route = createFileRoute("/login")({ component: Login });
+type LoginSearch = { next?: string };
+
+export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): LoginSearch => {
+    const next = safeNext(search.next);
+    return next ? { next } : {};
+  },
+  component: Login,
+});
 
 type Mode = "in" | "up" | "recover";
 
 function Login() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<Mode>("in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -21,6 +31,11 @@ function Login() {
   const [found, setFound] = useState<string[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+
+  // `next` was checked by safeNext, so it's always a same-site path.
+  async function goTo(path: string) {
+    await navigate({ href: path });
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -39,7 +54,7 @@ function Login() {
       if (mode === "in") {
         const { error } = await authClient.signIn.email({ email, password });
         if (error) throw new Error(error.message || "That email or password is wrong.");
-        await navigate({ to: "/" });
+        await goTo(next ?? "/");
         return;
       }
       if (mode === "up") {
@@ -49,7 +64,7 @@ function Login() {
           { question: q1, answer: a1 },
           { question: q2, answer: a2 },
         ] } });
-        await navigate({ to: "/account" });
+        await goTo(next ?? "/account");
         return;
       }
       if (!found) {

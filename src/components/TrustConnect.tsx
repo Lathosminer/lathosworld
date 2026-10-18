@@ -15,9 +15,7 @@ import {
   openCoinbase,
   openMetaMask,
   openOkx,
-  openPhantom,
   openTrustApp,
-  phantomDeepLink,
   shortAddress,
   subscribeTrust,
   switchToBsc,
@@ -86,12 +84,6 @@ const GUIDES = [
     help: "Gate Web3",
   },
   {
-    name: "Phantom",
-    how: "Scan the Phantom code. In Phantom’s browser, press Connect. Do not use the phone’s normal browser.",
-    href: "https://help.phantom.com/articles/29995498642195",
-    help: "Phantom: connect to an app",
-  },
-  {
     name: "TokenPocket",
     how: "Open TokenPocket, open Discover, go to this site, press TokenPocket, and approve.",
     href: "https://help.tokenpocket.pro/en/security-knowledge/security-measure/dapp",
@@ -123,7 +115,7 @@ const GUIDES = [
   },
   {
     name: "Rainbow",
-    how: "If the Rainbow extension is installed, refresh and press Rainbow. On a phone, Rainbow does not open this page from a camera code. Use Trust, MetaMask, Coinbase, or Phantom instead.",
+    how: "If the Rainbow extension is installed, refresh and press Rainbow. On a phone, Rainbow does not open this page from a camera code. Use Trust, MetaMask, Coinbase, or Binance instead.",
     href: "https://rainbow.me/",
     help: "Rainbow",
   },
@@ -147,13 +139,13 @@ const GUIDES = [
   },
   {
     name: "Rabby",
-    how: "Rabby is a computer extension. On a phone, use Trust Wallet, MetaMask, Coinbase Wallet, or Phantom instead.",
+    how: "Rabby is a computer extension. On a phone, use Trust Wallet, MetaMask, Coinbase Wallet, or Binance Wallet instead.",
     href: "https://support.rabby.io/en/",
     help: "Rabby help center",
   },
   {
     name: "Ledger",
-    how: "Ledger is a hardware wallet. On a computer, connect the device through MetaMask or Rabby, then press that wallet here. Never type the recovery phrase into this site.",
+    how: "Optional paid hardware wallet. You don't need one: the free wallets above work. On a computer, connect the device through MetaMask or Rabby, then press that wallet here. Never type the recovery phrase into this site.",
     href: "https://www.ledger.com/",
     help: "Ledger",
   },
@@ -166,7 +158,6 @@ const PHONE = [
   { name: "Binance Wallet", href: binanceDeepLink, open: openBinance },
   { name: "OKX Wallet", href: okxDeepLink, open: openOkx },
   { name: "Bitget Wallet", href: bitgetDeepLink, open: openBitget },
-  { name: "Phantom", href: phantomDeepLink, open: openPhantom },
 ] as const;
 
 function QrImg({ value, alt }: { value: string; alt: string }) {
@@ -196,7 +187,7 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="wallet">
+    <div className="wallet" id="wallets">
       {wallet ? (
         <>
           <p className="note">{wallet.name} · {shortAddress(wallet.address)}</p>
@@ -228,6 +219,16 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
       )}
       {error ? <p className="wallet-error">{error}</p> : null}
       <div className="wallet-help">
+        <p className="note wallet-free">
+          <strong>Wallets are free. No purchase needed.</strong> Every wallet listed here supports BNB Smart Chain, the
+          network $LWRLD and giveaway prizes use. Trust Wallet, MetaMask, Binance Web3 Wallet, and Coinbase Wallet are
+          free apps. To enter the giveaway, copy your wallet address (starts with 0x) into the{" "}
+          <a href="/giveaway#wallet">giveaway page</a>.
+        </p>
+        <p className="note wallet-warn">
+          🔒 Never share your seed phrase (recovery phrase) or private key. This site, Lathos, and the giveaway will never
+          ask for it. Only your public address (0x…) is ever needed.
+        </p>
         <p className="note">On a computer, scan a code with the phone camera. It opens this page inside that wallet. Then press Connect and approve. Use BNB Smart Chain. On a phone, press the name under a code, or open this site in that app’s own browser. An exchange login is not a wallet. This site never asks for a seed phrase.</p>
         <div className="qr-grid">
           {primaryPhone.map((item) => (
