@@ -17,6 +17,8 @@ export const Route = createRootRoute({
         content: "I am a gamer and a streamer. $LWRLD is a passion project on Flap. Not about raising money. Not financial advice.",
       },
       { name: "theme-color", content: "#05080C" },
+      // Pinterest domain verification. Must be in the server-rendered <head>.
+      { name: "p:domain_verify", content: "09c52bea2a1d12a9c3a5e0a105b84331" },
     ],
     links: [
       { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
