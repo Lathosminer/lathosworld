@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lathosworld",
+  "main": "@tanstack/react-start/server-entry",
+  "compatibility_date": "2026-10-12",
+  "observability": {
+    "enabled": true
+  },
+  // Required by `wrangler preview` (Workers Builds branch previews). Empty is fine.
+  "previews": {}
+}

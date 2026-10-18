@@ -10,3 +10,9 @@ dist
 .env.*
 *.zip
 .tanstack
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example

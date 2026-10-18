@@ -6,6 +6,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { nitro } from "nitro/vite";
+import { cloudflare } from "@cloudflare/vite-plugin";
 // @ts-expect-error JS plugin alongside the TS vite config
 import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 // @ts-expect-error JS plugin alongside the TS vite config
@@ -179,5 +180,9 @@ export default defineConfig(({ command, isPreview }) => ({
         ]
       : []),
     viteReact(),
+    // Cloudflare Workers build (production deploys and branch previews). Build
+    // only, so the Grok Build dev server stays exactly as it was. Same setup
+    // `wrangler deploy` used to auto-generate on every main build.
+    ...(command === "build" ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
   ],
 }));
