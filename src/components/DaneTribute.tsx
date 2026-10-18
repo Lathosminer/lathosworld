@@ -28,7 +28,7 @@ const SLIDES: Slide[] = [
     src: "/dane/poster-2-memphis-in-may-1988.webp",
     w: 1200,
     h: 1800,
-    alt: "Poster: Memphis in May Beale Street Music Festival, Reba and the Portables with Dangerous Dane on guitar, Saturday May 7, 1988",
+    alt: "Typographic poster: Memphis in May Beale Street Music Festival, Reba and the Portables with Dangerous Dane on guitar, Saturday May 7, 1988",
     caption: "Reba & The Portables are on the printed program of the Memphis in May Beale Street Music Festival, Saturday, May 7, 1988.",
   },
   {
