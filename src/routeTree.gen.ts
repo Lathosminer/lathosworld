@@ -20,6 +20,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SurvivorsRouteImport } from './routes/survivors'
 import { Route as ApiCommunityRouteImport } from './routes/api/community'
+import { Route as ApiEyeIconRouteImport } from './routes/api/eye-icon'
 import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
 import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
 import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
@@ -83,6 +84,11 @@ const ApiCommunityRoute = ApiCommunityRouteImport.update({
   path: '/api/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEyeIconRoute = ApiEyeIconRouteImport.update({
+  id: '/api/eye-icon',
+  path: '/api/eye-icon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GiveawayIndexRoute = GiveawayIndexRouteImport.update({
   id: '/giveaway/',
   path: '/giveaway/',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway/': typeof GiveawayIndexRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway': typeof GiveawayIndexRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway/': typeof GiveawayIndexRoute
@@ -196,6 +205,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/giveaway/'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/giveaway'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/giveaway/'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   ScheduleRoute: typeof ScheduleRoute
   SurvivorsRoute: typeof SurvivorsRoute
   ApiCommunityRoute: typeof ApiCommunityRoute
+  ApiEyeIconRoute: typeof ApiEyeIconRoute
   GiveawayAdminRoute: typeof GiveawayAdminRoute
   GiveawayRulesRoute: typeof GiveawayRulesRoute
   GiveawayIndexRoute: typeof GiveawayIndexRoute
@@ -345,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/eye-icon': {
+      id: '/api/eye-icon'
+      path: '/api/eye-icon'
+      fullPath: '/api/eye-icon'
+      preLoaderRoute: typeof ApiEyeIconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/giveaway/': {
       id: '/giveaway/'
       path: '/giveaway'
@@ -409,6 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScheduleRoute: ScheduleRoute,
   SurvivorsRoute: SurvivorsRoute,
   ApiCommunityRoute: ApiCommunityRoute,
+  ApiEyeIconRoute: ApiEyeIconRoute,
   GiveawayAdminRoute: GiveawayAdminRoute,
   GiveawayRulesRoute: GiveawayRulesRoute,
   GiveawayIndexRoute: GiveawayIndexRoute,
