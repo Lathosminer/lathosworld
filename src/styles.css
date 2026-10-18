@@ -30,7 +30,8 @@
     scroll-behavior: smooth;
     scroll-padding-top: 3.25rem;
     scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
-    cursor: url("/sword-mini-cursor.png") 59 0, auto;
+    --lw-pointer: url("/sword-mini-cursor.png?v=storm") 59 2, auto;
+    cursor: var(--lw-pointer);
   }
   body {
     margin: 0;
@@ -42,7 +43,7 @@
     padding-bottom: 5.5rem;
   }
   button:not(:disabled),
-  [role="button"]:not(:disabled) { cursor: url("/sword-mini-cursor.png") 59 0, auto; }
+  [role="button"]:not(:disabled) { cursor: var(--lw-pointer); }
   :focus-visible {
     outline: 2px solid var(--color-cyan);
     outline-offset: 3px;
@@ -980,7 +981,7 @@
   .hero-loop-frame .hero-loop-still { display: block; }
 }
 a, button, .btn, .cursor-pointer, label, input, select, summary {
-  cursor: url("/sword-mini-cursor.png") 59 0, auto;
+  cursor: var(--lw-pointer);
 }
 
 /* === LathosWorld v10 (appended; nothing above was removed) === */
@@ -1805,4 +1806,82 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
   /* Home nav on phones: the eye plus a short name, so the section links keep room. */
   .acct-in-nav { max-width: 6.8rem; padding-right: 0.45rem; }
   .acct-in-nav .acct-role { display: none; }
+}
+
+/* Animated sword pointer. The PNG above is the static fallback.
+   .lw-sword-cursor swaps that cursor for an SVG overlay; the hotspot stays on the tip. */
+html.lw-sword-cursor { --lw-pointer: none; }
+.lw-sword-pointer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 120;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  pointer-events: none;
+  opacity: 0;
+  overflow: visible;
+  will-change: transform;
+}
+.lw-sword-pointer.is-on { opacity: 1; }
+.lw-sword-svg { display: block; width: 64px; height: 64px; overflow: visible; }
+.lw-sword-pointer .bolt { opacity: 0; }
+.lw-sword-pointer .bolt.b1 { animation: lw-crack 1.28s linear infinite; }
+.lw-sword-pointer .bolt.b2 { animation: lw-crack 1.28s linear infinite 0.16s; }
+.lw-sword-pointer .bolt.b3 { animation: lw-crack 1.28s linear infinite 0.32s; }
+.lw-sword-pointer .bolt.br { animation: lw-crack 1.55s linear infinite 0.58s; }
+.lw-sword-pointer .bolt.br2 { animation: lw-crack 1.55s linear infinite 0.96s; }
+.lw-sword-pointer .run { stroke-dasharray: 12 88; animation: lw-run 0.72s linear infinite; }
+.lw-sword-pointer .aura { opacity: 0.28; animation: lw-aura 1.28s linear infinite; }
+.lw-sword-pointer .fuller-hot { opacity: 0.35; animation: lw-fuller 1.55s linear infinite 0.58s; }
+.lw-sword-pointer .eye-bolts { animation: lw-eye 1.05s linear infinite; }
+.lw-sword-pointer .iris-glow { opacity: 0.2; animation: lw-iris 2.6s ease-in-out infinite; }
+@keyframes lw-crack {
+  0%, 8% { opacity: 0; }
+  10% { opacity: 1; }
+  13% { opacity: 0.12; }
+  16% { opacity: 0.95; }
+  21% { opacity: 0.28; }
+  28%, 100% { opacity: 0; }
+}
+@keyframes lw-run { to { stroke-dashoffset: -100; } }
+@keyframes lw-aura {
+  0%, 9%, 32%, 100% { opacity: 0.22; }
+  12% { opacity: 0.9; }
+  15% { opacity: 0.3; }
+  19% { opacity: 0.72; }
+}
+@keyframes lw-fuller {
+  0%, 50%, 100% { opacity: 0.25; }
+  58% { opacity: 1; }
+  64% { opacity: 0.2; }
+  70% { opacity: 0.85; }
+}
+@keyframes lw-eye {
+  0%, 100% { opacity: 0.28; }
+  14% { opacity: 1; }
+  20% { opacity: 0.15; }
+  30% { opacity: 0.92; }
+  48% { opacity: 0.35; }
+  74% { opacity: 0.12; }
+  84% { opacity: 1; }
+}
+@keyframes lw-iris {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.8; }
+}
+@media (hover: none), (pointer: coarse) {
+  html.lw-sword-cursor { --lw-pointer: url("/sword-mini-cursor.png?v=storm") 59 2, auto; }
+  .lw-sword-pointer { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.lw-sword-cursor { --lw-pointer: url("/sword-mini-cursor.png?v=storm") 59 2, auto; }
+  .lw-sword-pointer { display: none; }
+  .lw-sword-pointer .bolt,
+  .lw-sword-pointer .run,
+  .lw-sword-pointer .aura,
+  .lw-sword-pointer .fuller-hot,
+  .lw-sword-pointer .eye-bolts,
+  .lw-sword-pointer .iris-glow { animation: none; }
 }
