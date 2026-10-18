@@ -54,8 +54,8 @@ const SLIDES: Slide[] = [
   },
   {
     src: "/dane/family-2001.webp",
-    w: 1392,
-    h: 752,
+    w: 1800,
+    h: 1018,
     alt: "The Hooker family together in front of a red car, around 2001",
     caption: "David, Nydina, Drake, Miranda, Katelynn, Nathan, Jared, Halle, Janice & Dane — around 2001",
   },
