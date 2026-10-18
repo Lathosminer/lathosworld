@@ -1,8 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ADMIN_NOTE_MAX, ADMIN_STATUSES, GIVEAWAY_TITLE, statusLabel, type Platform } from "@/lib/giveaway";
 import {
+  ADMIN_NOTE_MAX,
+  ADMIN_STATUSES,
+  CLAIM_DAYS,
+  GIVEAWAY_TITLE,
+  MAX_ENTRIES_PER_PERSON,
+  PRIZE_TIERS,
+  WINNER_COUNT,
+  formatTokens,
+  statusLabel,
+  type ClaimStatus,
+  type Platform,
+} from "@/lib/giveaway";
+import {
+  addExclusion,
   drawWinner,
+  publishEntryList,
+  removeExclusion,
+  setClaimStatus,
+  setTickerHidden,
   exportEntrantsCsv,
   getAdminBoard,
   resetDraws,
@@ -10,7 +27,6 @@ import {
   setEntrantNote,
   setEntrantStatus,
   type AdminBoard,
-  type AdminDraw,
 } from "@/lib/giveaway.functions";
 import type { AdminEntrant } from "@/lib/giveaway.server";
 
@@ -91,7 +107,7 @@ function GiveawayAdmin() {
   }
 
   const totals = useMemo(() => {
-    const list = (board?.entrants ?? []).filter((e) => !e.isAdmin && !e.banned);
+    const list = (board?.entrants ?? []).filter((e) => e.ineligible === null);
     return {
       people: list.length,
       entries: list.reduce((n, e) => n + e.entries.total, 0),
@@ -127,6 +143,7 @@ function GiveawayAdmin() {
               </p>
               <DrawTool board={board} busy={busy} act={act} setBoard={setBoard} reload={reload} totals={totals} />
               <XCheck board={board} busy={busy} act={act} setNotice={setNotice} reload={reload} />
+              <FairPlay board={board} busy={busy} act={act} setNotice={setNotice} reload={reload} />
               <div className="gw-toolbar">
                 <input
                   value={filter}
@@ -138,8 +155,9 @@ function GiveawayAdmin() {
                 <button className="talk-btn" type="button" onClick={reload} disabled={busy}>Refresh</button>
               </div>
               <p className="talk-meta">
-                {totals.people} entrants · {totals.entries} entries ({totals.verified} verified). Your own account is listed
-                for testing but never drawn.
+                {totals.people} eligible entrants · {totals.entries} entries ({totals.verified} verified). Max{" "}
+                {MAX_ENTRIES_PER_PERSON} per person. You, excluded people, banned accounts, and accounts made after the end
+                date are listed but never drawn.
               </p>
               <div className="gw-table-wrap">
                 <table className="gw-table">
@@ -218,7 +236,20 @@ function EntrantRow({ entrant: e, busy, act, reload }: { entrant: AdminEntrant; 
         <strong>{e.name}</strong>
         {e.isAdmin ? <span className="gw-tag">You</span> : null}
         {e.banned ? <span className="gw-tag gw-bad">Banned</span> : null}
+        {!e.isAdmin && !e.banned && e.ineligible ? <span className="gw-tag gw-bad">{e.ineligible}</span> : null}
+        {e.heldComments ? <span className="gw-tag gw-wait">{e.heldComments} held</span> : null}
         <div className="talk-meta">{e.email ?? ""}</div>
+        <label className="gw-check talk-meta">
+          <input
+            type="checkbox"
+            checked={!e.tickerHidden}
+            disabled={busy}
+            onChange={(event) =>
+              act(() => setTickerHidden({ data: { userId: e.userId, hidden: !event.target.checked } }), reload)
+            }
+          />
+          Show in ticker
+        </label>
       </td>
       <td>
         <div>{e.twitch.login ?? "—"}</div>
@@ -247,6 +278,7 @@ function EntrantRow({ entrant: e, busy, act, reload }: { entrant: AdminEntrant; 
         <div className="talk-meta">
           {e.entries.follows} follows · {e.entries.comments} comments
         </div>
+        {e.entries.capped ? <div className="talk-meta">Capped at {MAX_ENTRIES_PER_PERSON}</div> : null}
         <div className="talk-meta">{e.verifiedEntries.total} verified</div>
       </td>
       <td>
@@ -288,13 +320,13 @@ function DrawTool({
   totals: { people: number; entries: number; verified: number };
 }) {
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const latest: AdminDraw | undefined = board.draws.find((d) => d.status === "picked");
   const [shownId, setShownId] = useState<string | null>(null);
   const winner = board.draws.find((d) => d.id === shownId) ?? null;
+  const active = board.draws.filter((d) => d.status === "picked").length;
 
-  function draw(redraw: boolean) {
+  function draw(replaceId?: string) {
     void act(
-      () => drawWinner({ data: { verifiedOnly, redraw } }),
+      () => drawWinner({ data: { verifiedOnly, replaceId } }),
       (result) => {
         if (!("winner" in result)) return;
         setBoard({ ...board, draws: result.draws });
@@ -303,44 +335,81 @@ function DrawTool({
     );
   }
 
+  function claim(drawId: string, value: ClaimStatus) {
+    void act(
+      () => setClaimStatus({ data: { drawId, claim: value } }),
+      (result) => {
+        if ("draws" in result) setBoard({ ...board, draws: result.draws });
+      },
+    );
+  }
+
+  const when = (iso: string) =>
+    new Date(iso).toLocaleString("en-US", { timeZone: "America/Chicago", dateStyle: "medium", timeStyle: "short" }) + " CT";
+
   return (
     <div className="gw-draw">
       <h2>Draw a winner</h2>
       <p className="talk-meta">
         Random pick weighted by entries ({verifiedOnly ? totals.verified : totals.entries} in the pool). Anyone already drawn
-        is left out of the next draw.
+        is left out of the next draw. {active} of {WINNER_COUNT} planned winners drawn. Planned prizes:{" "}
+        {PRIZE_TIERS.map((t) => `${t.place} ${formatTokens(t.amount)}`).join(", ")}.
       </p>
       <label className="gw-check">
         <input type="checkbox" checked={verifiedOnly} onChange={(e) => setVerifiedOnly(e.target.checked)} />
         Only count verified entries
       </label>
       <div className="gw-draw-actions">
-        <button className="btn btn-cyan" type="button" onClick={() => draw(false)} disabled={busy}>
-          {latest ? "Draw another winner" : "Draw winner"}
+        <button className="btn btn-cyan" type="button" onClick={() => draw()} disabled={busy}>
+          {active ? "Draw next winner" : "Draw winner"}
         </button>
-        {latest ? (
-          <button className="btn btn-ghost" type="button" onClick={() => draw(true)} disabled={busy}>
-            Re-draw (replace last winner)
-          </button>
-        ) : null}
       </div>
       {winner ? (
         <div className="gw-winner" role="status" aria-live="assertive">
-          <p className="kicker">Winner</p>
+          <p className="kicker">Winner #{board.draws.filter((d) => d.status === "picked").reverse().findIndex((d) => d.id === winner.id) + 1}</p>
           <p className="gw-winner-name">{winner.name}</p>
           <p className="talk-meta">
-            {winner.entries} of {winner.poolEntries} entries in the pool
+            {winner.entries} of {winner.poolEntries} entries in the pool · must claim by {when(winner.claimDeadline)}
           </p>
         </div>
       ) : null}
       {board.draws.length ? (
-        <details className="gw-history">
-          <summary>Draw history ({board.draws.length})</summary>
+        <details className="gw-history" open>
+          <summary>Draw history ({board.draws.length}). Winners have {CLAIM_DAYS} days to claim publicly.</summary>
           <ol>
-            {board.draws.map((d) => (
+            {[...board.draws].reverse().map((d) => (
               <li key={d.id} className={d.status === "redrawn" ? "gw-redrawn" : undefined}>
-                {d.name} · {d.entries}/{d.poolEntries} entries{d.verifiedOnly ? " · verified only" : ""}
-                {d.status === "redrawn" ? " · re-drawn" : ""}
+                <strong>{d.name}</strong> · {d.entries}/{d.poolEntries} entries{d.verifiedOnly ? " · verified only" : ""} ·
+                drawn {when(d.createdAt)} · <span className={`gw-claim-${d.claim}`}>
+                  {d.claim === "claimed" ? "Claimed" : d.claim === "expired" ? "Claim expired" : `Waiting, claim by ${when(d.claimDeadline)}`}
+                </span>
+                {d.status === "redrawn" ? " · re-drawn" : null}
+                {d.status === "picked" ? (
+                  <span className="gw-draw-row-actions">
+                    {" "}
+                    {d.claim !== "claimed" ? (
+                      <button className="talk-btn" type="button" disabled={busy} onClick={() => claim(d.id, "claimed")}>
+                        Mark claimed
+                      </button>
+                    ) : (
+                      <button className="talk-btn" type="button" disabled={busy} onClick={() => claim(d.id, "waiting")}>
+                        Undo claim
+                      </button>
+                    )}{" "}
+                    {d.claim !== "claimed" ? (
+                      <button
+                        className="talk-btn"
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          if (d.claim === "expired" || window.confirm(`${d.name} still has time to claim. Re-draw anyway?`)) draw(d.id);
+                        }}
+                      >
+                        Re-draw this prize
+                      </button>
+                    ) : null}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ol>
@@ -361,6 +430,124 @@ function DrawTool({
           </button>
         </details>
       ) : null}
+    </div>
+  );
+}
+
+function FairPlay({
+  board,
+  busy,
+  act,
+  setNotice,
+  reload,
+}: {
+  board: AdminBoard;
+  busy: boolean;
+  act: Act;
+  setNotice: (text: string) => void;
+  reload: () => void;
+}) {
+  const [value, setValue] = useState("");
+  const [note, setNote] = useState("");
+
+  function download(csv: string) {
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lwrld-giveaway-public-entry-list-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="gw-xcheck">
+      <h2>Fair play</h2>
+      <div className="gw-excl">
+        <p className="talk-meta">
+          Exclusion list: family, mods, or anyone who can't win. Add an email, a site user id, or a Twitch / X / TikTok
+          handle. Matches are marked in the list below and left out of every draw.
+        </p>
+        <form
+          className="gw-toolbar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void act(() => addExclusion({ data: { value, note } }), () => {
+              setValue("");
+              setNote("");
+              reload();
+            });
+          }}
+        >
+          <input value={value} onChange={(e) => setValue(e.target.value)} placeholder="Email or @handle" aria-label="Exclude who" required />
+          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why (e.g. Family, Mod)" aria-label="Reason" maxLength={120} />
+          <button className="btn btn-ghost" type="submit" disabled={busy || !value.trim()}>Exclude</button>
+        </form>
+        {board.exclusions.length ? (
+          <ul>
+            {board.exclusions.map((x) => (
+              <li key={x.value}>
+                {x.value}
+                {x.note ? ` (${x.note})` : ""}
+                <button
+                  className="talk-btn"
+                  type="button"
+                  disabled={busy}
+                  onClick={() => act(() => removeExclusion({ data: { value: x.value } }), reload)}
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <h2>Publish entry list</h2>
+      <p className="talk-meta">
+        For transparency before the draw. This posts display names and entry counts of eligible entrants on the giveaway
+        page. No emails, handles, or ids. It also downloads the same list as a CSV you can share.
+        {board.published
+          ? ` Last published ${new Date(board.published.publishedAt).toLocaleString("en-US", { timeZone: "America/Chicago" })} CT (${board.published.entrants.length} names).`
+          : " Not published yet."}
+      </p>
+      <div className="gw-draw-actions">
+        <button
+          className="btn btn-ghost"
+          type="button"
+          disabled={busy}
+          onClick={() =>
+            act(
+              () => publishEntryList({ data: {} }),
+              (result) => {
+                if ("csv" in result && result.csv) download(result.csv);
+                setNotice("Entry list published on the giveaway page.");
+                reload();
+              },
+            )
+          }
+        >
+          {board.published ? "Re-publish entry list" : "Publish entry list"}
+        </button>
+        {board.published ? (
+          <button
+            className="talk-btn"
+            type="button"
+            disabled={busy}
+            onClick={() => act(() => publishEntryList({ data: { unpublish: true } }), reload)}
+          >
+            Take it down
+          </button>
+        ) : null}
+      </div>
+
+      <h2>Ticker</h2>
+      <p className="talk-meta">
+        {board.ticker.length
+          ? `Showing: ${board.ticker.join(", ")}`
+          : "No names yet."}{" "}
+        Banned people, anyone with a held comment, and anyone you untick below are left out. Emails are never shown.
+      </p>
     </div>
   );
 }

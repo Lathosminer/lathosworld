@@ -14,7 +14,11 @@ import {
   GIVEAWAY_ENDS_AT,
   GIVEAWAY_X_POST_ID,
   breakdown,
+  claimDeadline,
   cryptoRandomInt,
+  effectiveClaim,
+  exclusionKey,
+  tickerName,
   isEntryWindowOpen,
   normalizeTikTokHandle,
   normalizeXHandle,
@@ -23,6 +27,7 @@ import {
   statusLabel,
   toCsv,
   xPostId,
+  type ClaimStatus,
   type EntryBreakdown,
   type EntryStatuses,
   type GiveawayState,
@@ -263,6 +268,8 @@ export type AdminDraw = {
   poolEntries: number;
   verifiedOnly: boolean;
   status: "picked" | "redrawn";
+  claim: ClaimStatus;
+  claimDeadline: string;
   createdAt: string;
 };
 
@@ -274,7 +281,12 @@ export type AdminBoard = {
   twitchReady: boolean;
   youtubeOAuthReady: boolean;
   defaultPostId: string;
+  exclusions: { value: string; note: string }[];
+  ticker: string[];
+  published: PublishedList | null;
 };
+
+export type PublishedList = { publishedAt: string; entrants: { name: string; entries: number }[] };
 
 async function loadDraws(sql: Sql): Promise<AdminDraw[]> {
   const rows = await sql<{
@@ -285,6 +297,7 @@ async function loadDraws(sql: Sql): Promise<AdminDraw[]> {
     pool_entries: number;
     verified_only: boolean | string;
     status: string;
+    claim_status: string | null;
     created_at: unknown;
   }>`
     select d.*, u."name" as name from giveaway_draw d
@@ -300,8 +313,30 @@ async function loadDraws(sql: Sql): Promise<AdminDraw[]> {
     poolEntries: Number(row.pool_entries),
     verifiedOnly: row.verified_only === true || row.verified_only === "t" || row.verified_only === "true",
     status: row.status === "redrawn" ? "redrawn" : "picked",
-    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at ?? ""),
+    ...claimOf(row.claim_status, row.created_at),
   }));
+}
+
+function isoOf(value: unknown): string {
+  if (value instanceof Date) return value.toISOString();
+  const parsed = Date.parse(String(value ?? ""));
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : new Date().toISOString();
+}
+
+function claimOf(raw: string | null, createdAt: unknown): { claim: ClaimStatus; claimDeadline: string; createdAt: string } {
+  const at = isoOf(createdAt);
+  const stored: ClaimStatus = raw === "claimed" ? "claimed" : raw === "expired" ? "expired" : "waiting";
+  return { claim: effectiveClaim(stored, at), claimDeadline: new Date(claimDeadline(at)).toISOString(), createdAt: at };
+}
+
+async function loadPublished(sql: Sql): Promise<PublishedList | null> {
+  const rows = await sql<{ body: string }>`select body from giveaway_published order by created_at desc limit 1`;
+  if (!rows[0]) return null;
+  try {
+    return JSON.parse(rows[0].body) as PublishedList;
+  } catch {
+    return null;
+  }
 }
 
 export const getAdminBoard = createServerFn({ method: "POST" })
@@ -318,6 +353,9 @@ export const getAdminBoard = createServerFn({ method: "POST" })
       twitchReady: s.twitchConfigured(),
       youtubeOAuthReady: s.googleConfigured(),
       defaultPostId: GIVEAWAY_X_POST_ID,
+      exclusions: await s.loadExclusions(ready.sql),
+      ticker: await s.loadTicker(ready.sql, true),
+      published: await loadPublished(ready.sql),
     };
   });
 
@@ -332,13 +370,13 @@ export const exportEntrantsCsv = createServerFn({ method: "POST" })
       [
         "name", "email", "twitch", "twitch_status", "youtube", "youtube_status", "x", "x_follow_status",
         "x_like_repost_status", "tiktok", "tiktok_status", "follow_entries", "comment_entries", "total_entries",
-        "verified_total", "admin_note", "banned", "joined", "user_id",
+        "verified_total", "capped", "eligible", "admin_note", "banned", "joined", "user_id",
       ],
       entrants.map((e) => [
         e.name, e.email ?? "", e.twitch.login ?? "", statusLabel(e.twitch.status), (e.youtube.title || e.youtube.channel || "").replace(/^@/, ""),
         statusLabel(e.youtube.status), e.x.handle ?? "", statusLabel(e.x.status), statusLabel(e.x.repostStatus),
         e.tiktok.handle ?? "", statusLabel(e.tiktok.status), e.entries.follows, e.entries.comments,
-        e.entries.total, e.verifiedEntries.total, e.note, e.banned ? "yes" : "", e.joinedAt, e.userId,
+        e.entries.total, e.verifiedEntries.total, e.entries.capped ? "yes" : "", e.ineligible ? `no: ${e.ineligible}` : "yes", e.note, e.banned ? "yes" : "", e.joinedAt, e.userId,
       ]),
     );
     return { ok: true, csv };
@@ -406,37 +444,148 @@ export const runXCheck = createServerFn({ method: "POST" })
 
 export const drawWinner = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((input: { verifiedOnly?: unknown; redraw?: unknown }) => ({
+  .validator((input: { verifiedOnly?: unknown; replaceId?: unknown }) => ({
     verifiedOnly: input?.verifiedOnly === true,
-    redraw: input?.redraw === true,
+    replaceId: typeof input?.replaceId === "string" && input.replaceId ? input.replaceId.slice(0, 80) : null,
   }))
   .handler(async ({ context, data }): Promise<{ ok: true; winner: AdminDraw; draws: AdminDraw[] } | Fail> => {
     const ready = await requireAdmin(context.userId);
     if ("ok" in ready) return ready;
     const s = await server();
-    if (data.redraw) {
-      await ready.sql`
-        update giveaway_draw set status = 'redrawn'
-        where id = (select id from giveaway_draw where status = 'picked' order by created_at desc limit 1)
+    if (data.replaceId) {
+      // Re-draw: the old pick is marked, and its claim closes as expired unless it was claimed.
+      const replaced = await ready.sql<{ id: string }>`
+        update giveaway_draw
+        set status = 'redrawn',
+            claim_status = case when claim_status = 'claimed' then claim_status else 'expired' end
+        where id = ${data.replaceId} and status = 'picked'
+        returning id
       `;
+      if (!replaced[0]) return failed("That draw was already replaced.");
     }
     const already = new Set((await loadDraws(ready.sql)).map((d) => d.userId));
     const entrants = await s.loadAllEntrants(ready.sql);
-    // Owner accounts, banned accounts, and anyone already drawn are left out.
+    // Owner, family/mods on the exclusion list, banned, late accounts, and anyone already drawn are left out.
     const pool = entrants
-      .filter((e) => !e.isAdmin && !e.banned && e.userId !== context.userId && !already.has(e.userId))
+      .filter((e) => e.ineligible === null && e.userId !== context.userId && !already.has(e.userId))
       .map((e) => ({ id: e.userId, weight: data.verifiedOnly ? e.verifiedEntries.total : e.entries.total }));
     const poolEntries = pool.reduce((sum, c) => sum + c.weight, 0);
     const pick = pickWeighted(pool, cryptoRandomInt);
     if (!pick) return failed("Nobody left with entries to draw.");
     await ready.sql`
-      insert into giveaway_draw (id, user_id, entries, pool_entries, verified_only, status)
-      values (${crypto.randomUUID()}, ${pick.id}, ${pick.weight}, ${poolEntries}, ${data.verifiedOnly}, 'picked')
+      insert into giveaway_draw (id, user_id, entries, pool_entries, verified_only, status, claim_status)
+      values (${crypto.randomUUID()}, ${pick.id}, ${pick.weight}, ${poolEntries}, ${data.verifiedOnly}, 'picked', 'waiting')
     `;
     const draws = await loadDraws(ready.sql);
     const winner = draws.find((d) => d.userId === pick.id && d.status === "picked");
     if (!winner) return failed("The draw didn't save. Try again.");
     return { ok: true, winner, draws };
+  });
+
+export const setClaimStatus = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { drawId?: unknown; claim?: unknown }) => ({
+    drawId: String(input?.drawId ?? "").slice(0, 80),
+    claim: String(input?.claim ?? "") as ClaimStatus,
+  }))
+  .handler(async ({ context, data }): Promise<{ ok: true; draws: AdminDraw[] } | Fail> => {
+    if (!["waiting", "claimed", "expired"].includes(data.claim)) return failed("That claim status isn't allowed.");
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return ready;
+    await ready.sql`
+      update giveaway_draw
+      set claim_status = ${data.claim}, claimed_at = ${data.claim === "claimed" ? new Date().toISOString() : null}
+      where id = ${data.drawId}
+    `;
+    return { ok: true, draws: await loadDraws(ready.sql) };
+  });
+
+export const setTickerHidden = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { userId?: unknown; hidden?: unknown }) => ({
+    userId: String(input?.userId ?? "").trim().slice(0, 200),
+    hidden: input?.hidden === true,
+  }))
+  .handler(async ({ context, data }): Promise<Ok | Fail> => {
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return ready;
+    await ready.sql`update giveaway_entrant set ticker_hidden = ${data.hidden}, updated_at = now() where user_id = ${data.userId}`;
+    (await server()).clearTickerCache();
+    return { ok: true };
+  });
+
+export const addExclusion = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { value?: unknown; note?: unknown }) => ({
+    value: exclusionKey(input?.value),
+    note: cleanText(input?.note).slice(0, 120),
+  }))
+  .handler(async ({ context, data }): Promise<Ok | Fail> => {
+    if (!data.value) return failed("Enter an email, user id, or handle.");
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return ready;
+    await ready.sql`
+      insert into giveaway_exclusion (value, note) values (${data.value}, ${data.note})
+      on conflict (value) do update set note = excluded.note
+    `;
+    return { ok: true };
+  });
+
+export const removeExclusion = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { value?: unknown }) => exclusionKey(input?.value) ?? "")
+  .handler(async ({ context, data }): Promise<Ok | Fail> => {
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return ready;
+    await ready.sql`delete from giveaway_exclusion where value = ${data}`;
+    return { ok: true };
+  });
+
+function publicList(entrants: import("@/lib/giveaway.server").AdminEntrant[]): PublishedList["entrants"] {
+  return entrants
+    .filter((e) => e.ineligible === null && e.entries.total > 0)
+    .map((e) => ({ name: tickerName(e.name, e.x.handle ? `@${e.x.handle}` : e.twitch.login) ?? "Fan", entries: e.entries.total }))
+    .sort((a, b) => b.entries - a.entries || a.name.localeCompare(b.name));
+}
+
+/** Public transparency list: display names and entry counts only. No emails, handles, or ids. */
+export const publishEntryList = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { unpublish?: unknown }) => ({ unpublish: input?.unpublish === true }))
+  .handler(async ({ context, data }): Promise<{ ok: true; published: PublishedList | null; csv: string } | Fail> => {
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return ready;
+    if (data.unpublish) {
+      await ready.sql`delete from giveaway_published`;
+      return { ok: true, published: null, csv: "" };
+    }
+    const s = await server();
+    const list = publicList(await s.loadAllEntrants(ready.sql));
+    const published: PublishedList = { publishedAt: new Date().toISOString(), entrants: list };
+    await ready.sql`delete from giveaway_published`;
+    await ready.sql`insert into giveaway_published (id, body) values (${crypto.randomUUID()}, ${JSON.stringify(published)})`;
+    const csv = toCsv(["name", "entries"], list.map((e) => [e.name, e.entries]));
+    return { ok: true, published, csv };
+  });
+
+/** The published list for the public page (only when the giveaway is visible). */
+export const getPublishedList = createServerFn({ method: "POST" })
+  .middleware([optionalSession])
+  .handler(async ({ context }): Promise<PublishedList | null> => {
+    const sql = await getSql();
+    const s = await server();
+    const isAdmin = context.session ? await s.isAdminUser(sql, context.session.id, context.session.email) : false;
+    if (s.currentState() === "hidden" && !isAdmin) return null;
+    return loadPublished(sql);
+  });
+
+/** Ticker names for the owner's preview while the page is hidden. */
+export const getTickerPreview = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }): Promise<string[]> => {
+    const ready = await requireAdmin(context.userId);
+    if ("ok" in ready) return [];
+    return (await server()).loadTicker(ready.sql);
   });
 
 export const resetDraws = createServerFn({ method: "POST" })
