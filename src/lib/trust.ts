@@ -51,6 +51,9 @@ type WalletWindow = Window & {
   deficonnectProvider?: TrustProvider;
 };
 
+export const PHANTOM_NOTE =
+  "Phantom can hold $LWRLD on BNB Smart Chain but can't connect to BNB Chain sites right now. Paste your Phantom BNB Chain address (starts with 0x) instead, or pick another wallet to connect.";
+
 export type FoundWallet = { id: string; name: string; provider: TrustProvider };
 
 const FLAGS: { name: string; test: (provider: TrustProvider) => boolean }[] = [
@@ -279,6 +282,11 @@ export function subscribeTrust(listener: () => void) {
 export async function connectWallet(id: string) {
   const found = state.wallets.find((item) => item.id === id);
   if (!found) return;
+  if (found.name === "Phantom") {
+    // Phantom holds BNB Smart Chain tokens but can't connect to BNB Chain sites yet.
+    setState({ error: PHANTOM_NOTE });
+    return;
+  }
   setState({ busy: true, error: "" });
   try {
     const result = await connectTrust(found.provider);

@@ -138,6 +138,12 @@ const GUIDES = [
     help: "Coin98",
   },
   {
+    name: "Phantom",
+    how: "Phantom can hold $LWRLD on BNB Smart Chain (turn on BNB Chain in Settings > Active Networks), but it can't connect to BNB Chain sites right now, so there is no Connect step for it here. For the giveaway, copy your Phantom BNB Chain address (Receive > BNB Chain, starts with 0x) and paste it into the wallet field. To connect a wallet on this page, pick another wallet above.",
+    href: "https://help.phantom.com/articles/get-started-with-bnb-chain-in-phantom-56014782628883",
+    help: "Phantom: get started with BNB Chain",
+  },
+  {
     name: "Rabby",
     how: "Rabby is a computer extension. On a phone, use Trust Wallet, MetaMask, Coinbase Wallet, or Binance Wallet instead.",
     href: "https://support.rabby.io/en/",
@@ -224,6 +230,11 @@ export function TrustConnect({ compact = false }: { compact?: boolean }) {
           network $LWRLD and giveaway prizes use. Trust Wallet, MetaMask, Binance Web3 Wallet, and Coinbase Wallet are
           free apps. To enter the giveaway, copy your wallet address (starts with 0x) into the{" "}
           <a href="/giveaway#wallet">giveaway page</a>.
+        </p>
+        <p className="note wallet-phantom">
+          <strong>Phantom:</strong> it can hold $LWRLD on BNB Smart Chain, but it can't connect to BNB Chain sites right
+          now. Paste your Phantom BNB Chain address into the giveaway instead of using Connect, or pick another wallet to
+          connect.
         </p>
         <p className="note wallet-warn">
           🔒 Never share your seed phrase (recovery phrase) or private key. This site, Lathos, and the giveaway will never
