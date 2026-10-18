@@ -20,7 +20,13 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SurvivorsRouteImport } from './routes/survivors'
 import { Route as ApiCommunityRouteImport } from './routes/api/community'
+import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
+import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
+import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiGiveawayTickerRouteImport } from './routes/api/giveaway/ticker'
+import { Route as ApiGiveawayCallbackProviderRouteImport } from './routes/api/giveaway/callback/$provider'
+import { Route as ApiGiveawayConnectProviderRouteImport } from './routes/api/giveaway/connect/$provider'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,11 +83,43 @@ const ApiCommunityRoute = ApiCommunityRouteImport.update({
   path: '/api/community',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GiveawayIndexRoute = GiveawayIndexRouteImport.update({
+  id: '/giveaway/',
+  path: '/giveaway/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiveawayAdminRoute = GiveawayAdminRouteImport.update({
+  id: '/giveaway/admin',
+  path: '/giveaway/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GiveawayRulesRoute = GiveawayRulesRouteImport.update({
+  id: '/giveaway/rules',
+  path: '/giveaway/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGiveawayTickerRoute = ApiGiveawayTickerRouteImport.update({
+  id: '/api/giveaway/ticker',
+  path: '/api/giveaway/ticker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGiveawayCallbackProviderRoute =
+  ApiGiveawayCallbackProviderRouteImport.update({
+    id: '/api/giveaway/callback/$provider',
+    path: '/api/giveaway/callback/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiGiveawayConnectProviderRoute =
+  ApiGiveawayConnectProviderRouteImport.update({
+    id: '/api/giveaway/connect/$provider',
+    path: '/api/giveaway/connect/$provider',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,7 +133,13 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
+  '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
+  '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
+  '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,7 +153,13 @@ export interface FileRoutesByTo {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
+  '/giveaway': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
+  '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
+  '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,7 +174,13 @@ export interface FileRoutesById {
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
+  '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
+  '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
+  '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
+  '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,7 +196,13 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/giveaway/admin'
+    | '/giveaway/rules'
+    | '/giveaway/'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
+    | '/api/giveaway/callback/$provider'
+    | '/api/giveaway/connect/$provider'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -154,7 +216,13 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/giveaway/admin'
+    | '/giveaway/rules'
+    | '/giveaway'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
+    | '/api/giveaway/callback/$provider'
+    | '/api/giveaway/connect/$provider'
   id:
     | '__root__'
     | '/'
@@ -168,7 +236,13 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/survivors'
     | '/api/community'
+    | '/giveaway/admin'
+    | '/giveaway/rules'
+    | '/giveaway/'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
+    | '/api/giveaway/callback/$provider'
+    | '/api/giveaway/connect/$provider'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,7 +257,13 @@ export interface RootRouteChildren {
   ScheduleRoute: typeof ScheduleRoute
   SurvivorsRoute: typeof SurvivorsRoute
   ApiCommunityRoute: typeof ApiCommunityRoute
+  GiveawayAdminRoute: typeof GiveawayAdminRoute
+  GiveawayRulesRoute: typeof GiveawayRulesRoute
+  GiveawayIndexRoute: typeof GiveawayIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiGiveawayTickerRoute: typeof ApiGiveawayTickerRoute
+  ApiGiveawayCallbackProviderRoute: typeof ApiGiveawayCallbackProviderRoute
+  ApiGiveawayConnectProviderRoute: typeof ApiGiveawayConnectProviderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,11 +345,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCommunityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/giveaway/': {
+      id: '/giveaway/'
+      path: '/giveaway'
+      fullPath: '/giveaway/'
+      preLoaderRoute: typeof GiveawayIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/giveaway/admin': {
+      id: '/giveaway/admin'
+      path: '/giveaway/admin'
+      fullPath: '/giveaway/admin'
+      preLoaderRoute: typeof GiveawayAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/giveaway/rules': {
+      id: '/giveaway/rules'
+      path: '/giveaway/rules'
+      fullPath: '/giveaway/rules'
+      preLoaderRoute: typeof GiveawayRulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/giveaway/ticker': {
+      id: '/api/giveaway/ticker'
+      path: '/api/giveaway/ticker'
+      fullPath: '/api/giveaway/ticker'
+      preLoaderRoute: typeof ApiGiveawayTickerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/giveaway/callback/$provider': {
+      id: '/api/giveaway/callback/$provider'
+      path: '/api/giveaway/callback/$provider'
+      fullPath: '/api/giveaway/callback/$provider'
+      preLoaderRoute: typeof ApiGiveawayCallbackProviderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/giveaway/connect/$provider': {
+      id: '/api/giveaway/connect/$provider'
+      path: '/api/giveaway/connect/$provider'
+      fullPath: '/api/giveaway/connect/$provider'
+      preLoaderRoute: typeof ApiGiveawayConnectProviderRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -287,7 +409,13 @@ const rootRouteChildren: RootRouteChildren = {
   ScheduleRoute: ScheduleRoute,
   SurvivorsRoute: SurvivorsRoute,
   ApiCommunityRoute: ApiCommunityRoute,
+  GiveawayAdminRoute: GiveawayAdminRoute,
+  GiveawayRulesRoute: GiveawayRulesRoute,
+  GiveawayIndexRoute: GiveawayIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiGiveawayTickerRoute: ApiGiveawayTickerRoute,
+  ApiGiveawayCallbackProviderRoute: ApiGiveawayCallbackProviderRoute,
+  ApiGiveawayConnectProviderRoute: ApiGiveawayConnectProviderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
