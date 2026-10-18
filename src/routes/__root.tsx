@@ -3,20 +3,10 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AccountBar } from "@/components/AccountBadge";
 import { SwordCursor } from "@/components/SwordCursor";
+import { GTM_HEAD_SCRIPT, GTM_NOSCRIPT_IFRAME } from "@/lib/gtm";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "lathosworld.com";
-
-const GTM_ID = "GTM-TKWSWGNC";
-
-// Official container snippet. Keep the script text unchanged.
-const GTM_HEAD_SCRIPT = `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${GTM_ID}');`;
-
-const GTM_BODY_IFRAME = `<iframe src="https://www.googletagmanager.com/ns.html?id=${GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -55,7 +45,7 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <noscript dangerouslySetInnerHTML={{ __html: GTM_BODY_IFRAME }} />
+        <noscript dangerouslySetInnerHTML={{ __html: GTM_NOSCRIPT_IFRAME }} />
         <PreviewHostBridge />
         <SwordCursor />
         <AuthProvider>
