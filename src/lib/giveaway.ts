@@ -25,6 +25,83 @@ export const ACTION_MAX = 12;
 /** Paste the giveaway post's URL or id here once it is live (admins can also type it in the X check). */
 export const GIVEAWAY_X_POST_ID = "";
 
+/* ------------------------- Fair-play rules (edit here) ------------------------- */
+
+/**
+ * Planned prizes. Lathos announces final amounts, so this is the one place to change them.
+ * `count` is how many winners share that tier (each gets `amount`).
+ */
+export const PRIZE_TIERS: readonly { place: string; amount: number; count: number }[] = [
+  { place: "1st", amount: 500_000, count: 1 },
+  { place: "2nd", amount: 250_000, count: 1 },
+  { place: "3rd–7th", amount: 50_000, count: 5 },
+];
+
+export const PRIZE_TOTAL = PRIZE_TIERS.reduce((sum, tier) => sum + tier.amount * tier.count, 0);
+export const WINNER_COUNT = PRIZE_TIERS.reduce((sum, tier) => sum + tier.count, 0);
+
+/** Most entries one person can have (follows + bonus + comment days). */
+export const MAX_ENTRIES_PER_PERSON = 10;
+
+/** Winners have this many days to claim publicly, or Lathos re-draws. */
+export const CLAIM_DAYS = 7;
+
+/** Minimum age to enter. */
+export const MIN_AGE = 18;
+
+export const LEGAL_FOOTER = "No purchase necessary. Void where prohibited. 18+.";
+
+export function formatTokens(n: number): string {
+  return new Intl.NumberFormat("en-US").format(n);
+}
+
+/** When a draw's claim window closes. */
+export function claimDeadline(drawnAt: string | number | Date): number {
+  const at = drawnAt instanceof Date ? drawnAt.getTime() : new Date(drawnAt).getTime();
+  return at + CLAIM_DAYS * 24 * 60 * 60 * 1000;
+}
+
+export type ClaimStatus = "waiting" | "claimed" | "expired";
+
+/** A waiting claim past its deadline reads as expired. */
+export function effectiveClaim(status: ClaimStatus, drawnAt: string, now = Date.now()): ClaimStatus {
+  if (status === "waiting" && now > claimDeadline(drawnAt)) return "expired";
+  return status;
+}
+
+/** Exclusion list entries: an email, a user id, or a social handle. Compared lowercased without "@". */
+export function exclusionKey(raw: unknown): string | null {
+  const key = String(raw ?? "").trim().toLowerCase().replace(/^@/, "");
+  if (!key || key.length > 200 || /\s/.test(key)) return null;
+  return key;
+}
+
+/* ----------------------------------- Ticker ----------------------------------- */
+
+export const TICKER_SUFFIX = "has entered the LathosWorld Million Token Giveaway!";
+export const TICKER_MAX = 30;
+export const TICKER_REFRESH_MS = 60_000;
+
+/** A safe public name: never an email, never control characters, short. */
+export function tickerName(name: unknown, fallback?: string | null): string | null {
+  const clean = (value: unknown) =>
+    [...String(value ?? "")]
+      .filter((char) => {
+        const code = char.codePointAt(0) ?? 0;
+        return code >= 32 && code !== 127;
+      })
+      .join("")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 40);
+  const looksLikeEmail = (value: string) => /\S+@\S+\.\S+/.test(value);
+  const first = clean(name);
+  if (first && !looksLikeEmail(first)) return first;
+  const second = clean(fallback);
+  if (second && !looksLikeEmail(second)) return second;
+  return null;
+}
+
 export const NEVER_DM_LINE = "I'll never DM you first. Official info only at lathosworld.com";
 
 export const TWITCH_LOGIN = "lathosworld";
@@ -61,7 +138,10 @@ export type EntryStatuses = {
 export type EntryBreakdown = {
   follows: number;
   comments: number;
+  /** follows + comments, capped at MAX_ENTRIES_PER_PERSON. */
   total: number;
+  /** True when the cap cut the total. */
+  capped: boolean;
 };
 
 /** Statuses that earn an entry. Pending and self-reported count until checked. */
@@ -97,7 +177,8 @@ export function followEntries(s: EntryStatuses, verifiedOnly = false): number {
 export function breakdown(s: EntryStatuses, commentEntries: number, verifiedOnly = false): EntryBreakdown {
   const follows = followEntries(s, verifiedOnly);
   const comments = Math.max(0, Math.floor(Number.isFinite(commentEntries) ? commentEntries : 0));
-  return { follows, comments, total: follows + comments };
+  const raw = follows + comments;
+  return { follows, comments, total: Math.min(raw, MAX_ENTRIES_PER_PERSON), capped: raw > MAX_ENTRIES_PER_PERSON };
 }
 
 /** Comment entries from per-day comment counts, capped per day. */

@@ -20,11 +20,16 @@ import { isAdminEmail } from "./discussion.ts";
 import {
   ACTION_MAX,
   ACTION_WINDOW_MS,
+  GIVEAWAY_ENDS_AT,
   GIVEAWAY_SCOPE_NAME,
+  TICKER_MAX,
+  TICKER_REFRESH_MS,
   TWITCH_LOGIN,
   X_HANDLE,
   breakdown,
   commentEntriesByAuthor,
+  exclusionKey,
+  tickerName,
   giveawayState,
   type EntryBreakdown,
   type EntryStatuses,
@@ -103,6 +108,7 @@ export type EntrantRow = {
   tiktok_handle: string | null;
   tiktok_status: string;
   admin_note: string;
+  ticker_hidden?: boolean | string | null;
   created_at: unknown;
   updated_at: unknown;
 };
@@ -153,6 +159,15 @@ export type AdminEntrant = {
   verifiedEntries: EntryBreakdown;
   note: string;
   joinedAt: string;
+  tickerHidden: boolean;
+  /** Matches an entry on the exclusion list (family, mods, …). */
+  excluded: string | null;
+  /** Site account created after the giveaway ended. */
+  lateAccount: boolean;
+  /** Giveaway comments currently held for review. */
+  heldComments: number;
+  /** Can this person win? Null when eligible, otherwise why not. */
+  ineligible: string | null;
 };
 
 function iso(value: unknown): string {
@@ -161,28 +176,64 @@ function iso(value: unknown): string {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : "";
 }
 
+function truthy(value: unknown): boolean {
+  return value === true || value === "t" || value === "true" || value === 1;
+}
+
+export async function loadExclusions(sql: Sql): Promise<{ value: string; note: string }[]> {
+  return sql<{ value: string; note: string }>`select value, note from giveaway_exclusion order by created_at asc limit 500`;
+}
+
 /** Every entrant, including people who only commented. */
 export async function loadAllEntrants(sql: Sql): Promise<AdminEntrant[]> {
   const comments = await commentEntries(sql);
   for (const userId of comments.keys()) await ensureEntrant(sql, userId);
-  const rows = await sql<EntrantRow & { name: string | null; email: string | null; banned: string | null }>`
-    select e.*, u."name" as name, u."email" as email, b.user_id as banned
+  const rows = await sql<
+    EntrantRow & { name: string | null; email: string | null; banned: string | null; account_created: unknown }
+  >`
+    select e.*, u."name" as name, u."email" as email, u."createdAt" as account_created, b.user_id as banned
     from giveaway_entrant e
     left join "user" u on u.id = e.user_id
     left join discussion_ban b on b.user_id = e.user_id
     order by e.created_at asc
     limit 20000
   `;
+  const heldRows = await sql<{ author_id: string; n: number }>`
+    select author_id, count(*)::int as n from discussion_post
+    where scope = ${GIVEAWAY_SCOPE_NAME} and hidden_at is not null and deleted_at is null
+    group by author_id
+  `;
+  const held = new Map(heldRows.map((row) => [row.author_id, Number(row.n)]));
+  const exclusions = new Map((await loadExclusions(sql)).map((row) => [row.value, row.note]));
+  const endsAt = Date.parse(GIVEAWAY_ENDS_AT);
   const admins = env("COMMUNITY_ADMIN_EMAIL");
   return rows.map((row) => {
     const statuses = statusesOf(row);
     const commentCount = comments.get(row.user_id) ?? 0;
+    const keys = [row.user_id, row.email, row.twitch_login, row.x_handle, row.tiktok_handle, row.youtube_channel_id]
+      .map((value) => exclusionKey(value))
+      .filter((value): value is string => Boolean(value));
+    const hit = keys.find((key) => exclusions.has(key));
+    const excluded = hit ? exclusions.get(hit) || hit : null;
+    const created = Date.parse(iso(row.account_created));
+    const lateAccount = Number.isFinite(created) && created > endsAt;
+    const isAdmin = isAdminEmail(row.email, admins);
+    const banned = Boolean(row.banned);
+    const ineligible = isAdmin
+      ? "Owner"
+      : banned
+        ? "Banned"
+        : excluded
+          ? `Excluded: ${excluded}`
+          : lateAccount
+            ? "Account made after the end date"
+            : null;
     return {
       userId: row.user_id,
       name: String(row.name ?? "Fan").replace(/\s+/g, " ").trim().slice(0, 80) || "Fan",
       email: row.email ?? null,
-      isAdmin: isAdminEmail(row.email, admins),
-      banned: Boolean(row.banned),
+      isAdmin,
+      banned,
       twitch: { login: row.twitch_login, status: row.twitch_status },
       youtube: { channel: row.youtube_channel_id, title: row.youtube_title, status: row.youtube_status },
       x: { handle: row.x_handle, status: row.x_status, repostStatus: row.x_repost_status },
@@ -191,8 +242,39 @@ export async function loadAllEntrants(sql: Sql): Promise<AdminEntrant[]> {
       verifiedEntries: breakdown(statuses, commentCount, true),
       note: row.admin_note ?? "",
       joinedAt: iso(row.created_at),
+      tickerHidden: truthy(row.ticker_hidden),
+      excluded,
+      lateAccount,
+      heldComments: held.get(row.user_id) ?? 0,
+      ineligible,
     };
   });
+}
+
+/* ----------------------------------- Ticker ----------------------------------- */
+
+let tickerCache: { at: number; names: string[] } | null = null;
+
+/**
+ * Recent entrants for the public ticker. Display names only (never emails).
+ * Leaves out the owner, banned users, anyone with a held giveaway comment,
+ * anyone the owner hid, and anyone with no entries yet.
+ */
+export async function loadTicker(sql: Sql, fresh = false): Promise<string[]> {
+  if (!fresh && tickerCache && Date.now() - tickerCache.at < TICKER_REFRESH_MS) return tickerCache.names;
+  const entrants = await loadAllEntrants(sql);
+  const names = entrants
+    .filter((e) => !e.isAdmin && !e.banned && !e.tickerHidden && e.heldComments === 0 && e.entries.total > 0)
+    .sort((a, b) => b.joinedAt.localeCompare(a.joinedAt))
+    .map((e) => tickerName(e.name, e.x.handle ? `@${e.x.handle}` : e.twitch.login))
+    .filter((name): name is string => Boolean(name))
+    .slice(0, TICKER_MAX);
+  tickerCache = { at: Date.now(), names };
+  return names;
+}
+
+export function clearTickerCache(): void {
+  tickerCache = null;
 }
 
 /* ---------------------------- OAuth (Twitch / Google) ---------------------------- */
