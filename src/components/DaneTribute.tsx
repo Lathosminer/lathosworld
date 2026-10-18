@@ -4,32 +4,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * Tribute to Anthony "Dangerous Dane" Hooker (Dec 10, 1949 – Aug 1, 2023), Lathos's father.
  * Real photos only. Posters are print treatments of family photos and of a real frame
  * from the Sporting Life video; no faces are altered and nothing is AI generated.
- * Facts come from the family book "Reba and the Portables: In Memory of Anthony Dane Hooker" (Oct 2026).
+ * Dates from his obituary; his saying as Jared remembers it.
  */
 
 type Slide = { src: string; alt: string; caption: string; w: number; h: number };
 
 const SLIDES: Slide[] = [
   {
-    src: "/dane/dane-1970s-on-stage.webp",
-    w: 712,
-    h: 958,
-    alt: "Dane on stage in a cowboy hat and glasses, playing a Les Paul style guitar in a Doc Kirby Band T-shirt",
-    caption: "Dane on stage in his Doc Kirby Band T-shirt, 1970s. Family collection.",
-  },
-  {
-    src: "/dane/poster-1-in-memory.webp",
+    src: "/dane/poster-4-its-all-going-to-work-out.webp",
     w: 1200,
     h: 1800,
-    alt: "Blues poster: In loving memory, Dangerous Dane, Anthony Dane Hooker, December 10, 1949 to August 1, 2023",
-    caption: "In loving memory. Anthony Dane Hooker, December 10, 1949 – August 1, 2023.",
-  },
-  {
-    src: "/dane/poster-2-memphis-in-may-1988.webp",
-    w: 1200,
-    h: 1800,
-    alt: "Typographic poster: Memphis in May Beale Street Music Festival, Reba and the Portables with Dangerous Dane on guitar, Saturday May 7, 1988",
-    caption: "Reba & The Portables are on the printed program of the Memphis in May Beale Street Music Festival, Saturday, May 7, 1988.",
+    alt: "Poster quoting Dane: It's all going to work out",
+    caption: "“It’s all going to work out.” What he liked to tell anyone caught in the middle of their drama.",
   },
   {
     src: "/dane/poster-3-sporting-life.webp",
@@ -39,26 +25,18 @@ const SLIDES: Slide[] = [
     caption: "Sporting Life featuring Dangerous Dane Hooker. Still from Tara Robin McKenzie's video.",
   },
   {
-    src: "/dane/poster-4-its-all-going-to-work-out.webp",
-    w: 1200,
-    h: 1800,
-    alt: "Poster quoting Dane: It's all going to work out",
-    caption: "“It’s all going to work out.” What he liked to tell anyone caught in the middle of their drama.",
-  },
-  {
-    src: "/dane/poster-5-on-that-stage.webp",
-    w: 1200,
-    h: 1800,
-    alt: "Red and black poster: Live on stage, Dangerous Dane. He turned into a different person on that stage.",
-    caption: "“He turned into a different person on that stage.” — Jared",
-  },
-  {
     src: "/dane/family-2001.webp",
     w: 1800,
     h: 1018,
     alt: "The Hooker family together in front of a red car, around 2001",
     caption: "David, Nydina, Drake, Miranda, Katelynn, Nathan, Jared, Halle, Janice & Dane — around 2001",
   },
+];
+
+const POSTERS = [
+  { src: "/dane/poster-6-dangerous-dane.webp", alt: "Dangerous Dane poster" },
+  { src: "/dane/poster-7-doc-kirby-and-co-band.webp", alt: "Doc Kirby & Co. poster" },
+  { src: "/dane/poster-8-doc-kirby-and-co-woods.webp", alt: "Doc Kirby & Co. poster" },
 ];
 
 const VIDEO_ID = "PCADxCiq760";
@@ -183,7 +161,7 @@ export function DaneTribute() {
           <h2 id="dane-title">Anthony “Dangerous Dane” Hooker</h2>
           <p className="dane-dates">December 10, 1949 – August 1, 2023</p>
         </div>
-        <p className="serif-line dane-lede">Guitar player, Memphis musician, and my dad. He played with Reba and the Portables.</p>
+        <p className="serif-line dane-lede">Guitar player, Memphis musician, and my dad.</p>
         <blockquote className="dane-quote">
           <p>“It’s all going to work out.”</p>
         </blockquote>
@@ -191,12 +169,20 @@ export function DaneTribute() {
           <Slideshow />
           <div className="dane-side">
             <SportingLifeVideo />
+            <ul className="dane-posters" aria-label="Posters">
+              {POSTERS.map((p) => (
+                <li key={p.src}>
+                  <a href={p.src} target="_blank" rel="noopener">
+                    <img src={p.src} alt={p.alt} width={1200} height={1800} loading="lazy" decoding="async" />
+                  </a>
+                </li>
+              ))}
+            </ul>
             {/* STORIES PLACEHOLDER: Jared will send his stories about his dad. Add them here. */}
             <div className="dane-stories" data-placeholder="stories">
               <p className="kicker">His stories</p>
               <p>Stories about my dad are coming soon.</p>
             </div>
-            <p className="dane-source">Facts from our family book, <em>Reba and the Portables: In Memory of Anthony Dane Hooker</em>.</p>
           </div>
         </div>
       </div>
