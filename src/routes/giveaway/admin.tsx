@@ -29,6 +29,7 @@ import {
   type AdminBoard,
 } from "@/lib/giveaway.functions";
 import type { AdminEntrant } from "@/lib/giveaway.server";
+import { maskAddress } from "@/lib/wallet-address";
 
 export const Route = createFileRoute("/giveaway/admin")({
   component: GiveawayAdmin,
@@ -84,7 +85,7 @@ function GiveawayAdmin() {
     const q = filter.trim().toLowerCase();
     if (!q) return list;
     return list.filter((e) =>
-      [e.name, e.email, e.twitch.login, e.youtube.channel, e.youtube.title, e.x.handle, e.tiktok.handle, e.note]
+      [e.name, e.email, e.twitch.login, e.youtube.channel, e.youtube.title, e.x.handle, e.tiktok.handle, e.wallet.address, e.note]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(q)),
     );
@@ -148,7 +149,7 @@ function GiveawayAdmin() {
                 <input
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  placeholder="Search name, handle, or note"
+                  placeholder="Search name, handle, wallet, or note"
                   aria-label="Search entrants"
                 />
                 <button className="btn btn-ghost" type="button" onClick={downloadCsv} disabled={busy}>Export CSV</button>
@@ -156,8 +157,10 @@ function GiveawayAdmin() {
               </div>
               <p className="talk-meta">
                 {totals.people} eligible entrants · {totals.entries} entries ({totals.verified} verified). Max{" "}
-                {MAX_ENTRIES_PER_PERSON} per person. You, excluded people, banned accounts, and accounts made after the end
-                date are listed but never drawn.
+                {MAX_ENTRIES_PER_PERSON} per person. You, excluded people, banned accounts, accounts made after the end
+                date, entrants with no wallet, and wallets marked "Flagged & Excluded" (the same wallet on more than one
+                account) are listed but never drawn. Set a flagged wallet to "Cleared by owner" once you've checked it.
+                Wallets are masked here; open one to see the full address, or export the CSV.
               </p>
               <div className="gw-table-wrap">
                 <table className="gw-table">
@@ -168,6 +171,7 @@ function GiveawayAdmin() {
                       <th>YouTube</th>
                       <th>X</th>
                       <th>TikTok</th>
+                      <th>Wallet</th>
                       <th>Entries</th>
                       <th>Private note</th>
                     </tr>
@@ -178,7 +182,7 @@ function GiveawayAdmin() {
                     ))}
                     {shown.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="talk-empty">No entrants yet.</td>
+                        <td colSpan={8} className="talk-empty">No entrants yet.</td>
                       </tr>
                     ) : null}
                   </tbody>
@@ -211,7 +215,7 @@ function StatusPick({
 }) {
   return (
     <select
-      className={`gw-select gw-${value === "verified" ? "ok" : value === "none" ? "off" : ["pending", "unverified", "self_reported"].includes(value) ? "wait" : "bad"}`}
+      className={`gw-select gw-${value === "verified" || value === "ok" || value === "cleared" ? "ok" : value === "none" ? "off" : ["pending", "unverified", "self_reported"].includes(value) ? "wait" : "bad"}`}
       value={value}
       disabled={busy}
       aria-label={`${entrant.name} ${platform} status`}
@@ -273,6 +277,9 @@ function EntrantRow({ entrant: e, busy, act, reload }: { entrant: AdminEntrant; 
         </div>
         <StatusPick entrant={e} platform="tiktok" value={e.tiktok.status} busy={busy} act={act} reload={reload} />
       </td>
+      <td>
+        <WalletCell entrant={e} busy={busy} act={act} reload={reload} />
+      </td>
       <td className="gw-num">
         <strong>{e.entries.total}</strong>
         <div className="talk-meta">
@@ -301,6 +308,43 @@ function EntrantRow({ entrant: e, busy, act, reload }: { entrant: AdminEntrant; 
         </form>
       </td>
     </tr>
+  );
+}
+
+function WalletCell({ entrant: e, busy, act, reload }: { entrant: AdminEntrant; busy: boolean; act: Act; reload: () => void }) {
+  const [copied, setCopied] = useState(false);
+  const address = e.wallet.address;
+  if (!address) {
+    return <div className="talk-meta">No wallet</div>;
+  }
+  return (
+    <>
+      <details className="gw-wallet-detail">
+        <summary>
+          <code>{maskAddress(address)}</code>
+        </summary>
+        <code className="gw-wallet-full">{address}</code>
+        <div>
+          <button
+            className="talk-btn"
+            type="button"
+            onClick={() => {
+              void navigator.clipboard?.writeText(address).then(() => {
+                setCopied(true);
+                window.setTimeout(() => setCopied(false), 1500);
+              });
+            }}
+          >
+            {copied ? "Copied" : "Copy"}
+          </button>{" "}
+          <a href={`https://bscscan.com/address/${address}`} target="_blank" rel="noreferrer">BscScan</a>
+        </div>
+      </details>
+      {e.wallet.sharedWith ? (
+        <div className="talk-meta gw-bad">Also on {e.wallet.sharedWith} other {e.wallet.sharedWith === 1 ? "entry" : "entries"}</div>
+      ) : null}
+      <StatusPick entrant={e} platform="wallet" value={e.wallet.status} busy={busy} act={act} reload={reload} />
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GiveawayComments } from "@/components/Talk";
 import { GiveawayTicker } from "@/components/GiveawayTicker";
@@ -13,7 +13,10 @@ import {
   PRIZE_TOTAL,
   formatTokens,
   NEVER_DM_LINE,
+  SCAM_WARNING,
+  SEED_PHRASE_WARNING,
   TIKTOK_HANDLE,
+  WALLET_FREE_NOTE,
   TWITCH_LOGIN,
   X_HANDLE,
   YOUTUBE_URL,
@@ -25,10 +28,14 @@ import {
   getPublishedList,
   removeMyEntry,
   saveHandle,
+  saveWallet,
   type GiveawayView,
   type MyEntry,
   type PublishedList,
 } from "@/lib/giveaway.functions";
+import { pageHead } from "@/lib/seo";
+import { BSC_ID, connectWallet, getTrustState, shortAddress, subscribeTrust } from "@/lib/trust";
+import { WALLET_HELP_HREF, checkBscAddress, maskAddress } from "@/lib/wallet-address";
 
 type Search = { twitch?: string; youtube?: string };
 
@@ -38,9 +45,15 @@ export const Route = createFileRoute("/giveaway/")({
     return { twitch: pick(search.twitch), youtube: pick(search.youtube) };
   },
   component: GiveawayPage,
-  head: () => ({
-    meta: [{ title: "Giveaway · LathosWorld" }, { name: "robots", content: "noindex, nofollow" }],
-  }),
+  head: () => {
+    const head = pageHead({
+      path: "/giveaway",
+      title: "Win up to 1,000,000 $LWRLD · LathosWorld Giveaway",
+      description:
+        "Free to enter. Follow, comment, win. Drawn live on stream July 9, 2027. No purchase necessary. Void where prohibited. 18+.",
+    });
+    return { ...head, meta: [...head.meta, { name: "robots", content: "noindex, nofollow" }] };
+  },
 });
 
 const RETURN_MESSAGES: Record<string, string> = {
@@ -49,6 +62,7 @@ const RETURN_MESSAGES: Record<string, string> = {
   not_subscribed: "That YouTube account isn't subscribed yet. Subscribe, then check again.",
   taken: "That account is already entered by someone else.",
   signin: "Sign in to the site first, then try again.",
+  wallet: "Add your BNB Smart Chain wallet address first (step 1). It's required to enter.",
   closed: "Entries aren't open.",
   slow: "Slow down a little. Try again in a few minutes.",
   not_configured: "That check isn't switched on yet.",
@@ -143,6 +157,10 @@ function GiveawayPage() {
       <div className="gw-rules">
         <h2>How it works</h2>
         <ul>
+          <li>
+            Step 1: add a BNB Smart Chain wallet address you control. It's required, and it's where a prize is sent. Free
+            wallets only, no purchase needed.
+          </li>
           <li>Every follow is 1 entry. Do one or do them all. Free to enter.</li>
           <li>Like + repost the giveaway post on X for a bonus entry.</li>
           <li>
@@ -151,10 +169,13 @@ function GiveawayPage() {
           <li>Up to {MAX_ENTRIES_PER_PERSON} entries per person in total.</li>
           <li>Winners are picked at random, weighted by entries, live on twitch.tv/{TWITCH_LOGIN}.</li>
           <li>Winners have {CLAIM_DAYS} days to claim publicly, or the prize is re-drawn.</li>
-          <li>One entry list per person. Each social account can only be entered once. {MIN_AGE}+ only.</li>
+          <li>
+            One entry list per person. Each social account and each wallet can only be entered once. {MIN_AGE}+ only.
+          </li>
           <li>Buying $LWRLD does not increase your chances.</li>
         </ul>
         <p className="gw-warn">⚠️ {NEVER_DM_LINE}</p>
+        <p className="gw-warn">🚫 {SCAM_WARNING}</p>
         <p className="gw-rules-link">
           <Link to="/giveaway/rules">Read the Official Rules →</Link>
         </p>
@@ -178,13 +199,23 @@ function GiveawayPage() {
         </p>
       </div>
 
-      {returned ? <p className="talk-note" role="status">{returned}</p> : null}
+      {returned ? (
+        <p className="talk-note" role="status">
+          {returned}
+          {search.twitch === "signin" || search.youtube === "signin" ? (
+            <>
+              {" "}
+              <Link to="/login" search={{ next: "/giveaway" }}>Sign in</Link>
+            </>
+          ) : null}
+        </p>
+      ) : null}
 
       <section id="entries" className="gw-entries">
         <EntryCount view={v} />
         {!v.signedIn ? (
           <p className="talk-signin">
-            <Link className="btn btn-cyan" to="/login">Sign in to enter</Link>
+            <Link className="btn btn-cyan" to="/login" search={{ next: "/giveaway" }}>Sign in to enter</Link>
           </p>
         ) : v.banned ? (
           <p className="talk-note">This account can't enter.</p>
@@ -260,6 +291,8 @@ function EntryCount({ view }: { view: Exclude<GiveawayView, { state: "hidden"; i
         <small>
           {me.entries.follows} from follows · {me.entries.comments} from comments
           {me.entries.capped ? ` · capped at ${MAX_ENTRIES_PER_PERSON}` : ` · max ${MAX_ENTRIES_PER_PERSON}`}
+          {!me.wallet.address ? " · add your wallet to make these count" : ""}
+          {me.wallet.status === "flagged" ? " · on hold: wallet under review" : ""}
         </small>
       </span>
     </div>
@@ -268,7 +301,7 @@ function EntryCount({ view }: { view: Exclude<GiveawayView, { state: "hidden"; i
 
 function Status({ status }: { status: string }) {
   const tone =
-    status === "verified"
+    status === "verified" || status === "ok" || status === "cleared"
       ? "ok"
       : status === "pending" || status === "unverified" || status === "self_reported"
         ? "wait"
@@ -292,6 +325,7 @@ function Entries({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const s = me?.statuses;
+  const hasWallet = Boolean(me?.wallet.address) && me?.wallet.status !== "rejected";
   const open = view.entriesOpen;
 
   async function run(fn: () => Promise<{ ok: true; me: MyEntry } | { ok: false; error: string }>) {
@@ -311,6 +345,12 @@ function Entries({
   return (
     <div className="gw-grid">
       {error ? <p className="wallet-error gw-wide" role="alert">{error}</p> : null}
+
+      <WalletCard me={me} open={open} busy={busy} setBusy={setBusy} setError={setError} setMe={setMe} />
+
+      {!hasWallet ? (
+        <p className="talk-note gw-wide">Add your wallet above first. Follows and the bonus count once it's saved.</p>
+      ) : null}
 
       <article className="gw-card">
         <header>
@@ -419,6 +459,159 @@ function Entries({
         <button type="button" className="talk-btn" onClick={reload} disabled={busy}>Refresh my entries</button>
       </p>
     </div>
+  );
+}
+
+function WalletCard({
+  me,
+  open,
+  busy,
+  setBusy,
+  setError,
+  setMe,
+}: {
+  me: MyEntry | null;
+  open: boolean;
+  busy: boolean;
+  setBusy: (busy: boolean) => void;
+  setError: (error: string) => void;
+  setMe: (me: MyEntry) => void;
+}) {
+  const trust = useSyncExternalStore(subscribeTrust, getTrustState, getTrustState);
+  const saved = me?.wallet.address ?? "";
+  const [value, setValue] = useState(saved);
+  const [hint, setHint] = useState("");
+  const [notice, setNotice] = useState("");
+  useEffect(() => setValue(saved), [saved]);
+
+  // Prefill from a wallet connected with the site's wallet connect (TrustConnect).
+  const connected = trust.wallet?.address ?? "";
+  useEffect(() => {
+    if (connected && !saved) setValue((current) => current || connected);
+  }, [connected, saved]);
+
+  const typed = value.trim();
+  const local = typed ? checkBscAddress(typed) : null;
+  const sameAsSaved = Boolean(saved) && typed.toLowerCase() === saved.toLowerCase();
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setNotice("");
+    if (local && !local.ok) {
+      setHint(local.error);
+      return;
+    }
+    setHint("");
+    setBusy(true);
+    setError("");
+    try {
+      const result = await saveWallet({ data: { address: typed } });
+      if (!result.ok) setHint(result.error);
+      else {
+        setMe(result.me);
+        setNotice(
+          result.flagged
+            ? "Saved, but that wallet is already on another entry, so this entry is on hold until Lathos reviews it."
+            : "Wallet saved. Prizes are sent here in $LWRLD on BNB Smart Chain.",
+        );
+      }
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove() {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await removeMyEntry({ data: { platform: "wallet" } });
+      if (!result.ok) setError(result.error);
+      else setMe(result.me);
+    } catch (err) {
+      setError(messageOf(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <article className="gw-card gw-wide gw-wallet" id="wallet">
+      <header>
+        <h3>Step 1 · Your wallet (required)</h3>
+        <Status status={me?.wallet.status ?? "none"} />
+      </header>
+      <p>
+        A BNB Smart Chain wallet address you control (starts with 0x). It's required to enter, and it's where your prize
+        is sent in $LWRLD. Only you and Lathos can see it. It's never shown publicly.
+      </p>
+      {saved ? <p className="talk-meta">Saved: <code>{maskAddress(saved)}</code></p> : null}
+      {open ? (
+        <form className="gw-form" onSubmit={submit}>
+          <label>
+            <span className="sr-only">Your BNB Smart Chain wallet address</span>
+            <input
+              value={value}
+              onChange={(event) => {
+                setValue(event.target.value);
+                setHint("");
+              }}
+              placeholder="0x…"
+              maxLength={80}
+              required
+              spellCheck={false}
+              autoComplete="off"
+              autoCapitalize="off"
+              inputMode="text"
+              aria-label="Your BNB Smart Chain wallet address"
+              aria-invalid={Boolean(local && !local.ok) || undefined}
+              aria-describedby="gw-wallet-help"
+            />
+          </label>
+          <button className="btn btn-ghost" type="submit" disabled={busy || !typed || sameAsSaved}>
+            {saved ? "Update" : "Save wallet"}
+          </button>
+          {saved && me?.wallet.status !== "rejected" ? (
+            <button className="talk-btn" type="button" onClick={remove} disabled={busy}>Remove</button>
+          ) : null}
+        </form>
+      ) : null}
+      {open && !trust.wallet && trust.wallets.length ? (
+        <div className="gw-wallet-connect">
+          <span className="talk-meta">Or fill it in from your browser wallet:</span>
+          {trust.wallets.map((item) => (
+            <button key={item.id} className="talk-btn" type="button" onClick={() => connectWallet(item.id)} disabled={busy || trust.busy}>
+              {item.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {open && trust.wallet ? (
+        <p className="talk-meta">
+          Connected: {trust.wallet.name} · {shortAddress(trust.wallet.address)}
+          {trust.wallet.chainId !== BSC_ID ? " · switch it to BNB Smart Chain" : ""}{" "}
+          {typed.toLowerCase() !== trust.wallet.address.toLowerCase() ? (
+            <button className="talk-btn" type="button" onClick={() => setValue(trust.wallet?.address ?? "")} disabled={busy}>
+              Use this address
+            </button>
+          ) : null}
+        </p>
+      ) : null}
+      {trust.error && open ? <p className="talk-meta">{trust.error}</p> : null}
+      {hint ? <p className="wallet-error" role="alert">{hint}</p> : null}
+      {notice ? <p className="talk-note" role="status">{notice}</p> : null}
+      <div id="gw-wallet-help" className="gw-wallet-help">
+        <p>
+          <a href={WALLET_HELP_HREF}>Need a wallet?</a> {WALLET_FREE_NOTE} Use one that supports BNB Smart Chain, like Trust
+          Wallet, MetaMask, Binance Web3 Wallet, or Coinbase Wallet. Don't use an exchange deposit address: exchanges may
+          not credit $LWRLD, so use a wallet you control.
+        </p>
+        <p className="gw-warn">🔒 {SEED_PHRASE_WARNING}</p>
+        <p className="gw-warn">⚠️ {SCAM_WARNING}</p>
+      </div>
+    </article>
   );
 }
 
