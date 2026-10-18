@@ -28,7 +28,9 @@ import {
   X_HANDLE,
   breakdown,
   commentEntriesByAuthor,
+  effectiveWalletStatus,
   exclusionKey,
+  walletIneligible,
   tickerName,
   giveawayState,
   type EntryBreakdown,
@@ -90,6 +92,15 @@ export async function rateLimited(sql: Sql, userId: string, action: string): Pro
   return false;
 }
 
+/** Has this person saved a wallet that isn't rejected? Entry actions need one first. */
+export async function hasWallet(sql: Sql, userId: string): Promise<boolean> {
+  const rows = await sql<{ wallet_address: string | null; wallet_status: string | null }>`
+    select wallet_address, wallet_status from giveaway_entrant where user_id = ${userId} limit 1
+  `;
+  const row = rows[0];
+  return Boolean(row?.wallet_address) && row?.wallet_status !== "rejected";
+}
+
 export async function ensureEntrant(sql: Sql, userId: string): Promise<void> {
   await sql`insert into giveaway_entrant (user_id) values (${userId}) on conflict (user_id) do nothing`;
 }
@@ -109,6 +120,9 @@ export type EntrantRow = {
   tiktok_status: string;
   admin_note: string;
   ticker_hidden?: boolean | string | null;
+  /** Added in migration 0013; optional so reads still work before it runs. */
+  wallet_address?: string | null;
+  wallet_status?: string | null;
   created_at: unknown;
   updated_at: unknown;
 };
@@ -155,6 +169,11 @@ export type AdminEntrant = {
   youtube: { channel: string | null; title: string | null; status: string };
   x: { handle: string | null; status: string; repostStatus: string };
   tiktok: { handle: string | null; status: string };
+  /**
+   * Prize wallet (BNB Smart Chain). Owner-only: the full address is shown on the
+   * admin detail view and in the CSV export, masked in lists, and never public.
+   */
+  wallet: { address: string | null; status: string; sharedWith: number };
   entries: EntryBreakdown;
   verifiedEntries: EntryBreakdown;
   note: string;
@@ -207,10 +226,21 @@ export async function loadAllEntrants(sql: Sql): Promise<AdminEntrant[]> {
   const exclusions = new Map((await loadExclusions(sql)).map((row) => [row.value, row.note]));
   const endsAt = Date.parse(GIVEAWAY_ENDS_AT);
   const admins = env("COMMUNITY_ADMIN_EMAIL");
+  const walletUse = new Map<string, number>();
+  for (const row of rows) {
+    const key = row.wallet_address?.toLowerCase();
+    if (key) walletUse.set(key, (walletUse.get(key) ?? 0) + 1);
+  }
   return rows.map((row) => {
     const statuses = statusesOf(row);
     const commentCount = comments.get(row.user_id) ?? 0;
-    const keys = [row.user_id, row.email, row.twitch_login, row.x_handle, row.tiktok_handle, row.youtube_channel_id]
+    const walletAddress = row.wallet_address ?? null;
+    const sharedWith = walletAddress ? (walletUse.get(walletAddress.toLowerCase()) ?? 1) - 1 : 0;
+    const walletStatus = effectiveWalletStatus(walletAddress, row.wallet_status ?? "none", sharedWith + 1);
+    const walletProblem = walletIneligible(walletAddress, walletStatus);
+    const keys = [
+      row.user_id, row.email, row.twitch_login, row.x_handle, row.tiktok_handle, row.youtube_channel_id, walletAddress,
+    ]
       .map((value) => exclusionKey(value))
       .filter((value): value is string => Boolean(value));
     const hit = keys.find((key) => exclusions.has(key));
@@ -225,9 +255,11 @@ export async function loadAllEntrants(sql: Sql): Promise<AdminEntrant[]> {
         ? "Banned"
         : excluded
           ? `Excluded: ${excluded}`
-          : lateAccount
-            ? "Account made after the end date"
-            : null;
+          : walletProblem
+            ? walletProblem
+            : lateAccount
+              ? "Account made after the end date"
+              : null;
     return {
       userId: row.user_id,
       name: String(row.name ?? "Fan").replace(/\s+/g, " ").trim().slice(0, 80) || "Fan",
@@ -238,6 +270,7 @@ export async function loadAllEntrants(sql: Sql): Promise<AdminEntrant[]> {
       youtube: { channel: row.youtube_channel_id, title: row.youtube_title, status: row.youtube_status },
       x: { handle: row.x_handle, status: row.x_status, repostStatus: row.x_repost_status },
       tiktok: { handle: row.tiktok_handle, status: row.tiktok_status },
+      wallet: { address: walletAddress, status: walletStatus, sharedWith },
       entries: breakdown(statuses, commentCount),
       verifiedEntries: breakdown(statuses, commentCount, true),
       note: row.admin_note ?? "",
@@ -258,13 +291,22 @@ let tickerCache: { at: number; names: string[] } | null = null;
 /**
  * Recent entrants for the public ticker. Display names only (never emails).
  * Leaves out the owner, banned users, anyone with a held giveaway comment,
- * anyone the owner hid, and anyone with no entries yet.
+ * anyone the owner hid, anyone without a valid (unflagged) wallet, and anyone
+ * with no entries yet. Wallet addresses are never part of the ticker.
  */
 export async function loadTicker(sql: Sql, fresh = false): Promise<string[]> {
   if (!fresh && tickerCache && Date.now() - tickerCache.at < TICKER_REFRESH_MS) return tickerCache.names;
   const entrants = await loadAllEntrants(sql);
   const names = entrants
-    .filter((e) => !e.isAdmin && !e.banned && !e.tickerHidden && e.heldComments === 0 && e.entries.total > 0)
+    .filter(
+      (e) =>
+        !e.isAdmin &&
+        !e.banned &&
+        !e.tickerHidden &&
+        e.heldComments === 0 &&
+        e.entries.total > 0 &&
+        (e.wallet.status === "ok" || e.wallet.status === "cleared"),
+    )
     .sort((a, b) => b.joinedAt.localeCompare(a.joinedAt))
     .map((e) => tickerName(e.name, e.x.handle ? `@${e.x.handle}` : e.twitch.login))
     .filter((name): name is string => Boolean(name))

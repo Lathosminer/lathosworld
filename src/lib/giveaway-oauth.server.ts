@@ -12,6 +12,7 @@ import {
   checkYouTube,
   currentState,
   ensureEntrant,
+  hasWallet,
   isAdminUser,
   isBanned,
   isUniqueViolation,
@@ -22,6 +23,14 @@ import { isEntryWindowOpen } from "./giveaway.ts";
 
 function back(origin: string, provider: string, result: string, extraCookie?: string): Response {
   const headers = new Headers({ Location: `${origin}/giveaway?${provider}=${encodeURIComponent(result)}#entries` });
+  headers.set("Cache-Control", "no-store");
+  if (extraCookie) headers.append("Set-Cookie", extraCookie);
+  return new Response(null, { status: 302, headers });
+}
+
+/** Not signed in: go to sign-in, then come straight back to the giveaway. */
+function toLogin(origin: string, extraCookie?: string): Response {
+  const headers = new Headers({ Location: `${origin}/login?next=${encodeURIComponent("/giveaway")}` });
   headers.set("Cache-Control", "no-store");
   if (extraCookie) headers.append("Set-Cookie", extraCookie);
   return new Response(null, { status: 302, headers });
@@ -67,9 +76,11 @@ export async function startOAuth(request: Request, providerParam: string | undef
   const provider = asProvider(providerParam);
   if (!provider) return back(origin, "oauth", "error");
   const userId = await sessionUserId(request);
-  if (!userId) return back(origin, provider, "signin");
+  if (!userId) return toLogin(origin);
   if (!(await allowed(userId))) return back(origin, provider, "closed");
   const sql = await getSql();
+  // A BNB Smart Chain wallet is required before any entry counts.
+  if (!(await hasWallet(sql, userId))) return back(origin, provider, "wallet");
   if (await rateLimited(sql, userId, `oauth:${provider}`)) return back(origin, provider, "slow");
   const state = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
   const url = authorizeUrl(provider, origin, state);
@@ -96,7 +107,8 @@ export async function finishOAuth(request: Request, providerParam: string | unde
     return back(origin, provider, "expired", clearCookie());
   }
   const userId = await sessionUserId(request);
-  if (!userId || userId !== cookieUser) return back(origin, provider, "signin", clearCookie());
+  if (!userId) return toLogin(origin, clearCookie());
+  if (userId !== cookieUser) return back(origin, provider, "signin", clearCookie());
   if (!(await allowed(userId))) return back(origin, provider, "closed", clearCookie());
   const sql = await getSql();
   await ensureEntrant(sql, userId);
