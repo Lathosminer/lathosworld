@@ -32,8 +32,9 @@ import {
 
 const none: EntryStatuses = { twitch: "none", youtube: "none", x: "none", xRepost: "none", tiktok: "none" };
 
-test("end date is 2027-01-31 23:59 Chicago", () => {
-  assert.equal(new Date(GIVEAWAY_ENDS_AT).toISOString(), "2027-02-01T05:59:00.000Z");
+test("end date is 2027-07-09 23:59 Chicago (CDT)", () => {
+  assert.equal(new Date(GIVEAWAY_ENDS_AT).toISOString(), "2027-07-10T04:59:00.000Z");
+  assert.equal(chicagoDay(GIVEAWAY_ENDS_AT), "2027-07-09");
 });
 
 test("hidden unless GIVEAWAY_OPEN is exactly true", () => {
@@ -44,7 +45,9 @@ test("hidden unless GIVEAWAY_OPEN is exactly true", () => {
   assert.equal(giveawayState("1", before), "hidden");
   assert.equal(giveawayState("true", before), "open");
   assert.equal(giveawayState(" TRUE ", before), "open");
-  assert.equal(giveawayState("true", Date.parse("2027-02-01T06:00:00Z")), "ended");
+  assert.equal(giveawayState("true", Date.parse("2027-02-01T06:00:00Z")), "open");
+  assert.equal(giveawayState("true", Date.parse("2027-07-10T04:58:59Z")), "open");
+  assert.equal(giveawayState("true", Date.parse("2027-07-10T05:00:00Z")), "ended");
 });
 
 test("one entry per platform, pending and self-reported count", () => {
@@ -73,7 +76,7 @@ test("comment entries are capped per Chicago day", () => {
     { authorId: "a", createdAt: "2026-11-02T04:40:00Z" },
     { authorId: "a", createdAt: "2026-11-02T07:30:00Z" },
     { authorId: "b", createdAt: "2026-11-02T07:30:00Z" },
-    { authorId: "b", createdAt: "2027-02-02T00:00:00Z" },
+    { authorId: "b", createdAt: "2027-07-11T00:00:00Z" },
   ]);
   assert.equal(map.get("a"), 2);
   assert.equal(map.get("b"), 1);

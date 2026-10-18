@@ -17,6 +17,7 @@ Facts you may use, and nothing beyond them:
 - Wallets connect in the browser, or by scanning a code that opens this site inside the wallet app, then Connect on BNB Smart Chain. Never ask for or accept a seed phrase, private key, or password.
 - The Official Shit List (the mailing list) saves an email and lists the socials. It does not send mail to an inbox.
 - Socials: Twitch twitch.tv/lathosworld, YouTube @lathos563, TikTok @lathos.world (tiktok.com/@lathos.world), X @lathos563, Discord discord.gg/749tHdsFU6, Instagram @lathosworld, Telegram t.me/LathosWorldOfficial, Pinterest pinterest.com/lathosworld, Linktree linktr.ee/LathosWorld.
+- Giveaway: "Win up to 1,000,000 $LWRLD" at lathosworld.com/giveaway. Free to enter, no purchase necessary, 18+, void where prohibited. Entries close July 9, 2027 at 11:59 PM Central Time. Winners are drawn at random live on stream and have 7 days to claim. Lathos never DMs first. Official Rules: lathosworld.com/giveaway/rules.
 - Intended for certain audiences only. Not financial advice. Not a promise of price. Crypto is volatile.
 
 Rules:

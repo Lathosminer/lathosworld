@@ -12,8 +12,8 @@ export const GIVEAWAY_SCOPE_NAME = "giveaway";
 
 export const GIVEAWAY_TITLE = "WIN UP TO 1,000,000 $LWRLD";
 
-/** 2027-01-31 23:59 America/Chicago (CST, UTC-6 in January). */
-export const GIVEAWAY_ENDS_AT = "2027-01-31T23:59:00-06:00";
+/** 2027-07-09 23:59 America/Chicago (CDT, UTC-5 in July). Lathos's birthday. */
+export const GIVEAWAY_ENDS_AT = "2027-07-09T23:59:00-05:00";
 
 /** Comment entries: at most this many per person per Chicago calendar day. */
 export const COMMENT_ENTRIES_PER_DAY = 1;

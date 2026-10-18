@@ -89,7 +89,7 @@ function Rules() {
 
       <h2>3. Entry period</h2>
       <p>
-        Entries close on <strong>January 31, 2027 at 11:59 PM Central Time</strong>. Entries made after that don't count.
+        Entries close on <strong>July 9, 2027 at 11:59 PM Central Time</strong>. Entries made after that don't count.
       </p>
 
       <h2>4. How to enter (all free)</h2>
