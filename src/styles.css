@@ -1712,3 +1712,17 @@ main section[id], main [id="letter"] { scroll-margin-top: 1rem; }
 .gw-claim-waiting { color: var(--color-gold); }
 .gw-claim-claimed { color: var(--color-cyan); }
 .gw-claim-expired { color: #f0b4b4; }
+
+/* Giveaway wallet (step 1) */
+.gw-wallet { border-color: color-mix(in srgb, var(--color-cyan) 45%, transparent); }
+.gw-wallet input { font-family: var(--font-mono); }
+.gw-wallet code, .gw-wallet-detail code { font-family: var(--font-mono); font-size: 0.85rem; }
+.gw-wallet-connect { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.gw-wallet-help { display: grid; gap: 0.35rem; font-size: 0.92rem; }
+.gw-wallet-help .gw-warn { color: var(--color-ink); }
+.gw-wallet-detail summary { cursor: pointer; }
+.gw-wallet-full { display: block; margin: 0.3rem 0; word-break: break-all; user-select: all; }
+.gw-official .gw-warn { margin: 0.8rem 0; }
+.gw-official code { word-break: break-all; }
+.wallet-free strong { color: var(--color-ink); }
+.wallet-warn { color: var(--color-ink); font-weight: 600; }

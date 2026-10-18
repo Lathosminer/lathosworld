@@ -49,7 +49,7 @@ export const CLAIM_DAYS = 7;
 /** Minimum age to enter. */
 export const MIN_AGE = 18;
 
-export const LEGAL_FOOTER = "No purchase necessary. Void where prohibited. 18+.";
+export const LEGAL_FOOTER = "No purchase necessary. Void where prohibited. 18+. Not financial advice.";
 
 export function formatTokens(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
@@ -104,6 +104,16 @@ export function tickerName(name: unknown, fallback?: string | null): string | nu
 
 export const NEVER_DM_LINE = "I'll never DM you first. Official info only at lathosworld.com";
 
+/** Scam warning shown next to the wallet field and in the Official Rules. */
+export const OFFICIAL_CONTRACT = "0x3899ebf76c768c156df3073031a4518c5f947777";
+export const SCAM_WARNING =
+  "LathosWorld / @lathos563 will never DM you asking for your wallet, a payment, a fee, or a seed phrase. " +
+  "Winners are announced live on stream and contacted only through lathosworld.com. " +
+  `The only official $LWRLD contract is ${OFFICIAL_CONTRACT}.`;
+export const SEED_PHRASE_WARNING =
+  "Never share your seed phrase (recovery phrase) or private key. Nobody needs it to send you a prize, and this site will never ask for it.";
+export const WALLET_FREE_NOTE = "Wallets are free. No purchase necessary.";
+
 export const TWITCH_LOGIN = "lathosworld";
 export const X_HANDLE = "lathos563";
 export const TIKTOK_HANDLE = "lathos.world";
@@ -117,7 +127,9 @@ export type XStatus = "none" | "pending" | "verified" | "not_following" | "rejec
 export type XRepostStatus = "none" | "pending" | "verified" | "not_found" | "rejected";
 export type TikTokStatus = "none" | "unverified" | "verified" | "rejected";
 
-export type Platform = "twitch" | "youtube" | "x" | "x_repost" | "tiktok";
+export type WalletStatus = "none" | "ok" | "flagged" | "cleared" | "rejected";
+
+export type Platform = "twitch" | "youtube" | "x" | "x_repost" | "tiktok" | "wallet";
 
 export const ADMIN_STATUSES: Record<Platform, readonly string[]> = {
   twitch: ["none", "verified", "not_following", "rejected"],
@@ -125,7 +137,29 @@ export const ADMIN_STATUSES: Record<Platform, readonly string[]> = {
   x: ["none", "pending", "verified", "not_following", "rejected"],
   x_repost: ["none", "pending", "verified", "not_found", "rejected"],
   tiktok: ["none", "unverified", "verified", "rejected"],
+  wallet: ["none", "ok", "flagged", "cleared", "rejected"],
 };
+
+/**
+ * Why a wallet keeps someone from winning, or null when it's fine.
+ * A wallet is required to enter; a wallet shared with another account is flagged
+ * (Flagged & Excluded) until the owner clears it.
+ */
+export function walletIneligible(address: string | null | undefined, status: string): string | null {
+  if (!address || status === "none") return "No wallet address";
+  if (status === "rejected") return "Wallet rejected";
+  if (status === "flagged") return "Flagged & Excluded: wallet used by another entrant";
+  return null;
+}
+
+/** Effective wallet status: a wallet shared with another entrant reads as flagged unless the owner cleared it. */
+export function effectiveWalletStatus(address: string | null | undefined, stored: string, sharedCount: number): WalletStatus {
+  if (!address) return "none";
+  if (stored === "rejected") return "rejected";
+  if (stored === "cleared") return "cleared";
+  if (stored === "flagged" || sharedCount > 1) return "flagged";
+  return "ok";
+}
 
 export type EntryStatuses = {
   twitch: TwitchStatus;
@@ -209,6 +243,9 @@ export const STATUS_LABEL: Record<string, string> = {
   unverified: "Unverified, spot-check",
   pending: "Pending check",
   rejected: "Rejected",
+  ok: "Valid",
+  flagged: "Flagged & Excluded",
+  cleared: "Cleared by owner",
 };
 
 export function statusLabel(status: string): string {

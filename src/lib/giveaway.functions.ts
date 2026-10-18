@@ -33,6 +33,7 @@ import {
   type GiveawayState,
   type Platform,
 } from "@/lib/giveaway";
+import { checkBscAddress } from "@/lib/wallet-address";
 
 type Session = { id: string; email: string | null } | null;
 type Fail = { ok: false; error: string };
@@ -82,6 +83,8 @@ export type MyEntry = {
   youtubeTitle: string | null;
   xHandle: string | null;
   tiktokHandle: string | null;
+  /** The signed-in person's own prize wallet (only ever sent to them). */
+  wallet: { address: string | null; status: string };
   entries: EntryBreakdown;
 };
 
@@ -129,6 +132,7 @@ async function myEntry(sql: Sql, userId: string): Promise<MyEntry> {
     youtubeTitle: row?.youtube_title ?? null,
     xHandle: row?.x_handle ?? null,
     tiktokHandle: row?.tiktok_handle ?? null,
+    wallet: { address: row?.wallet_address ?? null, status: row?.wallet_status ?? "none" },
     entries: breakdown(statuses, comments),
   };
 }
@@ -176,6 +180,7 @@ export const saveHandle = createServerFn({ method: "POST" })
     const ready = await gate(context.userId);
     if ("ok" in ready) return ready;
     const s = await server();
+    if (!(await s.hasWallet(ready.sql, context.userId))) return failed(WALLET_FIRST);
     if (await s.rateLimited(ready.sql, context.userId, `handle:${data.platform}`)) {
       return failed("Slow down a little. Try again in a few minutes.");
     }
@@ -217,6 +222,56 @@ export const saveHandle = createServerFn({ method: "POST" })
     return { ok: true, me: await myEntry(ready.sql, context.userId) };
   });
 
+const WALLET_FIRST = "Add your BNB Smart Chain wallet address first. It's required to enter.";
+
+export type SaveWalletResult = { ok: true; me: MyEntry; flagged: boolean } | Fail;
+
+/**
+ * Saves the entrant's BNB Smart Chain prize wallet. Checked server-side (format,
+ * EIP-55 checksum, not the zero address or the $LWRLD contract) and stored in
+ * checksum form. A wallet already used by a different account is saved but
+ * flagged for review on both entries (Flagged & Excluded) until the owner clears it.
+ */
+export const saveWallet = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { address?: unknown }) => ({ address: String(input?.address ?? "").slice(0, 300) }))
+  .handler(async ({ context, data }): Promise<SaveWalletResult> => {
+    const checked = checkBscAddress(data.address);
+    if (!checked.ok) return checked;
+    const ready = await gate(context.userId);
+    if ("ok" in ready) return ready;
+    const s = await server();
+    if (await s.rateLimited(ready.sql, context.userId, "wallet")) return failed("Slow down a little. Try again in a few minutes.");
+    await s.ensureEntrant(ready.sql, context.userId);
+    const current = await s.loadEntrant(ready.sql, context.userId);
+    const same = current?.wallet_address?.toLowerCase() === checked.key;
+    if (current?.wallet_status === "rejected" && !same) return failed("Your wallet was already reviewed. Ask at lathosworld.com/help.");
+    const others = await ready.sql<{ user_id: string }>`
+      select user_id from giveaway_entrant
+      where lower(wallet_address) = ${checked.key} and user_id <> ${context.userId}
+      limit 50
+    `;
+    const flagged = others.length > 0;
+    // An unchanged wallet keeps its review state; a new one starts as ok.
+    let status = same && current?.wallet_status && current.wallet_status !== "none" ? current.wallet_status : "ok";
+    if (flagged && status === "ok") status = "flagged";
+    await ready.sql`
+      update giveaway_entrant
+      set wallet_address = ${checked.address}, wallet_status = ${status}, wallet_updated_at = now(), updated_at = now()
+      where user_id = ${context.userId}
+    `;
+    if (flagged) {
+      // Same wallet on another account: hold those entries for review too.
+      await ready.sql`
+        update giveaway_entrant
+        set wallet_status = 'flagged', updated_at = now()
+        where lower(wallet_address) = ${checked.key} and user_id <> ${context.userId} and wallet_status = 'ok'
+      `;
+    }
+    s.clearTickerCache();
+    return { ok: true, me: await myEntry(ready.sql, context.userId), flagged: status === "flagged" };
+  });
+
 export const claimRepost = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { claimed?: unknown }) => ({ claimed: input?.claimed === true }))
@@ -224,6 +279,7 @@ export const claimRepost = createServerFn({ method: "POST" })
     const ready = await gate(context.userId);
     if ("ok" in ready) return ready;
     const s = await server();
+    if (!(await s.hasWallet(ready.sql, context.userId))) return failed(WALLET_FIRST);
     if (await s.rateLimited(ready.sql, context.userId, "repost")) return failed("Slow down a little. Try again in a few minutes.");
     const current = await s.loadEntrant(ready.sql, context.userId);
     if (!current?.x_handle) return failed("Add your X handle first.");
@@ -240,7 +296,7 @@ export const claimRepost = createServerFn({ method: "POST" })
 
 export const removeMyEntry = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .validator((input: { platform?: unknown }) => String(input?.platform ?? "") as HandlePlatform | "twitch")
+  .validator((input: { platform?: unknown }) => String(input?.platform ?? "") as HandlePlatform | "twitch" | "wallet")
   .handler(async ({ context, data }): Promise<{ ok: true; me: MyEntry } | Fail> => {
     const sql = await getSql();
     const s = await server();
@@ -252,6 +308,9 @@ export const removeMyEntry = createServerFn({ method: "POST" })
       await sql`update giveaway_entrant set tiktok_handle = null, tiktok_status = 'none', updated_at = now() where user_id = ${context.userId}`;
     } else if (data === "youtube" && current.youtube_status !== "rejected") {
       await sql`update giveaway_entrant set youtube_channel_id = null, youtube_title = null, youtube_status = 'none', updated_at = now() where user_id = ${context.userId}`;
+    } else if (data === "wallet" && current.wallet_status !== "rejected") {
+      await sql`update giveaway_entrant set wallet_address = null, wallet_status = 'none', wallet_updated_at = now(), updated_at = now() where user_id = ${context.userId}`;
+      s.clearTickerCache();
     } else if (data === "twitch" && current.twitch_status !== "rejected") {
       await sql`update giveaway_entrant set twitch_user_id = null, twitch_login = null, twitch_status = 'none', updated_at = now() where user_id = ${context.userId}`;
     }
@@ -370,13 +429,15 @@ export const exportEntrantsCsv = createServerFn({ method: "POST" })
       [
         "name", "email", "twitch", "twitch_status", "youtube", "youtube_status", "x", "x_follow_status",
         "x_like_repost_status", "tiktok", "tiktok_status", "follow_entries", "comment_entries", "total_entries",
-        "verified_total", "capped", "eligible", "admin_note", "banned", "joined", "user_id",
+        "verified_total", "capped", "eligible", "wallet_address", "wallet_status", "wallet_shared_with",
+        "admin_note", "banned", "joined", "user_id",
       ],
       entrants.map((e) => [
         e.name, e.email ?? "", e.twitch.login ?? "", statusLabel(e.twitch.status), (e.youtube.title || e.youtube.channel || "").replace(/^@/, ""),
         statusLabel(e.youtube.status), e.x.handle ?? "", statusLabel(e.x.status), statusLabel(e.x.repostStatus),
         e.tiktok.handle ?? "", statusLabel(e.tiktok.status), e.entries.follows, e.entries.comments,
-        e.entries.total, e.verifiedEntries.total, e.entries.capped ? "yes" : "", e.ineligible ? `no: ${e.ineligible}` : "yes", e.note, e.banned ? "yes" : "", e.joinedAt, e.userId,
+        e.entries.total, e.verifiedEntries.total, e.entries.capped ? "yes" : "", e.ineligible ? `no: ${e.ineligible}` : "yes",
+        e.wallet.address ?? "", statusLabel(e.wallet.status), e.wallet.sharedWith || "", e.note, e.banned ? "yes" : "", e.joinedAt, e.userId,
       ]),
     );
     return { ok: true, csv };
@@ -407,6 +468,7 @@ const STATUS_COLUMN: Record<Platform, string> = {
   x: "x_status",
   x_repost: "x_repost_status",
   tiktok: "tiktok_status",
+  wallet: "wallet_status",
 };
 
 export const setEntrantStatus = createServerFn({ method: "POST" })
@@ -423,10 +485,17 @@ export const setEntrantStatus = createServerFn({ method: "POST" })
     if ("ok" in ready) return ready;
     // Column name comes from a fixed map, never from input.
     const column = STATUS_COLUMN[data.platform];
+    if (data.platform === "wallet" && data.status !== "none") {
+      const has = await ready.sql<{ wallet_address: string | null }>`
+        select wallet_address from giveaway_entrant where user_id = ${data.userId} limit 1
+      `;
+      if (!has[0]?.wallet_address) return failed("That entrant hasn't added a wallet.");
+    }
     const rows = await ready.sql.query<{ user_id: string }>(
       `update giveaway_entrant set ${column} = $1, updated_at = now() where user_id = $2 returning user_id`,
       [data.status, data.userId],
     );
+    if (data.platform === "wallet") (await server()).clearTickerCache();
     return rows[0] ? { ok: true } : failed("That entrant isn't here.");
   });
 

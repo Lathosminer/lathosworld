@@ -106,11 +106,11 @@ function useFeed(load: () => Promise<TalkFeed>, deps: unknown[]) {
   return { feed, error, setError, reload: () => setTick((n) => n + 1) };
 }
 
-function SignIn({ viewer }: { viewer: TalkViewer }) {
+function SignIn({ viewer, next }: { viewer: TalkViewer; next?: string }) {
   if (!viewer.signedIn) {
     return (
       <p className="talk-signin">
-        <Link className="btn btn-ghost talk-submit" to="/login">Sign in to post</Link>
+        <Link className="btn btn-ghost talk-submit" to="/login" search={next ? { next } : {}}>Sign in to post</Link>
       </p>
     );
   }
@@ -142,6 +142,7 @@ function Composer({
   busy,
   submitLabel,
   placeholder,
+  signInNext,
 }: {
   viewer: TalkViewer;
   title?: string;
@@ -152,12 +153,14 @@ function Composer({
   busy: boolean;
   submitLabel: string;
   placeholder: string;
+  /** Where sign-in should come back to (a same-site path). */
+  signInNext?: string;
 }) {
   return (
     <div className="talk-compose">
       <CommunityRules />
       {!canPost(viewer) ? (
-        <SignIn viewer={viewer} />
+        <SignIn viewer={viewer} next={signInNext} />
       ) : (
     <form className="talk-form" onSubmit={onSubmit}>
       {viewer.name ? (
@@ -450,6 +453,7 @@ export function GiveawayComments({ onPosted, closed }: { onPosted?: () => void; 
           busy={busy}
           submitLabel="Comment"
           placeholder="Say hi, tell us what you'd build in LathosWorld."
+          signInNext="/giveaway"
         />
       ) : null}
     </div>

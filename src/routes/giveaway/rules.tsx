@@ -11,15 +11,25 @@ import {
   TIKTOK_HANDLE,
   TWITCH_LOGIN,
   X_HANDLE,
+  OFFICIAL_CONTRACT,
+  SCAM_WARNING,
   formatTokens,
 } from "@/lib/giveaway";
+import { pageHead } from "@/lib/seo";
+import { WALLET_HELP_HREF } from "@/lib/wallet-address";
 import { getGiveaway, type GiveawayView } from "@/lib/giveaway.functions";
 
 export const Route = createFileRoute("/giveaway/rules")({
   component: RulesPage,
-  head: () => ({
-    meta: [{ title: "Official Rules · LathosWorld Giveaway" }, { name: "robots", content: "noindex, nofollow" }],
-  }),
+  head: () => {
+    const head = pageHead({
+      path: "/giveaway/rules",
+      title: "Official Rules · LathosWorld Giveaway",
+      description:
+        "Official Rules for the LathosWorld Million Token Giveaway. Free to enter. No purchase necessary. Void where prohibited. 18+.",
+    });
+    return { ...head, meta: [...head.meta, { name: "robots", content: "noindex, nofollow" }] };
+  },
 });
 
 function RulesPage() {
@@ -93,7 +103,14 @@ function Rules() {
       </p>
 
       <h2>4. How to enter (all free)</h2>
-      <p>Sign in at lathosworld.com/giveaway. Each of these is one entry:</p>
+      <p>
+        Sign in at lathosworld.com/giveaway and add a <strong>valid BNB Smart Chain wallet address that you control</strong>.
+        A wallet address is required to enter and to receive a prize. Wallets are free (for example Trust Wallet,
+        MetaMask, Binance Web3 Wallet, or Coinbase Wallet; see the <a href={WALLET_HELP_HREF}>wallet section</a>), so no
+        purchase is necessary. Never share your seed phrase (recovery phrase) or private key with anyone, including us.
+        We only ever need your public wallet address.
+      </p>
+      <p>Then each of these is one entry:</p>
       <ul>
         <li>Follow twitch.tv/{TWITCH_LOGIN} (checked by signing in with Twitch).</li>
         <li>Subscribe to the LathosWorld YouTube channel.</li>
@@ -107,8 +124,9 @@ function Rules() {
       </ul>
       <p>
         <strong>Limit: {MAX_ENTRIES_PER_PERSON} entries per person in total.</strong> One entry list per person. Each
-        social account can be entered by only one person. Using several accounts, fake accounts, or bots to get extra
-        entries is not allowed.
+        social account can be entered by only one person, and each wallet address can be used by only one person. A
+        wallet used on more than one account is flagged and excluded from the drawing until the Sponsor reviews it. Using
+        several accounts, fake accounts, or bots to get extra entries is not allowed.
       </p>
 
       <h2>5. Drawing and odds</h2>
@@ -134,8 +152,19 @@ function Rules() {
           $LWRLD has no guaranteed cash value. The Sponsor makes no claims about its price, its future value, or any
           return. Nothing here is an investment offer or financial advice.
         </strong>{" "}
-        Prizes can't be swapped for cash or anything else. Token transfers may carry network fees, and the winner is
-        responsible for having a wallet that can receive them.
+        Prizes can't be swapped for cash or anything else.
+      </p>
+      <p>
+        <strong>How prizes are sent:</strong> prizes are sent in $LWRLD on BNB Smart Chain to the wallet address the
+        winner entered. The only official $LWRLD contract is <code>{OFFICIAL_CONTRACT}</code>. If the address is invalid,
+        on the wrong network, or not controlled by the winner (for example, an exchange deposit address that doesn't
+        credit $LWRLD), the prize can't be delivered and may be forfeited after the claim window, and the Sponsor may draw
+        a new winner. Sent tokens can't be recovered. Token transfers may carry network fees.
+      </p>
+      <p>
+        <strong>About $LWRLD:</strong> 4% buy tax and 4% sell tax, split 85% to liquidity, 10% to project funding, and 5%
+        burned. $LWRLD comes with no promise of utility, value, or returns.{" "}
+        <strong>Nothing on this page or the site is financial advice.</strong>
       </p>
 
       <h2>7. Claiming a prize</h2>
@@ -144,6 +173,10 @@ function Rules() {
         publicly (for example, by replying on the Sponsor's official channels). If a prize isn't claimed in time, the
         Sponsor may draw a new winner. The Sponsor will never DM you first and will never ask you to send money, tokens,
         or a wallet recovery phrase. Official info is only at lathosworld.com.
+      </p>
+      <p className="gw-warn">
+        ⚠️ <strong>Scam warning:</strong> {SCAM_WARNING} Nobody needs to charge you a fee to release a prize. Anyone who
+        asks is not us.
       </p>
 
       <h2>8. Taxes</h2>
@@ -164,7 +197,8 @@ function Rules() {
       <h2>11. Privacy</h2>
       <p>
         Your display name may appear in the entrant ticker, the published entry list, and on stream if you win. Your
-        email is never shown. The social handles you enter and the results of follow checks are used only to run this
+        email and wallet address are never shown publicly; only the Sponsor sees your wallet address, and it is used only
+        to send a prize. The social handles you enter and the results of follow checks are used only to run this
         giveaway. Twitch and YouTube sign-ins are used once to check a follow or subscription, and the access is
         revoked right after.
       </p>
