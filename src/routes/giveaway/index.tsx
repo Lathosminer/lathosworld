@@ -1,9 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { GiveawayComments } from "@/components/Talk";
+import { GiveawayTicker } from "@/components/GiveawayTicker";
 import {
+  CLAIM_DAYS,
   COMMENT_ENTRIES_PER_DAY,
   GIVEAWAY_TITLE,
+  LEGAL_FOOTER,
+  MAX_ENTRIES_PER_PERSON,
+  MIN_AGE,
+  PRIZE_TIERS,
+  PRIZE_TOTAL,
+  formatTokens,
   NEVER_DM_LINE,
   TIKTOK_HANDLE,
   TWITCH_LOGIN,
@@ -14,10 +22,12 @@ import {
 import {
   claimRepost,
   getGiveaway,
+  getPublishedList,
   removeMyEntry,
   saveHandle,
   type GiveawayView,
   type MyEntry,
+  type PublishedList,
 } from "@/lib/giveaway.functions";
 
 type Search = { twitch?: string; youtube?: string };
@@ -126,19 +136,46 @@ function GiveawayPage() {
         {endsLabel(v.endsAt)}. Winners announced <strong>live on stream</strong> 🔴
       </p>
 
+      {v.state === "open" || (v.isAdmin && v.state === "hidden") ? (
+        <GiveawayTicker preview={v.isAdmin && v.state === "hidden"} />
+      ) : null}
+
       <div className="gw-rules">
         <h2>How it works</h2>
         <ul>
-          <li>Every follow is 1 entry. Do one or do them all.</li>
+          <li>Every follow is 1 entry. Do one or do them all. Free to enter.</li>
           <li>Like + repost the giveaway post on X for a bonus entry.</li>
           <li>
             Comment below for more entries: each comment that stays up counts, up to {COMMENT_ENTRIES_PER_DAY} per day.
           </li>
+          <li>Up to {MAX_ENTRIES_PER_PERSON} entries per person in total.</li>
           <li>Winners are picked at random, weighted by entries, live on twitch.tv/{TWITCH_LOGIN}.</li>
-          <li>Prizes are up to 1,000,000 $LWRLD. Lathos decides each prize amount.</li>
-          <li>One entry list per person. Each social account can only be entered once.</li>
+          <li>Winners have {CLAIM_DAYS} days to claim publicly, or the prize is re-drawn.</li>
+          <li>One entry list per person. Each social account can only be entered once. {MIN_AGE}+ only.</li>
+          <li>Buying $LWRLD does not increase your chances.</li>
         </ul>
         <p className="gw-warn">⚠️ {NEVER_DM_LINE}</p>
+        <p className="gw-rules-link">
+          <Link to="/giveaway/rules">Read the Official Rules →</Link>
+        </p>
+      </div>
+
+      <div className="gw-prizes">
+        <h2>Planned prizes</h2>
+        <ul className="gw-prize-list">
+          {PRIZE_TIERS.map((tier) => (
+            <li key={tier.place}>
+              <b>{formatTokens(tier.amount)} $LWRLD</b>
+              <span>
+                {tier.place}
+                {tier.count > 1 ? ` (${tier.count} winners, each)` : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="talk-meta">
+          Up to {formatTokens(PRIZE_TOTAL)} $LWRLD in total. These are planned prizes. Final amounts are announced by Lathos.
+        </p>
       </div>
 
       {returned ? <p className="talk-note" role="status">{returned}</p> : null}
@@ -159,7 +196,42 @@ function GiveawayPage() {
       <section className="gw-talk">
         <GiveawayComments closed={!v.entriesOpen} onPosted={() => setTick((n) => n + 1)} />
       </section>
+
+      <Published />
+
+      <p className="gw-legal">
+        {LEGAL_FOOTER} <Link to="/giveaway/rules">Official Rules</Link>.
+      </p>
     </Shell>
+  );
+}
+
+function Published() {
+  const [list, setList] = useState<PublishedList | null>(null);
+  useEffect(() => {
+    let live = true;
+    getPublishedList()
+      .then((next) => live && setList(next))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (!list) return null;
+  return (
+    <details className="gw-published">
+      <summary>
+        Published entry list ({list.entrants.length} eligible entrants, as of{" "}
+        {new Date(list.publishedAt).toLocaleString("en-US", { timeZone: "America/Chicago", dateStyle: "medium", timeStyle: "short" })} CT)
+      </summary>
+      <ol>
+        {list.entrants.map((e, index) => (
+          <li key={`${e.name}-${index}`}>
+            {e.name}: {e.entries} {e.entries === 1 ? "entry" : "entries"}
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }
 
@@ -187,6 +259,7 @@ function EntryCount({ view }: { view: Exclude<GiveawayView, { state: "hidden"; i
         {me.entries.total === 1 ? "entry" : "entries"}
         <small>
           {me.entries.follows} from follows · {me.entries.comments} from comments
+          {me.entries.capped ? ` · capped at ${MAX_ENTRIES_PER_PERSON}` : ` · max ${MAX_ENTRIES_PER_PERSON}`}
         </small>
       </span>
     </div>

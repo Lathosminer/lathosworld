@@ -22,7 +22,9 @@ import { Route as SurvivorsRouteImport } from './routes/survivors'
 import { Route as ApiCommunityRouteImport } from './routes/api/community'
 import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
 import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
+import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiGiveawayTickerRouteImport } from './routes/api/giveaway/ticker'
 import { Route as ApiGiveawayCallbackProviderRouteImport } from './routes/api/giveaway/callback/$provider'
 import { Route as ApiGiveawayConnectProviderRouteImport } from './routes/api/giveaway/connect/$provider'
 
@@ -91,9 +93,19 @@ const GiveawayAdminRoute = GiveawayAdminRouteImport.update({
   path: '/giveaway/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GiveawayRulesRoute = GiveawayRulesRouteImport.update({
+  id: '/giveaway/rules',
+  path: '/giveaway/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGiveawayTickerRoute = ApiGiveawayTickerRouteImport.update({
+  id: '/api/giveaway/ticker',
+  path: '/api/giveaway/ticker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGiveawayCallbackProviderRoute =
@@ -122,8 +134,10 @@ export interface FileRoutesByFullPath {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
   '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
   '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
@@ -140,8 +154,10 @@ export interface FileRoutesByTo {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
   '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
   '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
@@ -159,8 +175,10 @@ export interface FileRoutesById {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
+  '/giveaway/rules': typeof GiveawayRulesRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
   '/api/giveaway/callback/$provider': typeof ApiGiveawayCallbackProviderRoute
   '/api/giveaway/connect/$provider': typeof ApiGiveawayConnectProviderRoute
 }
@@ -179,8 +197,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/giveaway/admin'
+    | '/giveaway/rules'
     | '/giveaway/'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
     | '/api/giveaway/callback/$provider'
     | '/api/giveaway/connect/$provider'
   fileRoutesByTo: FileRoutesByTo
@@ -197,8 +217,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/giveaway/admin'
+    | '/giveaway/rules'
     | '/giveaway'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
     | '/api/giveaway/callback/$provider'
     | '/api/giveaway/connect/$provider'
   id:
@@ -215,8 +237,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/giveaway/admin'
+    | '/giveaway/rules'
     | '/giveaway/'
     | '/api/auth/$'
+    | '/api/giveaway/ticker'
     | '/api/giveaway/callback/$provider'
     | '/api/giveaway/connect/$provider'
   fileRoutesById: FileRoutesById
@@ -234,8 +258,10 @@ export interface RootRouteChildren {
   SurvivorsRoute: typeof SurvivorsRoute
   ApiCommunityRoute: typeof ApiCommunityRoute
   GiveawayAdminRoute: typeof GiveawayAdminRoute
+  GiveawayRulesRoute: typeof GiveawayRulesRoute
   GiveawayIndexRoute: typeof GiveawayIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiGiveawayTickerRoute: typeof ApiGiveawayTickerRoute
   ApiGiveawayCallbackProviderRoute: typeof ApiGiveawayCallbackProviderRoute
   ApiGiveawayConnectProviderRoute: typeof ApiGiveawayConnectProviderRoute
 }
@@ -333,11 +359,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GiveawayAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/giveaway/rules': {
+      id: '/giveaway/rules'
+      path: '/giveaway/rules'
+      fullPath: '/giveaway/rules'
+      preLoaderRoute: typeof GiveawayRulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/giveaway/ticker': {
+      id: '/api/giveaway/ticker'
+      path: '/api/giveaway/ticker'
+      fullPath: '/api/giveaway/ticker'
+      preLoaderRoute: typeof ApiGiveawayTickerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/giveaway/callback/$provider': {
@@ -370,8 +410,10 @@ const rootRouteChildren: RootRouteChildren = {
   SurvivorsRoute: SurvivorsRoute,
   ApiCommunityRoute: ApiCommunityRoute,
   GiveawayAdminRoute: GiveawayAdminRoute,
+  GiveawayRulesRoute: GiveawayRulesRoute,
   GiveawayIndexRoute: GiveawayIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiGiveawayTickerRoute: ApiGiveawayTickerRoute,
   ApiGiveawayCallbackProviderRoute: ApiGiveawayCallbackProviderRoute,
   ApiGiveawayConnectProviderRoute: ApiGiveawayConnectProviderRoute,
 }
