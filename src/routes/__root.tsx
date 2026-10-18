@@ -3,6 +3,7 @@ import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AccountBar } from "@/components/AccountBadge";
 import { SwordCursor } from "@/components/SwordCursor";
+import { GTM_HEAD_SCRIPT, GTM_NOSCRIPT_IFRAME } from "@/lib/gtm";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "lathosworld.com";
@@ -40,9 +41,11 @@ export const Route = createRootRoute({
   component: () => (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: GTM_HEAD_SCRIPT }} />
         <HeadContent />
       </head>
       <body>
+        <noscript dangerouslySetInnerHTML={{ __html: GTM_NOSCRIPT_IFRAME }} />
         <PreviewHostBridge />
         <SwordCursor />
         <AuthProvider>
