@@ -63,7 +63,7 @@ const OFFERS = [
   },
 ] as const;
 
-const SHOP = "https://lathosworld-shop.fourthwall.com";
+const SHOP = "https://lathosworld-shop.fourthwall.com/collections/all";
 
 const SITE_LINKS = [
   { name: "Clips", handle: "Twitch and YouTube", hint: "Watch", to: "/clips" },
@@ -380,7 +380,7 @@ function Home() {
                 Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
               </p>
               <p className="note">
-                The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is coming soon.
+                The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is open.
               </p>
               <p className="note">
                 Never risk more than you can afford to lose. Crypto is volatile. Not financial advice. Not a promise of price.
