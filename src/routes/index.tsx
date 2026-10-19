@@ -380,7 +380,7 @@ function Home() {
                 Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
               </p>
               <p className="note">
-                The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is open.
+                The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is coming soon.
               </p>
               <p className="note">
                 Never risk more than you can afford to lose. Crypto is volatile. Not financial advice. Not a promise of price.
