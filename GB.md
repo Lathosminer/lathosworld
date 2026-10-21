@@ -38,12 +38,12 @@ Sign-in is already on. `emailAndPasswordEnabled = true` in `src/lib/auth/email-p
 
 ## Roadmap — goals, not live
 
-The owner will update the whitepaper later. On the site this is only a roadmap.
+The public paper is v1.9. Do not put unpublished work back on the site.
 
-- $LWRLD on Flap is the token now. Using its proceeds to launch a later token is a roadmap goal. That token does not exist yet. Buying $LWRLD does not send the later token. The only contract is the one that ends in 7777.
-- A share, not a payment. The goal is that every holder of the contract that ends in 7777 gets a share of the later token. The percent is not set. No contract pays it yet.
-- Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
-- The tax fund and future merch sales go back into the coin. 100 percent of that. None of that is taken out. The merch shop is coming soon.
+- $LWRLD on Flap is the token now. The only contract is the one that ends in 7777. Buying $LWRLD does not send any other token.
+- Work that is not live is not described on the site or in the help desk.
+- $LWRLD is not redeemable for BTC. Holding it does not pay Bitcoin.
+- The merch shop is open.
 
 ## Help desk
 
