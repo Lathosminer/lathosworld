@@ -371,13 +371,10 @@ function Home() {
             <p className="serif-line">Goals. Not live.</p>
             <div className="panel">
               <p className="note">
-                $LWRLD on Flap is the token now. Using its proceeds to launch a later token is a roadmap goal. That token does not exist yet. Buying $LWRLD does not send the later token. The only contract is the one that ends in 7777.
+                $LWRLD on Flap is the token now. The only contract is the one that ends in 7777. Buying $LWRLD does not send any other token.
               </p>
               <p className="note">
-                A share, not a payment. The goal is that every holder of the contract that ends in 7777 gets a share of the later token. The percent is not set. No contract pays it yet.
-              </p>
-              <p className="note">
-                Bitcoin. That later token is meant to be backed by BTC. No Bitcoin is held for it yet. $LWRLD is not redeemable for BTC.
+                Work that is not live is not described on this page. $LWRLD is not redeemable for BTC.
               </p>
               <p className="note">
                 The 4% tax still takes, on purpose. 85% of that tax goes back into liquidity, 10% goes to the project fund, and 5% is burned. The merch shop is open.
