@@ -140,7 +140,7 @@ export function Clips() {
         <div className="banner">
           <h2 id="clips-title">Clips</h2>
         </div>
-        <p className="serif-line">Today's clips from Twitch and YouTube. They change at midnight Central.</p>
+        <p className="serif-line">Clips from Twitch and YouTube.</p>
         <ClipBrowser />
       </div>
     </section>

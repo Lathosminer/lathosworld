@@ -8,7 +8,7 @@ export const Route = createFileRoute("/clips")({
     pageHead({
       path: "/clips",
       title: "Clips · LathosWorld",
-      description: "Today's LathosWorld clips, the same set until midnight Central. Finished clips and videos are on YouTube.",
+      description: "LathosWorld clips. Finished clips and videos are on YouTube.",
     }),
 });
 
@@ -28,7 +28,7 @@ function ClipsPage() {
           </p>
           <p className="kicker">Twitch and YouTube</p>
           <h1>Clips</h1>
-          <p className="serif-line">Today's clips. Everyone sees the same set until midnight Central. Comments sit under each one.</p>
+          <p className="serif-line">Clips. Comments sit under each one.</p>
           <ClipBrowser comments />
         </div>
       </section>
