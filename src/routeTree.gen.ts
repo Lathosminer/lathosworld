@@ -15,6 +15,7 @@ import { Route as ClipsRouteImport } from './routes/clips'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LetterRouteImport } from './routes/letter'
+import { Route as LexiRouteImport } from './routes/lexi'
 import { Route as ListRouteImport } from './routes/list'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ScheduleRouteImport } from './routes/schedule'
@@ -57,6 +58,11 @@ const HelpRoute = HelpRouteImport.update({
 const LetterRoute = LetterRouteImport.update({
   id: '/letter',
   path: '/letter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LexiRoute = LexiRouteImport.update({
+  id: '/lexi',
+  path: '/lexi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ListRoute = ListRouteImport.update({
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/lexi': typeof LexiRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/lexi': typeof LexiRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/community': typeof CommunityRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
+  '/lexi': typeof LexiRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
   '/schedule': typeof ScheduleRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/help'
     | '/letter'
+    | '/lexi'
     | '/list'
     | '/login'
     | '/schedule'
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/help'
     | '/letter'
+    | '/lexi'
     | '/list'
     | '/login'
     | '/schedule'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/help'
     | '/letter'
+    | '/lexi'
     | '/list'
     | '/login'
     | '/schedule'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRoute
   HelpRoute: typeof HelpRoute
   LetterRoute: typeof LetterRoute
+  LexiRoute: typeof LexiRoute
   ListRoute: typeof ListRoute
   LoginRoute: typeof LoginRoute
   ScheduleRoute: typeof ScheduleRoute
@@ -321,6 +334,13 @@ declare module '@tanstack/react-router' {
       path: '/letter'
       fullPath: '/letter'
       preLoaderRoute: typeof LetterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lexi': {
+      id: '/lexi'
+      path: '/lexi'
+      fullPath: '/lexi'
+      preLoaderRoute: typeof LexiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/list': {
@@ -424,6 +444,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRoute,
   HelpRoute: HelpRoute,
   LetterRoute: LetterRoute,
+  LexiRoute: LexiRoute,
   ListRoute: ListRoute,
   LoginRoute: LoginRoute,
   ScheduleRoute: ScheduleRoute,

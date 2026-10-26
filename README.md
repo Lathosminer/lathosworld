@@ -6,6 +6,7 @@ Not financial advice. Not a promise of price. Crypto is volatile.
 
 ## What is on the page
 
+- Special guest [Lexi Storm](/lexi), an adult AI singer and character, on the home page and at `/lexi`. Welcome clip and poster swap in `src/lib/lexi.ts`
 - Twitch player for [twitch.tv/lathosworld](https://www.twitch.tv/lathosworld), then the YouTube uploads playlist
 - $LWRLD on BNB Smart Chain, contract `0x3899ebf76c768c156df3073031a4518c5f947777`
 - Supply 1,000,000,000. Buy tax 4%. Sell tax 4%. Tax split 85% liquidity, 10% fund, 5% burn

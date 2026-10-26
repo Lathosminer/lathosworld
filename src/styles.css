@@ -1899,3 +1899,296 @@ html.lw-sword-cursor { --lw-pointer: none; }
   .lw-sword-pointer .eye-bolts,
   .lw-sword-pointer .iris-glow { animation: none; }
 }
+
+/* Lexi Storm, special guest. Ink and violet on the LathosWorld ground. */
+.lexi-page { background: #0c0a12; min-height: 100vh; }
+.lexi-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.45rem 0.9rem 0.15rem;
+  background: #05080c;
+  border-bottom: 1px solid #1c2a36;
+}
+.lexi-bar .page-jump { margin: 0; }
+.lexi-feature {
+  --lexi-ink: #0c0a12;
+  --lexi-violet: #8b6cff;
+  --lexi-paper: #f3ecdf;
+  --lexi-silver: #d7deea;
+  --lexi-cream: #f4f1ea;
+  --lexi-forest: #2c4a3e;
+  --lexi-stone: #8a8478;
+  --lexi-site-ink: #1a1814;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 1.6rem 0 2.2rem;
+  color: var(--lexi-silver);
+  background:
+    radial-gradient(80% 55% at 0% 0%, color-mix(in srgb, var(--lexi-violet) 24%, transparent), transparent 58%),
+    radial-gradient(60% 45% at 100% 100%, color-mix(in srgb, var(--lexi-forest) 55%, transparent), transparent 62%),
+    var(--lexi-ink);
+  border-block: 1px solid color-mix(in srgb, var(--lexi-violet) 55%, var(--lexi-forest));
+  scroll-margin-top: 3.4rem;
+}
+.lexi-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.lexi-sky-bolt {
+  transform-origin: 820px 280px;
+  animation: lexi-strike 4.8s ease-in-out infinite;
+}
+@keyframes lexi-strike {
+  0%, 72%, 100% { opacity: 0.28; }
+  76% { opacity: 1; }
+  80% { opacity: 0.2; }
+  84% { opacity: 0.85; }
+}
+.lexi-split, .lexi-gallery { position: relative; z-index: 1; }
+.lexi-split {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+.lexi-feature .kicker { color: var(--lexi-violet); }
+.lexi-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.55rem 0 0;
+  padding: 0.22rem 0.7rem 0.22rem 0.22rem;
+  border-radius: 999px;
+  background: var(--lexi-cream);
+  color: var(--lexi-site-ink);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.lexi-ai b {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  min-height: 1.45rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--lexi-forest);
+  color: var(--lexi-cream);
+  letter-spacing: 0.14em;
+}
+.lexi-feature h1,
+.lexi-feature h2 {
+  margin: 0.35rem 0 0.25rem;
+  color: var(--lexi-paper);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5.4vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  line-height: 1.02;
+}
+.lexi-feature .serif-line {
+  margin: 0.2rem 0 0.55rem;
+  color: var(--lexi-paper);
+  max-width: 38rem;
+}
+.lexi-lead {
+  margin: 0;
+  max-width: 40rem;
+  color: var(--lexi-silver);
+}
+.lexi-welcome { margin: 0; }
+.lexi-frame {
+  position: relative;
+  width: min(100%, 22rem);
+  margin-inline: auto;
+}
+.lexi-flag {
+  position: absolute;
+  z-index: 2;
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.32rem 0.55rem;
+  background: var(--lexi-paper);
+  color: var(--lexi-site-ink);
+  border: 1px solid var(--lexi-forest);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.lexi-welcome-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70svh;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, var(--lexi-violet) 70%, var(--lexi-silver));
+  box-shadow: 0 0 28px color-mix(in srgb, var(--lexi-violet) 32%, transparent);
+}
+.lexi-welcome figcaption {
+  width: min(100%, 22rem);
+  margin: 0.55rem auto 0;
+  color: var(--lexi-stone);
+  font-size: 0.92rem;
+}
+.lexi-block { margin-top: 1.15rem; }
+.lexi-block h3,
+.lexi-gallery h3 {
+  margin: 0 0 0.55rem;
+  color: var(--lexi-paper);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.lexi-gallery p { margin: -0.2rem 0 0.7rem; color: var(--lexi-stone); }
+.lexi-tracks, .lexi-albums, .lexi-stills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lexi-tracks { display: grid; gap: 0.4rem; }
+.lexi-tracks li,
+.lexi-tracks a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--lexi-violet) 38%, #1c2a36);
+  background: color-mix(in srgb, var(--lexi-ink) 72%, #1a1814);
+  color: inherit;
+  text-decoration: none;
+}
+.lexi-tracks a { padding: 0; border: 0; background: transparent; width: 100%; }
+.lexi-tracks li:has(a) { padding: 0; }
+.lexi-tracks li:has(a) a { padding: 0.45rem 0.75rem; }
+.lexi-tracks strong {
+  display: block;
+  color: var(--lexi-paper);
+  font-weight: 600;
+}
+.lexi-tracks em {
+  display: block;
+  color: var(--lexi-stone);
+  font-style: normal;
+  font-size: 0.88rem;
+}
+.lexi-tracks b {
+  flex: 0 0 auto;
+  color: var(--lexi-violet);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.lexi-albums {
+  display: grid;
+  gap: 0.6rem;
+}
+.lexi-albums li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.85rem 0.9rem 0.8rem;
+  background: var(--lexi-cream);
+  color: var(--lexi-site-ink);
+  border-top: 3px solid var(--lexi-violet);
+}
+.lexi-albums b {
+  color: var(--lexi-forest);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.lexi-albums strong { font-family: var(--font-serif); font-size: 1.05rem; font-weight: 600; }
+.lexi-albums span { color: var(--lexi-site-ink); font-size: 0.92rem; }
+.lexi-albums em {
+  margin-top: 0.25rem;
+  color: var(--lexi-forest);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  font-style: normal;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.lexi-feature .cta-row { align-items: stretch; justify-content: flex-start; }
+.lexi-feature .btn-violet {
+  color: var(--lexi-ink);
+  background: var(--lexi-violet);
+  border-color: var(--lexi-violet);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--lexi-violet) 42%, transparent);
+}
+.lexi-feature .btn-violet:hover {
+  box-shadow: 0 0 26px color-mix(in srgb, var(--lexi-violet) 62%, transparent);
+}
+.lexi-feature .btn-ghost {
+  color: var(--lexi-paper);
+  background: transparent;
+  border-color: color-mix(in srgb, var(--lexi-silver) 65%, var(--lexi-violet));
+}
+.lexi-gallery { margin-top: 1.6rem; }
+.lexi-stills {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.35rem;
+}
+.lexi-stills li { flex: 0 0 min(72vw, 16rem); scroll-snap-align: start; }
+.lexi-stills figure { margin: 0; }
+.lexi-stills img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  object-position: center top;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, var(--lexi-violet) 45%, var(--lexi-forest));
+}
+.lexi-stills figcaption {
+  margin-top: 0.4rem;
+  color: var(--lexi-silver);
+  font-family: var(--font-display);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@media (min-width: 720px) {
+  .lexi-feature .cta-row { justify-content: flex-start; }
+  .lexi-feature .btn { min-width: 0; }
+  .lexi-albums { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 960px) {
+  .lexi-split {
+    grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+  .lexi-frame, .lexi-welcome figcaption { margin-inline: 0; }
+  .lexi-stills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .lexi-stills li { flex: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lexi-sky-bolt { animation: none; opacity: 0.45; }
+}
