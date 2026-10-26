@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { hasCommunity, type CommunityPayload } from "@/lib/community";
 import { previewPathPrefix } from "@/lib/preview-path-prefix";
+import { SOCIALS } from "@/lib/socials";
 
 function communityUrl(): string {
   if (typeof window === "undefined") return "/api/community";
@@ -12,10 +13,16 @@ function formatCount(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
 
+function socialHref(name: (typeof SOCIALS)[number]["name"]): string {
+  const row = SOCIALS.find((item) => item.name === name);
+  return row ? row.href : "https://lathosworld.com";
+}
+
 const STATS = [
-  { key: "twitch", label: "Twitch", noun: "followers" },
-  { key: "youtube", label: "YouTube", noun: "subscribers" },
-  { key: "x", label: "X", noun: "followers" },
+  { key: "twitch", label: "Twitch", noun: "followers", href: socialHref("Twitch") },
+  { key: "youtube", label: "YouTube", noun: "subscribers", href: socialHref("YouTube") },
+  { key: "x", label: "X", noun: "followers", href: socialHref("X") },
+  { key: "tiktok", label: "TikTok", noun: "followers", href: socialHref("TikTok") },
 ] as const;
 
 export function CommunityStats() {
@@ -54,15 +61,21 @@ export function CommunityStats() {
           <h2>Who is here</h2>
         </div>
         {stats.length ? (
-          <dl className="community-stats">
+          <div className="community-stats">
             {stats.map((stat) => (
-              <div key={stat.key} className="community-stat">
-                <dt>{stat.label}</dt>
-                <dd>{formatCount(stat.value)}</dd>
-                <span>{stat.noun}</span>
-              </div>
+              <a
+                key={stat.key}
+                className="community-stat"
+                href={stat.href}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <span className="community-label">{stat.label}</span>
+                <span className="community-count">{formatCount(stat.value)}</span>
+                <span className="community-noun">{stat.noun}</span>
+              </a>
             ))}
-          </dl>
+          </div>
         ) : null}
       </div>
       {recent.length ? (

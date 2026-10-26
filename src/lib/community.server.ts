@@ -1,9 +1,14 @@
+import { COMMUNITY_HANDLES } from "./community-counts.ts";
 import { env } from "./env.server.ts";
 import { YT_CHANNEL } from "./youtube-live.functions.ts";
 import {
   EMPTY_COMMUNITY,
+  applyCommunityFallback,
+  parseTikTokProfileFollowers,
+  parseTikTokUserInfo,
   parseTwitchFollowers,
   parseXFollowers,
+  parseXProfileFollowers,
   parseYouTubeSubscribers,
   type CommunityPayload,
 } from "./community.ts";
@@ -11,7 +16,11 @@ import {
 const TTL_MS = 8 * 60 * 1000;
 const FAIL_TTL_MS = 30 * 1000;
 const TWITCH_LOGIN = "lathosworld";
-const X_USERNAME = "lathos563";
+const X_USERNAME = COMMUNITY_HANDLES.x;
+const TIKTOK_HANDLE = COMMUNITY_HANDLES.tiktok;
+/** Public profile reads. A browser UA is what those pages actually answer. */
+const PUBLIC_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 const TOKEN_URL = "https://id.twitch.tv/oauth2/token";
 /** Drop the cached user access token this many seconds before Twitch says it expires. */
 const USER_TOKEN_SKEW_S = 120;
@@ -246,7 +255,7 @@ async function loadYouTube(): Promise<number | null> {
   }
 }
 
-async function loadX(): Promise<number | null> {
+async function loadXApi(): Promise<number | null> {
   const token = env("X_BEARER_TOKEN");
   if (!token) return null;
   try {
@@ -261,32 +270,94 @@ async function loadX(): Promise<number | null> {
   }
 }
 
+/** TikTok Display API. Only the account's own user token can see follower_count. */
+async function loadTikTokApi(): Promise<number | null> {
+  const token = env("TIKTOK_ACCESS_TOKEN");
+  if (!token) return null;
+  try {
+    const res = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=follower_count", {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    return parseTikTokUserInfo(await readJson(res));
+  } catch {
+    return null;
+  }
+}
+
+async function loadPublicPage(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: {
+        "user-agent": PUBLIC_UA,
+        accept: "text/html,application/xhtml+xml",
+        "accept-language": "en-US,en;q=0.9",
+      },
+      redirect: "follow",
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return null;
+    const page = await res.text();
+    return page.length > 1_500_000 ? page.slice(0, 1_500_000) : page;
+  } catch {
+    return null;
+  }
+}
+
+/** Official API first, then the public profile. Null lets the static fallback show. */
+async function loadX(): Promise<number | null> {
+  const fromApi = await loadXApi();
+  if (fromApi != null) return fromApi;
+  const page = await loadPublicPage(`https://x.com/${X_USERNAME}`);
+  return page ? parseXProfileFollowers(page) : null;
+}
+
+async function loadTikTok(): Promise<number | null> {
+  const fromApi = await loadTikTokApi();
+  if (fromApi != null) return fromApi;
+  const page = await loadPublicPage(`https://www.tiktok.com/@${TIKTOK_HANDLE}`);
+  return page ? parseTikTokProfileFollowers(page) : null;
+}
+
 async function loadCommunity(): Promise<CommunityPayload> {
-  const [twitch, youtube, x] = await Promise.all([
+  const [twitch, youtube, x, tiktok] = await Promise.all([
     loadTwitch().catch(() => ({ twitch: null, recent: [] as CommunityPayload["recent"] })),
     loadYouTube().catch(() => null),
     loadX().catch(() => null),
+    loadTikTok().catch(() => null),
   ]);
   return {
     twitch: twitch.twitch,
     youtube,
     x,
+    tiktok,
     recent: twitch.recent,
   };
+}
+
+function liveCount(body: CommunityPayload): boolean {
+  return (
+    body.twitch != null ||
+    body.youtube != null ||
+    body.x != null ||
+    body.tiktok != null ||
+    body.recent.length > 0
+  );
 }
 
 /** Cached public counts. Secrets stay in this module. */
 export async function getCommunityStats(): Promise<CommunityPayload> {
   const now = Date.now();
   if (statsCache && now - statsCache.at < TTL_MS) return statsCache.body;
-  let body = EMPTY_COMMUNITY;
+  let loaded = EMPTY_COMMUNITY;
   try {
-    body = await loadCommunity();
+    loaded = await loadCommunity();
   } catch {
-    body = EMPTY_COMMUNITY;
+    loaded = EMPTY_COMMUNITY;
   }
-  const fresh =
-    body.twitch != null || body.youtube != null || body.x != null || body.recent.length > 0;
+  const fresh = liveCount(loaded);
+  const body = applyCommunityFallback(loaded);
   statsCache = { at: fresh ? now : now - (TTL_MS - FAIL_TTL_MS), body };
   return body;
 }

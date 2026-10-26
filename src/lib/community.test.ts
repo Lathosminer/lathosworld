@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it, mock } from "node:test";
+import { COMMUNITY_COUNT_FALLBACK } from "./community-counts.ts";
 import {
   EMPTY_COMMUNITY,
+  applyCommunityFallback,
   hasCommunity,
+  parseTikTokProfileFollowers,
+  parseTikTokUserInfo,
   parseTwitchFollowers,
   parseXFollowers,
+  parseXProfileFollowers,
   parseYouTubeSubscribers,
 } from "./community.ts";
 import { getCommunityStats, resetCommunityCaches } from "./community.server.ts";
@@ -17,6 +22,7 @@ const ENV_KEYS = [
   "TWITCH_REFRESH_TOKEN",
   "YOUTUBE_API_KEY",
   "X_BEARER_TOKEN",
+  "TIKTOK_ACCESS_TOKEN",
 ] as const;
 
 const RECENT_BODY = {
@@ -175,6 +181,43 @@ describe("community parsers", () => {
   it("reads an X follower count", () => {
     assert.equal(parseXFollowers({ data: { public_metrics: { followers_count: 80 } } }), 80);
     assert.equal(parseXFollowers({}), null);
+  });
+
+  it("reads an X profile count only when the handle is on the page", () => {
+    const escaped = `{"screen_name":"lathos563"} \\"relationship_counts\\":{\\"followers\\":227,\\"following\\":521}`;
+    assert.equal(parseXProfileFollowers(escaped), 227);
+    assert.equal(
+      parseXProfileFollowers(`lathos563",followers:227,following:521,hasHighlights`),
+      227,
+    );
+    assert.equal(parseXProfileFollowers(`"relationship_counts":{"followers":227}`), null);
+    assert.equal(parseXProfileFollowers("Log in to X"), null);
+  });
+
+  it("reads a TikTok user.info follower count", () => {
+    assert.equal(parseTikTokUserInfo({ data: { user: { follower_count: 4 } } }), 4);
+    assert.equal(parseTikTokUserInfo({ data: { user: {} } }), null);
+  });
+
+  it("reads the TikTok profile count for lathos.world, not a suggested account", () => {
+    const page = [
+      '"uniqueId":"someone.else","stats":{"followerCount":999}',
+      '"uniqueId":"lathos.world","nickname":"Lathos World","stats":{"followerCount":4,"followingCount":15}',
+    ].join(" ");
+    assert.equal(parseTikTokProfileFollowers(page), 4);
+    assert.equal(parseTikTokProfileFollowers('"uniqueId":"someone.else","stats":{"followerCount":9}'), null);
+  });
+
+  it("fills a missing X or TikTok count from the config file", () => {
+    assert.deepEqual(applyCommunityFallback({ ...EMPTY_COMMUNITY, twitch: 21, youtube: 11 }), {
+      twitch: 21,
+      youtube: 11,
+      x: COMMUNITY_COUNT_FALLBACK.x,
+      tiktok: COMMUNITY_COUNT_FALLBACK.tiktok,
+      recent: [],
+    });
+    assert.equal(applyCommunityFallback({ ...EMPTY_COMMUNITY, x: 80, tiktok: 3 }).x, 80);
+    assert.equal(hasCommunity({ ...EMPTY_COMMUNITY, tiktok: 4 }), true);
   });
 });
 
@@ -494,6 +537,93 @@ describe("twitch refresh token", () => {
         assert.equal(a.twitch, 12);
         assert.deepEqual(b.recent, a.recent);
         assert.equal(refreshes, 1);
+      },
+    );
+  });
+});
+
+describe("x and tiktok counts", () => {
+  it("uses the config fallback when live reads fail", async () => {
+    await withTwitch(
+      {},
+      () => json({ message: "nope" }, 503),
+      async () => {
+        const body = await getCommunityStats();
+        assert.equal(body.twitch, null);
+        assert.equal(body.youtube, null);
+        assert.equal(body.x, COMMUNITY_COUNT_FALLBACK.x);
+        assert.equal(body.tiktok, COMMUNITY_COUNT_FALLBACK.tiktok);
+      },
+    );
+  });
+
+  it("prefers the X API over the public page and the static number", async () => {
+    await withTwitch(
+      { X_BEARER_TOKEN: "x-bearer" },
+      (call) => {
+        if (call.url.includes("api.x.com")) {
+          assert.equal(bearer(call), "x-bearer");
+          return json({ data: { public_metrics: { followers_count: 80 } } });
+        }
+        if (call.url.startsWith("https://x.com/")) {
+          return new Response("lathos563,followers:1,following:1", {
+            status: 200,
+            headers: { "content-type": "text/html" },
+          });
+        }
+        if (call.url.includes("tiktok.com")) return new Response("blocked", { status: 403 });
+        return json({}, 404);
+      },
+      async () => {
+        const body = await getCommunityStats();
+        assert.equal(body.x, 80);
+        assert.equal(body.tiktok, COMMUNITY_COUNT_FALLBACK.tiktok);
+        assert.equal(JSON.stringify(body).includes("x-bearer"), false);
+      },
+    );
+  });
+
+  it("reads public profiles when no token is set", async () => {
+    const xPage = `lathos563 \\"relationship_counts\\":{\\"followers\\":227,\\"following\\":1}`;
+    const tiktokPage = `"uniqueId":"lathos.world","stats":{"followerCount":4,"followingCount":1}`;
+    await withTwitch(
+      {},
+      (call) => {
+        if (call.url.startsWith("https://x.com/")) {
+          return new Response(xPage, { status: 200, headers: { "content-type": "text/html" } });
+        }
+        if (call.url.includes("www.tiktok.com")) {
+          return new Response(tiktokPage, { status: 200, headers: { "content-type": "text/html" } });
+        }
+        return json({}, 404);
+      },
+      async () => {
+        const body = await getCommunityStats();
+        assert.equal(body.x, 227);
+        assert.equal(body.tiktok, 4);
+      },
+    );
+  });
+
+  it("prefers the TikTok user token over the public page", async () => {
+    await withTwitch(
+      { TIKTOK_ACCESS_TOKEN: "tt-user" },
+      (call) => {
+        if (call.url.includes("open.tiktokapis.com")) {
+          assert.equal(bearer(call), "tt-user");
+          return json({ data: { user: { follower_count: 9 } } });
+        }
+        if (call.url.includes("www.tiktok.com")) {
+          return new Response(`"uniqueId":"lathos.world","stats":{"followerCount":4}`, { status: 200 });
+        }
+        if (call.url.startsWith("https://x.com/")) return new Response("login wall", { status: 200 });
+        return json({}, 404);
+      },
+      async () => {
+        const body = await getCommunityStats();
+        assert.equal(body.tiktok, 9);
+        assert.equal(body.x, COMMUNITY_COUNT_FALLBACK.x);
+        assert.equal(JSON.stringify(body).includes("tt-user"), false);
       },
     );
   });
