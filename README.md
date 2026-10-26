@@ -25,6 +25,18 @@ Not financial advice. Not a promise of price. Crypto is volatile.
 - Telegram: [t.me/LathosWorldOfficial](https://t.me/LathosWorldOfficial)
 - Pinterest: [pinterest.com/lathosworld](https://www.pinterest.com/lathosworld/)
 - Linktree: [linktr.ee/LathosWorld](https://linktr.ee/LathosWorld)
+- TikTok: [@lathos.world](https://www.tiktok.com/@lathos.world)
+
+## Follower counts
+
+The home page shows Twitch, YouTube, X, and TikTok in one row. `GET /api/community` fills it and caches the result on the worker (about 8 minutes in memory, plus `Cache-Control` on the response).
+
+Twitch and YouTube stay on their existing secrets: `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TWITCH_REFRESH_TOKEN` or `TWITCH_USER_TOKEN`, and `YOUTUBE_API_KEY`.
+
+X and TikTok try a live count, then the numbers in `src/lib/community-counts.ts`. Each card links to the profile either way. Set these in the Cloudflare Workers project (do not commit them):
+
+- `X_BEARER_TOKEN` — X API v2 app-only bearer. Enables `GET https://api.x.com/2/users/by/username/lathos563?user.fields=public_metrics`. Without it, the worker reads the public profile, then the static number.
+- `TIKTOK_ACCESS_TOKEN` — TikTok Display API user access token for @lathos.world with the `user.info.stats` scope. Enables `GET https://open.tiktokapis.com/v2/user/info/?fields=follower_count`. The token expires (about a day). Without it, the worker reads the public profile, then the static number. TikTok has no app-only key for another account's follower count.
 
 ## Run it
 
