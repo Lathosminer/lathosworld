@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as ClipsRouteImport } from './routes/clips'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as LetterRouteImport } from './routes/letter'
 import { Route as ListRouteImport } from './routes/list'
@@ -24,6 +25,7 @@ import { Route as ApiEyeIconRouteImport } from './routes/api/eye-icon'
 import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
 import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
 import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
+import { Route as VideosVideoIdRouteImport } from './routes/videos/$videoId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiGiveawayTickerRouteImport } from './routes/api/giveaway/ticker'
 import { Route as ApiGiveawayCallbackProviderRouteImport } from './routes/api/giveaway/callback/$provider'
@@ -47,6 +49,11 @@ const ClipsRoute = ClipsRouteImport.update({
 const CommunityRoute = CommunityRouteImport.update({
   id: '/community',
   path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HelpRoute = HelpRouteImport.update({
@@ -104,6 +111,11 @@ const GiveawayRulesRoute = GiveawayRulesRouteImport.update({
   path: '/giveaway/rules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VideosVideoIdRoute = VideosVideoIdRouteImport.update({
+  id: '/videos/$videoId',
+  path: '/videos/$videoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -132,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
   '/community': typeof CommunityRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -142,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -153,6 +167,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
   '/community': typeof CommunityRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -163,6 +178,7 @@ export interface FileRoutesByTo {
   '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -175,6 +191,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/clips': typeof ClipsRoute
   '/community': typeof CommunityRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/help': typeof HelpRoute
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
@@ -185,6 +202,7 @@ export interface FileRoutesById {
   '/api/eye-icon': typeof ApiEyeIconRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -198,6 +216,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/clips'
     | '/community'
+    | '/feed.xml'
     | '/help'
     | '/letter'
     | '/list'
@@ -208,6 +227,7 @@ export interface FileRouteTypes {
     | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/videos/$videoId'
     | '/giveaway/'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -219,6 +239,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/clips'
     | '/community'
+    | '/feed.xml'
     | '/help'
     | '/letter'
     | '/list'
@@ -229,6 +250,7 @@ export interface FileRouteTypes {
     | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/videos/$videoId'
     | '/giveaway'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -240,6 +262,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/clips'
     | '/community'
+    | '/feed.xml'
     | '/help'
     | '/letter'
     | '/list'
@@ -250,6 +273,7 @@ export interface FileRouteTypes {
     | '/api/eye-icon'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/videos/$videoId'
     | '/giveaway/'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -262,6 +286,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   ClipsRoute: typeof ClipsRoute
   CommunityRoute: typeof CommunityRoute
+  FeedDotxmlRoute: typeof FeedDotxmlRoute
   HelpRoute: typeof HelpRoute
   LetterRoute: typeof LetterRoute
   ListRoute: typeof ListRoute
@@ -272,6 +297,7 @@ export interface RootRouteChildren {
   ApiEyeIconRoute: typeof ApiEyeIconRoute
   GiveawayAdminRoute: typeof GiveawayAdminRoute
   GiveawayRulesRoute: typeof GiveawayRulesRoute
+  VideosVideoIdRoute: typeof VideosVideoIdRoute
   GiveawayIndexRoute: typeof GiveawayIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiGiveawayTickerRoute: typeof ApiGiveawayTickerRoute
@@ -307,6 +333,13 @@ declare module '@tanstack/react-router' {
       path: '/community'
       fullPath: '/community'
       preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.xml': {
+      id: '/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/feed.xml'
+      preLoaderRoute: typeof FeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/help': {
@@ -386,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GiveawayRulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/videos/$videoId': {
+      id: '/videos/$videoId'
+      path: '/videos/$videoId'
+      fullPath: '/videos/$videoId'
+      preLoaderRoute: typeof VideosVideoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -422,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   ClipsRoute: ClipsRoute,
   CommunityRoute: CommunityRoute,
+  FeedDotxmlRoute: FeedDotxmlRoute,
   HelpRoute: HelpRoute,
   LetterRoute: LetterRoute,
   ListRoute: ListRoute,
@@ -432,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEyeIconRoute: ApiEyeIconRoute,
   GiveawayAdminRoute: GiveawayAdminRoute,
   GiveawayRulesRoute: GiveawayRulesRoute,
+  VideosVideoIdRoute: VideosVideoIdRoute,
   GiveawayIndexRoute: GiveawayIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiGiveawayTickerRoute: ApiGiveawayTickerRoute,

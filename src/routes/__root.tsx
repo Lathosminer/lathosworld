@@ -28,6 +28,7 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "alternate", type: "application/rss+xml", href: "/feed.xml", title: "LathosWorld" },
     ],
   }),
   notFoundComponent: () => (
