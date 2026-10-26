@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "lathosworld",
-  "main": "@tanstack/react-start/server-entry",
+  // Delegates to the TanStack Start server entry after one canonical 301.
+  "main": "./src/worker.ts",
   "compatibility_date": "2026-10-12",
   "observability": {
     "enabled": true
