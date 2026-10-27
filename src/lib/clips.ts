@@ -69,6 +69,16 @@ export const CLIPS: Clip[] = [
     description: "Lexi Storm, the LathosWorld AI character, tells her Once Human survivor cosplay story. AI-generated, labeled AI on YouTube.",
     tags: ["Lexi Storm", "Once Human", "LathosWorld", "AI", "YouTube"], uploadDate: "2026-10-23T12:00:00-05:00",
   },
+  {
+    kind: "yt", id: "DF-8PWZRHe0", title: "Lexi Storm: one twirl and it's officially fall (AI)", game: "Lexi Storm",
+    description: "Lexi Storm, the LathosWorld AI character, shows her cozy fall fit check. AI-generated, labeled AI on YouTube.",
+    tags: ["Lexi Storm", "LathosWorld", "AI", "YouTube", "fall"], uploadDate: "2026-10-26T09:30:00-05:00",
+  },
+  {
+    kind: "yt", id: "pX3NclvYmJ0", title: "Lexi Storm: my cozy spooky season weekend (AI)", game: "Lexi Storm",
+    description: "Lexi Storm, the LathosWorld AI character, shares a witchy porch, PS5 game night, and city lights weekend. AI-generated, labeled AI on YouTube.",
+    tags: ["Lexi Storm", "LathosWorld", "AI", "YouTube", "PS5"], uploadDate: "2026-10-26T06:20:00-05:00",
+  },
 ];
 
 /** Stable discussion id. Threads are stored as `clip:<this>`. Do not rename slugs, YouTube ids, or mp4 paths. */

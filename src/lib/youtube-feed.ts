@@ -14,6 +14,7 @@ export const EXCLUDED_VIDEO_IDS: readonly string[] = [
   "px6StD-TCvg", // Oct 25 2026, 40s: ice, owl costume, family clip
   "3qVqLWcpQHQ", // Oct 26 2026, 12s: test upload
   "j2-ElyTPSiE", // Oct 25 2026, 14s: "Serving Royal Drama with High Energy Tea", costume clip
+  "4FTN8jn45jo", // Oct 25 2026, 31s: rough mixed upload (shirtless man segment, unreleased song teaser)
 ];
 
 export function isExcludedVideo(id: string): boolean {
