@@ -358,17 +358,17 @@ function Entries({
           <Status status={s?.twitch ?? "none"} />
         </header>
         <p>
-          Follow <a href={`https://www.twitch.tv/${TWITCH_LOGIN}`} target="_blank" rel="noreferrer">twitch.tv/{TWITCH_LOGIN}</a>, then
-          sign in with Twitch so we can check it automatically.
+          Follow <a href={`https://www.twitch.tv/${TWITCH_LOGIN}`} target="_blank" rel="noreferrer">twitch.tv/{TWITCH_LOGIN}</a>
+          {open && view.twitchReady ? ", then sign in with Twitch so we can check the follow." : "."}
         </p>
         {me?.twitchLogin ? <p className="talk-meta">Checked: {me.twitchLogin}</p> : null}
         {open && view.twitchReady ? (
           <a className="btn btn-ghost" href="/api/giveaway/connect/twitch">
             {s?.twitch === "verified" ? "Check again" : "Check my Twitch follow"}
           </a>
-        ) : (
-          <p className="talk-meta">{open ? "Twitch check is coming soon." : null}</p>
-        )}
+        ) : open ? (
+          <p className="talk-meta">Automatic Twitch follow check is not available.</p>
+        ) : null}
       </article>
 
       <article className="gw-card">

@@ -57,8 +57,8 @@ const SOCIALS = [
 const OFFERS = [
   {
     name: "Cash App",
-    handle: "Get $5 when you send $5+.",
-    hint: "Code W98XF7L",
+    handle: "Referral link. Get $5 when you send $5+.",
+    hint: "Referral code W98XF7L",
     href: "https://cash.app/refer/W98XF7L",
   },
 ] as const;
@@ -331,7 +331,7 @@ function Home() {
                 <a className="btn btn-ghost" href={SCAN} target="_blank" rel="noopener noreferrer">BscScan</a>
               </div>
               <p className="note">
-                Contract ends in 7777. A different address is not this token. Intended for certain audiences only. Not financial advice. Not a promise of price. Never risk more than you can afford to lose. Crypto is volatile.
+                Contract ends in 7777. A different address is not this token. This is not written for a general audience. Not financial advice. Not a promise of price. Never risk more than you can afford to lose. Crypto is volatile.
               </p>
               <TrustConnect />
               <div className="cta-row">
@@ -350,7 +350,7 @@ function Home() {
             </div>
             <div className="socials offers">
               {OFFERS.map((offer) => (
-                <a key={offer.name} className="social" href={offer.href} target="_blank" rel="noopener noreferrer">
+                <a key={offer.name} className="social" href={offer.href} target="_blank" rel="sponsored noopener noreferrer">
                   <span>
                     <strong>{offer.name}</strong>
                     <em>{offer.handle}</em>
@@ -423,7 +423,13 @@ function Home() {
                 <b>Shop</b>
               </a>
               {CRYPTO_LINKS.map((door) => (
-                <a key={door.name} className="social" href={door.href} target="_blank" rel="noopener noreferrer">
+                <a
+                  key={door.name}
+                  className="social"
+                  href={door.href}
+                  target="_blank"
+                  rel={door.href.includes("cash.app/refer/") ? "sponsored noopener noreferrer" : "noopener noreferrer"}
+                >
                   <span className="social-lead" aria-hidden="true" />
                   <span>
                     <strong>{door.name}</strong>
