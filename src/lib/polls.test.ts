@@ -9,6 +9,15 @@ import {
   validatePoll,
 } from "./polls.ts";
 
+/**
+ * Stand-in for a blocked choice. Built from character codes so the source
+ * stays a neutral token. The leet fold still treats it as a slur, so the
+ * poll is held the same way.
+ */
+function blockedChoiceToken(): string {
+  return String.fromCharCode(121, 111, 117, 32, 110, 49, 103, 103, 101, 114);
+}
+
 describe("community polls", () => {
   it("keeps a bank of thirty questions with real choices", () => {
     assert.equal(POLL_BANK.length, 30);
@@ -62,7 +71,7 @@ describe("community polls", () => {
     const idiom = validatePoll("Is there a chink in his armor?", ["Yes", "No"]);
     assert.equal(idiom.ok, true);
     if (idiom.ok) assert.equal(idiom.hold, false);
-    const slur = validatePoll("Best vault hunter?", ["Maya", "you n1gger"]);
+    const slur = validatePoll("Best vault hunter?", ["Maya", blockedChoiceToken()]);
     assert.equal(slur.ok, true);
     if (slur.ok) assert.equal(slur.hold, true);
     const threat = validatePoll("What should we tell the raid lead?", ["gg", "kill yourself"]);
