@@ -47,6 +47,7 @@ const FACTS = [
 const SOCIALS = [
   { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live", icon: "twitch" },
   { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch", icon: "youtube" },
+  { name: "Spotify", handle: "LathosWorld", href: "https://open.spotify.com/artist/5z5hD7mC4N7n4aOrx8uFiH", hint: "Listen", icon: "spotify" },
   { name: "TikTok", handle: "@lathos.world", href: "https://www.tiktok.com/@lathos.world", hint: "Clips", icon: "tiktok" },
   { name: "X", handle: "@lathos563", href: "https://x.com/lathos563", hint: "Talk", icon: "x" },
   { name: "Discord", handle: "The lobby", href: "https://discord.gg/749tHdsFU6", hint: "Join", icon: "discord" },
@@ -168,6 +169,28 @@ function YouTubeEmbed() {
   );
 }
 
+const SPOTIFY_ARTIST = "https://open.spotify.com/artist/5z5hD7mC4N7n4aOrx8uFiH";
+
+function SpotifyEmbed() {
+  return (
+    <div className="spotify">
+      <iframe
+        data-testid="embed-iframe"
+        className="spotify-frame"
+        style={{ borderRadius: 12 }}
+        src="https://open.spotify.com/embed/artist/5z5hD7mC4N7n4aOrx8uFiH?utm_source=generator&si=5a2b6e7c0b394ef9"
+        title="Spotify Embed: LathosWorld"
+        width="100%"
+        height="352"
+        frameBorder="0"
+        allowFullScreen
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+      />
+    </div>
+  );
+}
+
 function SwordRule() {
   return (
     <div className="sword-rule" aria-hidden="true">
@@ -214,6 +237,7 @@ function Home() {
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#streams">Streams</a>
+          <a href="#music">Music</a>
           <Link to="/clips">Clips</Link>
           <Link to="/community" search={{}}>Community</Link>
           <a href={SHOP} target="_blank" rel="noopener">MERCH / Shop</a>
@@ -244,6 +268,20 @@ function Home() {
             <p className="sell-line">I am a gamer and a streamer.</p>
             <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
             <p className="lede">I will never ask you for anything but a follow.</p>
+          </div>
+        </section>
+        <SwordRule />
+        <section className="section listen" id="music" aria-labelledby="listen-title">
+          <div className="wrap">
+            <div className="banner">
+              <p className="kicker">Music</p>
+              <h2 id="listen-title">Listen on Spotify</h2>
+            </div>
+            <p className="serif-line">The official LathosWorld artist page.</p>
+            <SpotifyEmbed />
+            <div className="cta-row">
+              <a className="btn btn-ghost" href={SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">Open in Spotify</a>
+            </div>
           </div>
         </section>
         <SwordRule />
@@ -500,6 +538,13 @@ function Mark({ name }: { name: string }) {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12.53.02C13.84 0 15.14.01 16.44 0c.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
+      </svg>
+    );
+  }
+  if (name === "spotify") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 1.6C6.3 1.6 1.6 6.3 1.6 12S6.3 22.4 12 22.4 22.4 17.7 22.4 12 17.7 1.6 12 1.6zm4.6 14.9a.7.7 0 0 1-1 .2c-2.6-1.6-5.9-2-9.8-1.1a.7.7 0 0 1-.3-1.4c4.2-1 8-.6 11 1.3.3.2.4.6.1 1zm1.3-2.9a.9.9 0 0 1-1.2.3c-3-1.8-7.6-2.4-11.1-1.3a.9.9 0 0 1-.5-1.7c4.1-1.2 9.1-.6 12.5 1.5.4.3.6.8.3 1.2zm.1-3a1 1 0 0 1-1.4.3C13.4 8.6 8 8.4 4.7 9.4a1 1 0 1 1-.6-1.9c3.8-1.2 9.8-.9 13.6 1.1.5.3.6.9.3 1.4z" />
       </svg>
     );
   }
