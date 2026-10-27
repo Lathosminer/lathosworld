@@ -1,10 +1,10 @@
 import { getFeedVideo } from "@/lib/youtube-feed.functions";
-import { VIDEO_ID_RE, snippet, videoPageModel, type VideoPageModel } from "@/lib/youtube-feed";
+import { VIDEO_ID_RE, isExcludedVideo, snippet, videoPageModel, type VideoPageModel } from "@/lib/youtube-feed";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/videos/$videoId")({
   loader: async ({ params }): Promise<VideoPageModel> => {
-    if (!VIDEO_ID_RE.test(params.videoId)) throw notFound();
+    if (!VIDEO_ID_RE.test(params.videoId) || isExcludedVideo(params.videoId)) throw notFound();
     const video = await getFeedVideo({ data: params.videoId });
     return videoPageModel(params.videoId, video);
   },

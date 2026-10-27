@@ -59,6 +59,16 @@ export const CLIPS: Clip[] = [
     description: "Once Human gameplay on the LathosWorld YouTube channel.",
     tags: ["Once Human", "LathosWorld", "gameplay", "YouTube"], uploadDate: "2026-09-01T18:56:49-07:00",
   },
+  {
+    kind: "yt", id: "HnUVRSQnLlk", title: "Lexi Storm: witch costume reveal (AI)", game: "Lexi Storm",
+    description: "Lexi Storm, the LathosWorld AI character, reveals her witch costume. AI-generated, labeled AI on YouTube.",
+    tags: ["Lexi Storm", "LathosWorld", "AI", "YouTube", "costume"], uploadDate: "2026-10-23T12:00:00-05:00",
+  },
+  {
+    kind: "yt", id: "30Cy5i0OrAM", title: "Lexi Storm: Once Human Halloween week (AI)", game: "Once Human",
+    description: "Lexi Storm, the LathosWorld AI character, tells her Once Human survivor cosplay story. AI-generated, labeled AI on YouTube.",
+    tags: ["Lexi Storm", "Once Human", "LathosWorld", "AI", "YouTube"], uploadDate: "2026-10-23T12:00:00-05:00",
+  },
 ];
 
 /** Stable discussion id. Threads are stored as `clip:<this>`. Do not rename slugs, YouTube ids, or mp4 paths. */
