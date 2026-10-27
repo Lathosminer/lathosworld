@@ -100,9 +100,9 @@ describe("daily clip rotation", () => {
         "twitch:CrepuscularDifferentHawkTBTacoRight-SJ_rYvnelqtp_0N8",
         "twitch:DignifiedUgliestArmadilloTwitchRPG-n9yOfV6fiIcWsBMM",
         "mp4:/clips/once-human-moving-base-v1.mp4",
-        "yt:30Cy5i0OrAM",
         "yt:uVXvTdaZFpo",
         "yt:HnUVRSQnLlk",
+        "yt:DF-8PWZRHe0",
       ],
     );
   });
