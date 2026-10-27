@@ -6,6 +6,23 @@ export const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 /** Fresh window for a successful YouTube read. */
 export const FEED_TTL_MS = 60 * 60 * 1000;
 export const FEED_ITEM_LIMIT = 15;
+/**
+ * YouTube videos that stay on the channel but never show on lathosworld.com
+ * (feed.xml and /videos/<id>). Personal, family, and test uploads.
+ */
+export const EXCLUDED_VIDEO_IDS: readonly string[] = [
+  "px6StD-TCvg", // Oct 25 2026, 40s: ice, owl costume, family clip
+  "3qVqLWcpQHQ", // Oct 26 2026, 12s: test upload
+  "j2-ElyTPSiE", // Oct 25 2026, 14s: "Serving Royal Drama with High Energy Tea", costume clip
+];
+
+export function isExcludedVideo(id: string): boolean {
+  return EXCLUDED_VIDEO_IDS.includes(id);
+}
+
+export function withoutExcluded(videos: readonly YtVideo[]): YtVideo[] {
+  return videos.filter((video) => !isExcludedVideo(video.id));
+}
 export const DEFAULT_DESCRIPTION = "A new video from LathosWorld.";
 export const CHANNEL_TITLE = "LathosWorld";
 export const CHANNEL_DESCRIPTION = "Latest videos from LathosWorld.";
@@ -124,7 +141,7 @@ export function parseYoutubeAtom(xml: string): YtVideo[] {
     });
   }
   videos.sort((a, b) => Date.parse(b.published) - Date.parse(a.published));
-  return videos.slice(0, FEED_ITEM_LIMIT);
+  return withoutExcluded(videos).slice(0, FEED_ITEM_LIMIT);
 }
 
 function textTag(block: string, tag: string): string {
@@ -202,8 +219,9 @@ export function parseCacheEntry(value: unknown): FeedCacheEntry | null {
       published: video.published,
     });
   }
-  if (!videos.length) return null;
-  return { at: raw.at, videos: videos.slice(0, FEED_ITEM_LIMIT) };
+  const kept = withoutExcluded(videos);
+  if (!kept.length) return null;
+  return { at: raw.at, videos: kept.slice(0, FEED_ITEM_LIMIT) };
 }
 
 /**

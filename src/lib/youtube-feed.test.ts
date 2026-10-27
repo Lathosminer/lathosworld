@@ -6,7 +6,9 @@ import {
   DEFAULT_DESCRIPTION,
   FEED_TTL_MS,
   SITE_ORIGIN,
+  isExcludedVideo,
   loadYoutubeVideos,
+  parseCacheEntry,
   parseYoutubeAtom,
   renderRss,
   snippet,
@@ -194,5 +196,25 @@ describe("youtube atom to rss", () => {
     assert.equal(page.description, DEFAULT_DESCRIPTION);
     assert.equal(page.url, `${SITE_ORIGIN}/videos/${idFor(7)}`);
     assert.equal(page.image, `https://i.ytimg.com/vi/${idFor(7)}/hqdefault.jpg`);
+  });
+});
+
+describe("excluded videos", () => {
+  it("drops excluded ids from the feed and the cache", () => {
+    const xml = `<feed>${[
+      entry("px6StD-TCvg", "personal", "", "2026-10-26T04:48:41Z"),
+      entry("3qVqLWcpQHQ", "test", "", "2026-10-26T05:43:05Z"),
+      entry("j2-ElyTPSiE", "costume", "", "2026-10-26T04:47:03Z"),
+      entry("vdWVjRsa1zM", "gameplay", "", "2026-10-23T16:09:52Z"),
+    ].join("\n")}</feed>`;
+    const ids = parseYoutubeAtom(xml).map((video) => video.id);
+    assert.deepEqual(ids, ["vdWVjRsa1zM"]);
+    assert.equal(isExcludedVideo("px6StD-TCvg"), true);
+    assert.equal(isExcludedVideo("vdWVjRsa1zM"), false);
+    const cached = parseCacheEntry({
+      at: 1,
+      videos: ["px6StD-TCvg", "vdWVjRsa1zM"].map((id) => ({ id, title: "t", description: "", published: PUB })),
+    });
+    assert.deepEqual(cached?.videos.map((video) => video.id), ["vdWVjRsa1zM"]);
   });
 });

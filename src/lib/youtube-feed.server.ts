@@ -6,6 +6,7 @@ import {
   parseCacheEntry,
   type FeedCacheEntry,
   type YtVideo,
+  withoutExcluded,
 } from "./youtube-feed.ts";
 
 /** How long the Cache API keeps the last good copy so a later failure can reuse it. */
@@ -28,7 +29,7 @@ export function resetYoutubeFeedCacheForTests(): void {
 /** Newest videos from the YouTube Atom feed. Cached about an hour. */
 export async function getYoutubeVideos(origin?: string): Promise<YtVideo[]> {
   const now = Date.now();
-  if (memory && now - memory.at < FEED_TTL_MS && memory.videos.length > 0) return memory.videos;
+  if (memory && now - memory.at < FEED_TTL_MS && memory.videos.length > 0) return withoutExcluded(memory.videos);
   if (!inflight) {
     inflight = refresh(origin, now).finally(() => {
       inflight = null;
@@ -50,7 +51,7 @@ async function refresh(origin: string | undefined, now: number): Promise<YtVideo
     },
   });
   memory = result.memory;
-  return result.videos;
+  return withoutExcluded(result.videos);
 }
 
 async function fetchAtom(): Promise<string> {
