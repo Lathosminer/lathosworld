@@ -6,6 +6,14 @@
   "observability": {
     "enabled": true
   },
+  // Full WAVs are too large for Workers static assets. Objects live in this
+  // bucket and are streamed from /music/<key>. See README, Music.
+  "r2_buckets": [
+    {
+      "binding": "MUSIC",
+      "bucket_name": "lathosworld-music"
+    }
+  ],
   // Required by `wrangler preview` (Workers Builds branch previews). Empty is fine.
   "previews": {}
 }
