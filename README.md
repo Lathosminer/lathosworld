@@ -38,6 +38,63 @@ X and TikTok try a live count, then the numbers in `src/lib/community-counts.ts`
 - `X_BEARER_TOKEN` — X API v2 app-only bearer. Enables `GET https://api.x.com/2/users/by/username/lathos563?user.fields=public_metrics`. Without it, the worker reads the public profile, then the static number.
 - `TIKTOK_ACCESS_TOKEN` — TikTok Display API user access token for @lathos.world with the `user.info.stats` scope. Enables `GET https://open.tiktokapis.com/v2/user/info/?fields=follower_count`. The token expires (about a day). Without it, the worker reads the public profile, then the static number. TikTok has no app-only key for another account's follower count.
 
+## Music
+
+Singles play on the home page, under the hero and above Streams. The catalog is `src/lib/music.ts` (`SINGLES`, then `ALBUMS`). Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks) stay out of `ALBUMS` until they should be on the page. Add an album there and its tracks show up after the singles. A missing object marks that row unavailable.
+
+Audio is WAV only, for streaming and download. The files are about 40–60 MB, over the Workers static asset limit (25 MiB), so they are not in this repo. They live in the R2 bucket **`lathosworld-music`**, bound on the Worker as **`MUSIC`** (`wrangler.jsonc`). The site serves them on its own domain:
+
+- Play: `https://lathosworld.com/music/<object-key>`
+- Download: the same URL with `?download=1` (`Content-Disposition: attachment`)
+
+Range requests are supported. The player does not offer a download. Only keys listed in the manifest are served.
+
+The next production deploy applies the binding. Wrangler creates `lathosworld-music` during that deploy when the token can create R2 buckets. If the token cannot, create the bucket first, then redeploy:
+
+```bash
+npx wrangler r2 bucket create lathosworld-music
+```
+
+Upload one WAV per key. `--content-type audio/wav`. Do not upload MP3s.
+
+```bash
+npx wrangler r2 object put lathosworld-music/life-feat-lexi-storm.wav --file "./Life (feat. Lexi Storm).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/lost-treasure-remastered.wav --file "./Lost Treasure (Remastered).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/lost-treasure-feat-lexi-storm.wav --file "./Lost Treasure (feat. Lexi Storm).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/life-heavy-metal.wav --file "./Life (Heavy Metal).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/hope-life-and-light-heavy-metal.wav --file "./Hope, Life and Light (Heavy Metal).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/hope-life-and-light-heavy-metal-short.wav --file "./Hope, Life and Light (Heavy Metal, Short Version).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/i-carry-you-with-me-esme-version.wav --file "./I Carry You With Me (Esme Version).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/i-carry-you-with-me-feat-lexi-storm.wav --file "./I Carry You With Me (feat. Lexi Storm).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/no-one-can-help-me-except-feat-lexi-storm.wav --file "./No One Can Help Me Except (feat. Lexi Storm).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/deeper-than-the-ocean-feat-lexi-storm.wav --file "./Deeper Than the Ocean (feat. Lexi Storm).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/the-light.wav --file "./The Light.wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/why.wav --file "./Why.wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/lexi-storm-blame-me-rap-remix.wav --file "./Blame Me (Rap Remix).wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/lexi-storm-slow-motion.wav --file "./Slow Motion.wav" --content-type audio/wav
+npx wrangler r2 object put lathosworld-music/lexi-storm-hope.wav --file "./Hope.wav" --content-type audio/wav
+```
+
+Object keys, in list order:
+
+| Artist | Title | Key |
+| --- | --- | --- |
+| LathosWorld | Life (feat. Lexi Storm) | `life-feat-lexi-storm.wav` |
+| LathosWorld | Lost Treasure (Remastered) | `lost-treasure-remastered.wav` |
+| LathosWorld | Lost Treasure (feat. Lexi Storm) | `lost-treasure-feat-lexi-storm.wav` |
+| LathosWorld | Life (Heavy Metal) | `life-heavy-metal.wav` |
+| LathosWorld | Hope, Life and Light (Heavy Metal) | `hope-life-and-light-heavy-metal.wav` |
+| LathosWorld | Hope, Life and Light (Heavy Metal, Short Version) | `hope-life-and-light-heavy-metal-short.wav` |
+| LathosWorld | I Carry You With Me (Esme Version) | `i-carry-you-with-me-esme-version.wav` |
+| LathosWorld | I Carry You With Me (feat. Lexi Storm) | `i-carry-you-with-me-feat-lexi-storm.wav` |
+| LathosWorld | No One Can Help Me Except (feat. Lexi Storm) | `no-one-can-help-me-except-feat-lexi-storm.wav` |
+| LathosWorld | Deeper Than the Ocean (feat. Lexi Storm) | `deeper-than-the-ocean-feat-lexi-storm.wav` |
+| LathosWorld | The Light | `the-light.wav` |
+| LathosWorld | Why | `why.wav` |
+| Lexi Storm | Blame Me (Rap Remix) | `lexi-storm-blame-me-rap-remix.wav` |
+| Lexi Storm | Slow Motion | `lexi-storm-slow-motion.wav` |
+| Lexi Storm | Hope | `lexi-storm-hope.wav` |
+
 ## Run it
 
 ```bash

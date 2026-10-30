@@ -22,9 +22,11 @@ import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SurvivorsRouteImport } from './routes/survivors'
 import { Route as ApiCommunityRouteImport } from './routes/api/community'
 import { Route as ApiEyeIconRouteImport } from './routes/api/eye-icon'
+import { Route as ApiMusicRouteImport } from './routes/api/music'
 import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
 import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
 import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
+import { Route as MusicSplatRouteImport } from './routes/music/$'
 import { Route as VideosVideoIdRouteImport } from './routes/videos/$videoId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiGiveawayTickerRouteImport } from './routes/api/giveaway/ticker'
@@ -96,6 +98,11 @@ const ApiEyeIconRoute = ApiEyeIconRouteImport.update({
   path: '/api/eye-icon',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMusicRoute = ApiMusicRouteImport.update({
+  id: '/api/music',
+  path: '/api/music',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GiveawayIndexRoute = GiveawayIndexRouteImport.update({
   id: '/giveaway/',
   path: '/giveaway/',
@@ -109,6 +116,11 @@ const GiveawayAdminRoute = GiveawayAdminRouteImport.update({
 const GiveawayRulesRoute = GiveawayRulesRouteImport.update({
   id: '/giveaway/rules',
   path: '/giveaway/rules',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MusicSplatRoute = MusicSplatRouteImport.update({
+  id: '/music/$',
+  path: '/music/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VideosVideoIdRoute = VideosVideoIdRouteImport.update({
@@ -153,8 +165,10 @@ export interface FileRoutesByFullPath {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/api/eye-icon': typeof ApiEyeIconRoute
+  '/api/music': typeof ApiMusicRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/music/$': typeof MusicSplatRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -176,8 +190,10 @@ export interface FileRoutesByTo {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/api/eye-icon': typeof ApiEyeIconRoute
+  '/api/music': typeof ApiMusicRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/music/$': typeof MusicSplatRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -200,8 +216,10 @@ export interface FileRoutesById {
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
   '/api/eye-icon': typeof ApiEyeIconRoute
+  '/api/music': typeof ApiMusicRoute
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
+  '/music/$': typeof MusicSplatRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -225,8 +243,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/api/eye-icon'
+    | '/api/music'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/music/$'
     | '/videos/$videoId'
     | '/giveaway/'
     | '/api/auth/$'
@@ -248,8 +268,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/api/eye-icon'
+    | '/api/music'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/music/$'
     | '/videos/$videoId'
     | '/giveaway'
     | '/api/auth/$'
@@ -271,8 +293,10 @@ export interface FileRouteTypes {
     | '/survivors'
     | '/api/community'
     | '/api/eye-icon'
+    | '/api/music'
     | '/giveaway/admin'
     | '/giveaway/rules'
+    | '/music/$'
     | '/videos/$videoId'
     | '/giveaway/'
     | '/api/auth/$'
@@ -295,8 +319,10 @@ export interface RootRouteChildren {
   SurvivorsRoute: typeof SurvivorsRoute
   ApiCommunityRoute: typeof ApiCommunityRoute
   ApiEyeIconRoute: typeof ApiEyeIconRoute
+  ApiMusicRoute: typeof ApiMusicRoute
   GiveawayAdminRoute: typeof GiveawayAdminRoute
   GiveawayRulesRoute: typeof GiveawayRulesRoute
+  MusicSplatRoute: typeof MusicSplatRoute
   VideosVideoIdRoute: typeof VideosVideoIdRoute
   GiveawayIndexRoute: typeof GiveawayIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -398,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEyeIconRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/music': {
+      id: '/api/music'
+      path: '/api/music'
+      fullPath: '/api/music'
+      preLoaderRoute: typeof ApiMusicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/giveaway/': {
       id: '/giveaway/'
       path: '/giveaway'
@@ -417,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/giveaway/rules'
       fullPath: '/giveaway/rules'
       preLoaderRoute: typeof GiveawayRulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/music/$': {
+      id: '/music/$'
+      path: '/music/$'
+      fullPath: '/music/$'
+      preLoaderRoute: typeof MusicSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos/$videoId': {
@@ -471,8 +511,10 @@ const rootRouteChildren: RootRouteChildren = {
   SurvivorsRoute: SurvivorsRoute,
   ApiCommunityRoute: ApiCommunityRoute,
   ApiEyeIconRoute: ApiEyeIconRoute,
+  ApiMusicRoute: ApiMusicRoute,
   GiveawayAdminRoute: GiveawayAdminRoute,
   GiveawayRulesRoute: GiveawayRulesRoute,
+  MusicSplatRoute: MusicSplatRoute,
   VideosVideoIdRoute: VideosVideoIdRoute,
   GiveawayIndexRoute: GiveawayIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
