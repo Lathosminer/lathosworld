@@ -43,9 +43,28 @@ function bucket(objects: Record<string, MusicObject | null>): MusicBucket {
 }
 
 describe("catalog", () => {
-  it("opens with Life and keeps albums empty", () => {
-    assert.equal(lead?.title, "Life (feat. Lexi Storm)");
-    assert.equal(lead?.artist, ARTIST);
+  it("opens with Hope and keeps albums empty", () => {
+    assert.deepEqual(
+      TRACKS.map((track) => track.title),
+      [
+        "Hope",
+        "Slow Motion",
+        "Life (feat. Lexi Storm)",
+        "No One Can Help Me Except (feat. Lexi Storm)",
+        "Blame Me",
+        "Deeper Than the Ocean (feat. Lexi Storm)",
+        "I Carry You With Me (feat. Lexi Storm)",
+        "I Carry You With Me (Esme Version)",
+        "Lost Treasure (feat. Lexi Storm)",
+        "Lost Treasure (Remastered)",
+        "The Light",
+        "Why",
+        "Life (Heavy Metal)",
+        "Hope, Life and Light (Heavy Metal)",
+        "Hope, Life and Light (Heavy Metal, Short Version)",
+      ],
+    );
+    assert.equal(lead?.artist, LEXI_ARTIST);
     assert.equal(LEAD_TRACK_ID, lead?.id);
     assert.equal(ALBUMS.length, 0);
     assert.equal(TRACKS.length, SINGLES.length);
@@ -54,10 +73,11 @@ describe("catalog", () => {
 
   it("credits Lexi Storm on her singles and LathosWorld on the rest", () => {
     const lexi = TRACKS.filter((track) => track.artist === LEXI_ARTIST).map((track) => track.title);
-    assert.deepEqual(lexi, ["Blame Me (Rap Remix)", "Slow Motion", "Hope"]);
+    assert.deepEqual(lexi, ["Hope", "Slow Motion", "Blame Me"]);
     assert.equal(TRACKS.filter((track) => track.artist === ARTIST).length, 12);
     assert.equal(FEATURED_ARTIST.role, "AI character");
-    assert.equal(FEATURED_ARTIST.youtube, SOCIALS.find((item) => item.name === "YouTube")?.href);
+    assert.equal(FEATURED_ARTIST.youtube, "https://www.youtube.com/@lexistormai");
+    assert.notEqual(FEATURED_ARTIST.youtube, SOCIALS.find((item) => item.name === "YouTube")?.href);
   });
 
   it("is WAV only, with unique keys and no personal name", () => {
@@ -78,7 +98,7 @@ describe("catalog", () => {
 });
 
 describe("serveMusic", () => {
-  const life = TRACKS[0] as Track;
+  const life = TRACKS.find((track) => track.file === "life-feat-lexi-storm.wav") as Track;
 
   it("rejects keys that are not in the catalog", async () => {
     const store = bucket({ [life.file]: object({ size: 8 }) });

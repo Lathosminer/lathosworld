@@ -9,9 +9,9 @@ import { SOCIALS } from "./socials.ts";
  *
  * Durations are the released lengths, rounded to the nearest second.
  * "The Light" and "Why" keep the shorter titles; the store singles credit
- * Lexi Storm on both. "Blame Me (Rap Remix)" is the DistroKid single title.
- * Apple Music lists that Lexi Storm recording as "Blame Me (feat. LathosWorld)"
- * at 2:21.
+ * Lexi Storm on both. The page title is "Blame Me". The file stays the
+ * DistroKid rap-remix master. Apple Music lists that recording as
+ * "Blame Me (feat. LathosWorld)" at 2:21.
  */
 export const ARTIST = "LathosWorld";
 export const LEXI_ARTIST = "Lexi Storm";
@@ -19,7 +19,7 @@ export const LEXI_ARTIST = "Lexi Storm";
 const youtube = SOCIALS.find((item) => item.name === "YouTube");
 if (!youtube) throw new Error("LathosWorld YouTube link is missing from socials");
 
-/** Same channel the homepage already uses for Lexi Storm's videos. */
+/** LathosWorld's channel. The Lexi Storm card does not use this. */
 export const LEXI_YOUTUBE_URL = youtube.href;
 
 export const FEATURED_ARTIST = {
@@ -30,7 +30,7 @@ export const FEATURED_ARTIST = {
   imageWidth: 1000,
   imageHeight: 1500,
   imageAlt: "Lexi Storm, the LathosWorld AI character",
-  youtube: LEXI_YOUTUBE_URL,
+  youtube: "https://www.youtube.com/@lexistormai",
   youtubeLabel: "Watch Lexi Storm on YouTube",
 } as const;
 
@@ -79,23 +79,23 @@ const lexi = (title: string, duration: string, file: string): SingleRelease => (
   file,
 });
 
-/** Singles, in play order. Life (feat. Lexi Storm) stays first. */
+/** Singles, in play order. */
 export const SINGLES: readonly SingleRelease[] = [
+  lexi("Hope", "3:17", "lexi-storm-hope.wav"),
+  lexi("Slow Motion", "2:46", "lexi-storm-slow-motion.wav"),
   lw("Life (feat. Lexi Storm)", "3:46", "life-feat-lexi-storm.wav"),
-  lw("Lost Treasure (Remastered)", "4:42", "lost-treasure-remastered.wav"),
+  lw("No One Can Help Me Except (feat. Lexi Storm)", "2:58", "no-one-can-help-me-except-feat-lexi-storm.wav"),
+  lexi("Blame Me", "2:21", "lexi-storm-blame-me-rap-remix.wav"),
+  lw("Deeper Than the Ocean (feat. Lexi Storm)", "3:04", "deeper-than-the-ocean-feat-lexi-storm.wav"),
+  lw("I Carry You With Me (feat. Lexi Storm)", "2:04", "i-carry-you-with-me-feat-lexi-storm.wav"),
+  lw("I Carry You With Me (Esme Version)", "1:49", "i-carry-you-with-me-esme-version.wav"),
   lw("Lost Treasure (feat. Lexi Storm)", "4:38", "lost-treasure-feat-lexi-storm.wav"),
+  lw("Lost Treasure (Remastered)", "4:42", "lost-treasure-remastered.wav"),
+  lw("The Light", "2:49", "the-light.wav"),
+  lw("Why", "3:22", "why.wav"),
   lw("Life (Heavy Metal)", "3:47", "life-heavy-metal.wav"),
   lw("Hope, Life and Light (Heavy Metal)", "3:27", "hope-life-and-light-heavy-metal.wav"),
   lw("Hope, Life and Light (Heavy Metal, Short Version)", "3:04", "hope-life-and-light-heavy-metal-short.wav"),
-  lw("I Carry You With Me (Esme Version)", "1:49", "i-carry-you-with-me-esme-version.wav"),
-  lw("I Carry You With Me (feat. Lexi Storm)", "2:04", "i-carry-you-with-me-feat-lexi-storm.wav"),
-  lw("No One Can Help Me Except (feat. Lexi Storm)", "2:58", "no-one-can-help-me-except-feat-lexi-storm.wav"),
-  lw("Deeper Than the Ocean (feat. Lexi Storm)", "3:04", "deeper-than-the-ocean-feat-lexi-storm.wav"),
-  lw("The Light", "2:49", "the-light.wav"),
-  lw("Why", "3:22", "why.wav"),
-  lexi("Blame Me (Rap Remix)", "2:21", "lexi-storm-blame-me-rap-remix.wav"),
-  lexi("Slow Motion", "2:46", "lexi-storm-slow-motion.wav"),
-  lexi("Hope", "3:17", "lexi-storm-hope.wav"),
 ];
 
 /**
