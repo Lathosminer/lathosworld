@@ -4,16 +4,10 @@
   "main": "@tanstack/react-start/server-entry",
   "compatibility_date": "2026-10-12",
   "observability": {
-    "enabled": true
+    "enabled": true,
   },
-  // Full WAVs are too large for Workers static assets. Objects live in this
-  // bucket and are streamed from /music/<key>. See README, Music.
-  "r2_buckets": [
-    {
-      "binding": "MUSIC",
-      "bucket_name": "lathosworld-music"
-    }
-  ],
+  // Song masters are not served by the Worker. Previews are static files
+  // in public/previews. The private R2 bucket is no longer bound.
   // Required by `wrangler preview` (Workers Builds branch previews). Empty is fine.
-  "previews": {}
+  "previews": {},
 }

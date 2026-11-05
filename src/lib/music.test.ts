@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it } from "node:test";
 import { SOCIALS } from "./socials.ts";
 import {
@@ -7,40 +9,90 @@ import {
   FEATURED_ARTIST,
   LEAD_TRACK_ID,
   LEXI_ARTIST,
+  PREVIEW_SECONDS,
   SINGLES,
   TRACKS,
-  contentDisposition,
-  downloadUrl,
-  musicAvailability,
-  rangeBounds,
-  serveMusic,
-  streamUrl,
-  trackByFile,
-  type MusicBucket,
-  type MusicObject,
-  type Track,
 } from "./music.ts";
 
 const lead = TRACKS[0];
+const root = path.resolve(import.meta.dirname, "../..");
 
-function object(partial: Partial<MusicObject> & { size: number }): MusicObject {
-  return {
-    httpEtag: '"etag"',
-    body: new Blob(["wav"]).stream(),
-    ...partial,
-  };
-}
-
-function bucket(objects: Record<string, MusicObject | null>): MusicBucket {
-  return {
-    head(key) {
-      return Promise.resolve(key in objects ? objects[key] : null);
-    },
-    get(key) {
-      return Promise.resolve(key in objects ? objects[key] : null);
-    },
-  };
-}
+const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusic?: string }> = {
+  hope: {
+    youtubeMusic: "https://music.youtube.com/watch?v=YdU75FEjzb8",
+    appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
+  },
+  "slow-motion": {
+    youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
+    appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
+  },
+  life: {
+    youtubeMusic: "https://music.youtube.com/watch?v=d1xAoQkvW1w",
+    appleMusic: "https://music.apple.com/us/album/life-feat-lexi-storm/6828751394?i=6828751395",
+  },
+  "no-one-can-help-me-except": {
+    spotify: "https://open.spotify.com/track/5Qg0LfJ3iQqBHI9VKrRyXy",
+    youtubeMusic: "https://music.youtube.com/watch?v=k1u5OWdhyp8",
+    appleMusic:
+      "https://music.apple.com/us/album/no-one-can-help-me-except-feat-lexi-storm/6826919523?i=6826919524",
+  },
+  "blame-me": {
+    youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
+  },
+  "deeper-than-the-ocean": {
+    spotify: "https://open.spotify.com/track/3q2L3B1M5qFlyriDJPaJLC",
+    youtubeMusic: "https://music.youtube.com/watch?v=PDzZ83GJisg",
+    appleMusic:
+      "https://music.apple.com/us/album/deeper-than-the-ocean-feat-lexi-storm/6826906332?i=6826906333",
+  },
+  "i-carry-you-with-me": {
+    spotify: "https://open.spotify.com/track/4rh58G5faPCA9U4ZQlmhjI",
+    youtubeMusic: "https://music.youtube.com/watch?v=RTK3rHUT1io",
+    appleMusic:
+      "https://music.apple.com/us/album/i-carry-you-with-me-feat-lexi-storm/6828063294?i=6828063295",
+  },
+  "i-carry-you-with-me-esme": {
+    youtubeMusic: "https://music.youtube.com/watch?v=PJkYS22r0gs",
+    appleMusic:
+      "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
+  },
+  "lost-treasure": {
+    spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
+    youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
+  },
+  "lost-treasure-remastered": {
+    spotify: "https://open.spotify.com/track/1ls2YWImVEGxApCA4sD32s",
+    youtubeMusic: "https://music.youtube.com/watch?v=PH8s6r3CXmA",
+    appleMusic: "https://music.apple.com/us/album/lost-treasure-remastered/6828730942?i=6828730943",
+  },
+  "the-light": {
+    spotify: "https://open.spotify.com/track/70P5jEYtsatx2yL6cF4gBI",
+    youtubeMusic: "https://music.youtube.com/watch?v=_l65eq_LizE",
+    appleMusic:
+      "https://music.apple.com/us/album/the-light-feat-lexi-storm/6826906074?i=6826906075",
+  },
+  why: {
+    youtubeMusic: "https://music.youtube.com/watch?v=3pGvs78SB1I",
+    appleMusic: "https://music.apple.com/us/album/why-feat-lexi-storm/6826906074?i=6826906406",
+  },
+  "life-heavy-metal": {
+    spotify: "https://open.spotify.com/track/6JBZzBFQhBMtwNpAotLl27",
+    youtubeMusic: "https://music.youtube.com/watch?v=8Khjx7fuOZs",
+    appleMusic: "https://music.apple.com/us/album/life-heavy-metal/6828751691?i=6828751692",
+  },
+  "hope-life-and-light": {
+    spotify: "https://open.spotify.com/track/148gZ0UUihqCvaxkpNpUhI",
+    youtubeMusic: "https://music.youtube.com/watch?v=wmIn31RVsVs",
+    appleMusic:
+      "https://music.apple.com/us/album/hope-life-and-light-heavy-metal/6828752065?i=6828752066",
+  },
+  "hope-life-and-light-short": {
+    spotify: "https://open.spotify.com/track/2bA8jtr6ZsJ39GzxJ2BLSE",
+    youtubeMusic: "https://music.youtube.com/watch?v=LM04vMyc5bo",
+    appleMusic:
+      "https://music.apple.com/us/album/hope-life-and-light-heavy-metal-short-version/6828752065?i=6828752067",
+  },
+};
 
 describe("catalog", () => {
   it("opens with Hope and keeps albums empty", () => {
@@ -69,6 +121,7 @@ describe("catalog", () => {
     assert.equal(ALBUMS.length, 0);
     assert.equal(TRACKS.length, SINGLES.length);
     assert.equal(TRACKS.length, 15);
+    assert.equal(PREVIEW_SECONDS, 30);
   });
 
   it("credits Lexi Storm on her singles and LathosWorld on the rest", () => {
@@ -77,96 +130,53 @@ describe("catalog", () => {
     assert.equal(TRACKS.filter((track) => track.artist === ARTIST).length, 12);
     assert.equal(FEATURED_ARTIST.role, "AI character");
     assert.equal(FEATURED_ARTIST.youtube, "https://www.youtube.com/@lexistormai");
+    assert.equal(FEATURED_ARTIST.youtubeLabel, "Watch Lexi Storm on YouTube");
     assert.notEqual(FEATURED_ARTIST.youtube, SOCIALS.find((item) => item.name === "YouTube")?.href);
+    assert.equal(FEATURED_ARTIST.youtube.includes("@lathos563"), false);
+    assert.equal(FEATURED_ARTIST.youtube.includes("UCcV1q2gBovKyWlU8SnCI3ww"), false);
   });
 
-  it("is WAV only, with unique keys and no personal name", () => {
-    const files = new Set<string>();
-    const blob = JSON.stringify({ TRACKS, FEATURED_ARTIST });
+  it("uses checked streaming links and a short preview, with no master URL", () => {
+    const blob = JSON.stringify({ TRACKS, FEATURED_ARTIST, SINGLES });
+    assert.equal(/\.wav/i.test(blob), false);
+    assert.equal(blob.includes("download=1"), false);
+    assert.equal(blob.includes("/music/"), false);
     assert.equal(/jared/i.test(blob), false);
+    const ids = new Set<string>();
     for (const track of TRACKS) {
-      assert.match(track.file, /\.wav$/);
-      assert.match(track.downloadFilename, /\.wav$/);
-      assert.equal(track.downloadFilename, `${track.artist} - ${track.title}.wav`);
-      assert.equal(track.file.includes("mp3"), false);
-      assert.equal(files.has(track.file), false);
-      files.add(track.file);
-      assert.equal(streamUrl(track), `/music/${track.file}`);
-      assert.equal(downloadUrl(track), `/music/${track.file}?download=1`);
+      assert.equal(ids.has(track.id), false);
+      ids.add(track.id);
+      assert.equal(track.preview, `/previews/${track.id}.mp3`);
+      const expected = LINKS[track.id];
+      assert.ok(expected, track.id);
+      assert.equal(track.spotify, expected.spotify);
+      assert.equal(track.youtubeMusic, expected.youtubeMusic);
+      assert.equal(track.appleMusic, expected.appleMusic);
+      assert.ok(track.youtubeMusic);
+      const file = path.join(root, "public", "previews", `${track.id}.mp3`);
+      const stat = fs.statSync(file);
+      const header = fs.readFileSync(file).subarray(0, 2);
+      assert.equal(header[0], 0xff);
+      assert.ok(stat.size > 50_000 && stat.size < 500_000, `${track.id} is not a short preview`);
     }
-  });
-});
-
-describe("serveMusic", () => {
-  const life = TRACKS.find((track) => track.file === "life-feat-lexi-storm.wav") as Track;
-
-  it("rejects keys that are not in the catalog", async () => {
-    const store = bucket({ [life.file]: object({ size: 8 }) });
-    for (const key of ["../secret.wav", "nope.mp3", "missing.wav", "%2e%2e%2fsecret.wav"]) {
-      const response = await serveMusic(new Request("https://lathosworld.com/music/x"), key, store);
-      assert.equal(response.status, 404);
-    }
-  });
-
-  it("streams a full WAV inline and attaches only for download=1", async () => {
-    const store = bucket({ [life.file]: object({ size: 1200 }) });
-    const play = await serveMusic(new Request(`https://lathosworld.com/music/${life.file}`), life.file, store);
-    assert.equal(play.status, 200);
-    assert.equal(play.headers.get("content-type"), "audio/wav");
-    assert.equal(play.headers.get("accept-ranges"), "bytes");
-    assert.equal(play.headers.get("content-length"), "1200");
-    assert.match(play.headers.get("content-disposition") ?? "", /^inline;/);
-    assert.match(play.headers.get("content-disposition") ?? "", /Life \(feat\. Lexi Storm\)\.wav/);
-
-    const download = await serveMusic(
-      new Request(`https://lathosworld.com/music/${life.file}?download=1`),
-      life.file,
-      store,
+    assert.equal(
+      TRACKS.filter((track) => !track.spotify)
+        .map((track) => track.title)
+        .join("|"),
+      [
+        "Hope",
+        "Slow Motion",
+        "Life (feat. Lexi Storm)",
+        "Blame Me",
+        "I Carry You With Me (Esme Version)",
+        "Why",
+      ].join("|"),
     );
-    assert.match(download.headers.get("content-disposition") ?? "", /^attachment;/);
-  });
-
-  it("answers a byte range with 206", async () => {
-    const store = bucket({
-      [life.file]: object({ size: 5000, range: { offset: 100, length: 50 } }),
-    });
-    const response = await serveMusic(
-      new Request(`https://lathosworld.com/music/${life.file}`, { headers: { range: "bytes=100-149" } }),
-      life.file,
-      store,
+    assert.equal(
+      TRACKS.filter((track) => !track.appleMusic)
+        .map((track) => track.title)
+        .join("|"),
+      ["Blame Me", "Lost Treasure (feat. Lexi Storm)"].join("|"),
     );
-    assert.equal(response.status, 206);
-    assert.equal(response.headers.get("content-range"), "bytes 100-149/5000");
-    assert.equal(response.headers.get("content-length"), "50");
-  });
-
-  it("returns 416 when the range starts past the end", () => {
-    assert.equal(rangeBounds(100, { offset: 100, length: 10 }), null);
-    assert.deepEqual(rangeBounds(1000, { suffix: 20 }), { start: 980, end: 999 });
-  });
-
-  it("uses the catalog filename even when it contains spaces", () => {
-    const header = contentDisposition("Lexi Storm - Slow Motion.wav", true);
-    assert.match(header, /^attachment;/);
-    assert.match(header, /filename="Lexi Storm - Slow Motion\.wav"/);
-  });
-
-  it("reports a missing object as unavailable without throwing", async () => {
-    const failing: MusicBucket = {
-      head() {
-        return Promise.reject(new Error("down"));
-      },
-      get() {
-        return Promise.reject(new Error("down"));
-      },
-    };
-    const none = await musicAvailability(null);
-    assert.equal(Object.values(none).every((ready) => ready === false), true);
-    const response = await serveMusic(new Request("https://lathosworld.com/music/why.wav"), "why.wav", failing);
-    assert.equal(response.status, 404);
-    const present = await musicAvailability(bucket({ "why.wav": object({ size: 4, body: null }) }));
-    assert.equal(present.why, true);
-    assert.equal(present["life-feat-lexi-storm"], false);
-    assert.equal(trackByFile("why.wav")?.title, "Why");
   });
 });

@@ -3,18 +3,28 @@ import { SOCIALS } from "./socials.ts";
 /**
  * Released singles. Edit SINGLES to add or remove a track, or push an album
  * onto ALBUMS (Volume One and Volume Two stay off the page until then).
- * Audio is WAV only. Each `file` is an object key in the R2 bucket
- * `lathosworld-music`, served at `/music/<file>`. Keys must stay unique
- * across singles and albums.
+ *
+ * Play is a 30-second 96 kbps MP3 preview in public/previews. The page does
+ * not stream or link a full master. Spotify, YouTube Music, and Apple Music
+ * are only the links checked on 4 Nov 2026. A platform with no checked link
+ * is left off the row.
+ *
+ * Each preview starts at the first chorus or hook, on a phrase boundary:
+ * Hope 0:57.2, Slow Motion 0:36.9, Life (feat. Lexi Storm) 1:02.1,
+ * No One Can Help Me Except 0:28.0, Blame Me 0:08.5,
+ * Deeper Than the Ocean 0:46.6, I Carry You With Me 0:43.0,
+ * I Carry You With Me (Esme Version) 0:39.8, Lost Treasure 2:09.0,
+ * Lost Treasure (Remastered) 2:25.3, The Light 0:22.7, Why 0:18.7,
+ * Life (Heavy Metal) 1:42.8, Hope, Life and Light (Heavy Metal) 1:32.0,
+ * Hope, Life and Light (Heavy Metal, Short Version) 1:11.6.
  *
  * Durations are the released lengths, rounded to the nearest second.
  * "The Light" and "Why" keep the shorter titles; the store singles credit
- * Lexi Storm on both. The page title is "Blame Me". The file stays the
- * DistroKid rap-remix master. Apple Music lists that recording as
- * "Blame Me (feat. LathosWorld)" at 2:21.
+ * Lexi Storm on both.
  */
 export const ARTIST = "LathosWorld";
 export const LEXI_ARTIST = "Lexi Storm";
+export const PREVIEW_SECONDS = 30;
 
 const youtube = SOCIALS.find((item) => item.name === "YouTube");
 if (!youtube) throw new Error("LathosWorld YouTube link is missing from socials");
@@ -25,7 +35,8 @@ export const LEXI_YOUTUBE_URL = youtube.href;
 export const FEATURED_ARTIST = {
   name: "Lexi Storm",
   role: "AI character",
-  intro: "Lexi Storm is the LathosWorld AI character. She sings with LathosWorld, and her own singles are in the list.",
+  intro:
+    "Lexi Storm is the LathosWorld AI character. She sings with LathosWorld, and her own singles are in the list.",
   image: "/pins/lexi_leather_city_pin.jpg",
   imageWidth: 1000,
   imageHeight: 1500,
@@ -34,16 +45,15 @@ export const FEATURED_ARTIST = {
   youtubeLabel: "Watch Lexi Storm on YouTube",
 } as const;
 
-export const MUSIC_BUCKET = "lathosworld-music";
-export const MUSIC_BINDING = "MUSIC";
-
-/** One playable master. `file` is the R2 object key. */
 export type ReleaseTrack = {
   title: string;
   /** mm:ss */
   duration: string;
-  /** R2 object key under /music/. WAV only. */
-  file: string;
+  /** Stable id. Also the preview filename under /previews/. */
+  id: string;
+  spotify?: string;
+  youtubeMusic?: string;
+  appleMusic?: string;
 };
 
 export type SingleRelease = ReleaseTrack & {
@@ -57,65 +67,132 @@ export type AlbumRelease = {
 };
 
 export type Track = ReleaseTrack & {
-  id: string;
   artist: string;
-  /** Suggested download filename. WAV only. */
-  downloadFilename: string;
+  /** 30-second preview. Never a full master. */
+  preview: string;
   /** Set when the track comes from ALBUMS. */
   album?: string;
 };
 
-const lw = (title: string, duration: string, file: string): SingleRelease => ({
-  artist: ARTIST,
+type Links = {
+  spotify?: string;
+  youtubeMusic?: string;
+  appleMusic?: string;
+};
+
+const track = (
+  artist: string,
+  title: string,
+  duration: string,
+  id: string,
+  links: Links,
+): SingleRelease => ({
+  artist,
   title,
   duration,
-  file,
+  id,
+  ...links,
 });
 
-const lexi = (title: string, duration: string, file: string): SingleRelease => ({
-  artist: LEXI_ARTIST,
-  title,
-  duration,
-  file,
-});
+const lw = (title: string, duration: string, id: string, links: Links) =>
+  track(ARTIST, title, duration, id, links);
+
+const lexi = (title: string, duration: string, id: string, links: Links) =>
+  track(LEXI_ARTIST, title, duration, id, links);
 
 /** Singles, in play order. */
 export const SINGLES: readonly SingleRelease[] = [
-  lexi("Hope", "3:17", "lexi-storm-hope.wav"),
-  lexi("Slow Motion", "2:46", "lexi-storm-slow-motion.wav"),
-  lw("Life (feat. Lexi Storm)", "3:46", "life-feat-lexi-storm.wav"),
-  lw("No One Can Help Me Except (feat. Lexi Storm)", "2:58", "no-one-can-help-me-except-feat-lexi-storm.wav"),
-  lexi("Blame Me", "2:21", "lexi-storm-blame-me-rap-remix.wav"),
-  lw("Deeper Than the Ocean (feat. Lexi Storm)", "3:04", "deeper-than-the-ocean-feat-lexi-storm.wav"),
-  lw("I Carry You With Me (feat. Lexi Storm)", "2:04", "i-carry-you-with-me-feat-lexi-storm.wav"),
-  lw("I Carry You With Me (Esme Version)", "1:49", "i-carry-you-with-me-esme-version.wav"),
-  lw("Lost Treasure (feat. Lexi Storm)", "4:38", "lost-treasure-feat-lexi-storm.wav"),
-  lw("Lost Treasure (Remastered)", "4:42", "lost-treasure-remastered.wav"),
-  lw("The Light", "2:49", "the-light.wav"),
-  lw("Why", "3:22", "why.wav"),
-  lw("Life (Heavy Metal)", "3:47", "life-heavy-metal.wav"),
-  lw("Hope, Life and Light (Heavy Metal)", "3:27", "hope-life-and-light-heavy-metal.wav"),
-  lw("Hope, Life and Light (Heavy Metal, Short Version)", "3:04", "hope-life-and-light-heavy-metal-short.wav"),
+  lexi("Hope", "3:17", "hope", {
+    youtubeMusic: "https://music.youtube.com/watch?v=YdU75FEjzb8",
+    appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
+  }),
+  // Preview is the first chorus of the released 2:46 album cut.
+  lexi("Slow Motion", "2:46", "slow-motion", {
+    youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
+    appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
+  }),
+  lw("Life (feat. Lexi Storm)", "3:46", "life", {
+    youtubeMusic: "https://music.youtube.com/watch?v=d1xAoQkvW1w",
+    appleMusic: "https://music.apple.com/us/album/life-feat-lexi-storm/6828751394?i=6828751395",
+  }),
+  lw("No One Can Help Me Except (feat. Lexi Storm)", "2:58", "no-one-can-help-me-except", {
+    spotify: "https://open.spotify.com/track/5Qg0LfJ3iQqBHI9VKrRyXy",
+    youtubeMusic: "https://music.youtube.com/watch?v=k1u5OWdhyp8",
+    appleMusic:
+      "https://music.apple.com/us/album/no-one-can-help-me-except-feat-lexi-storm/6826919523?i=6826919524",
+  }),
+  // Preview is the first hook of the released 2:21 album cut, not the unreleased rap remix.
+  lexi("Blame Me", "2:21", "blame-me", {
+    youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
+  }),
+  lw("Deeper Than the Ocean (feat. Lexi Storm)", "3:04", "deeper-than-the-ocean", {
+    spotify: "https://open.spotify.com/track/3q2L3B1M5qFlyriDJPaJLC",
+    youtubeMusic: "https://music.youtube.com/watch?v=PDzZ83GJisg",
+    appleMusic:
+      "https://music.apple.com/us/album/deeper-than-the-ocean-feat-lexi-storm/6826906332?i=6826906333",
+  }),
+  lw("I Carry You With Me (feat. Lexi Storm)", "2:04", "i-carry-you-with-me", {
+    spotify: "https://open.spotify.com/track/4rh58G5faPCA9U4ZQlmhjI",
+    youtubeMusic: "https://music.youtube.com/watch?v=RTK3rHUT1io",
+    appleMusic:
+      "https://music.apple.com/us/album/i-carry-you-with-me-feat-lexi-storm/6828063294?i=6828063295",
+  }),
+  lw("I Carry You With Me (Esme Version)", "1:49", "i-carry-you-with-me-esme", {
+    youtubeMusic: "https://music.youtube.com/watch?v=PJkYS22r0gs",
+    appleMusic:
+      "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
+  }),
+  // Released length is 4:38 (Spotify 278.7s, 25 Oct 2026). The row keeps that.
+  lw("Lost Treasure (feat. Lexi Storm)", "4:38", "lost-treasure", {
+    spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
+    youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
+  }),
+  lw("Lost Treasure (Remastered)", "4:42", "lost-treasure-remastered", {
+    spotify: "https://open.spotify.com/track/1ls2YWImVEGxApCA4sD32s",
+    youtubeMusic: "https://music.youtube.com/watch?v=PH8s6r3CXmA",
+    appleMusic: "https://music.apple.com/us/album/lost-treasure-remastered/6828730942?i=6828730943",
+  }),
+  lw("The Light", "2:49", "the-light", {
+    spotify: "https://open.spotify.com/track/70P5jEYtsatx2yL6cF4gBI",
+    youtubeMusic: "https://music.youtube.com/watch?v=_l65eq_LizE",
+    appleMusic:
+      "https://music.apple.com/us/album/the-light-feat-lexi-storm/6826906074?i=6826906075",
+  }),
+  lw("Why", "3:22", "why", {
+    youtubeMusic: "https://music.youtube.com/watch?v=3pGvs78SB1I",
+    appleMusic: "https://music.apple.com/us/album/why-feat-lexi-storm/6826906074?i=6826906406",
+  }),
+  lw("Life (Heavy Metal)", "3:47", "life-heavy-metal", {
+    spotify: "https://open.spotify.com/track/6JBZzBFQhBMtwNpAotLl27",
+    youtubeMusic: "https://music.youtube.com/watch?v=8Khjx7fuOZs",
+    appleMusic: "https://music.apple.com/us/album/life-heavy-metal/6828751691?i=6828751692",
+  }),
+  lw("Hope, Life and Light (Heavy Metal)", "3:27", "hope-life-and-light", {
+    spotify: "https://open.spotify.com/track/148gZ0UUihqCvaxkpNpUhI",
+    youtubeMusic: "https://music.youtube.com/watch?v=wmIn31RVsVs",
+    appleMusic:
+      "https://music.apple.com/us/album/hope-life-and-light-heavy-metal/6828752065?i=6828752066",
+  }),
+  lw("Hope, Life and Light (Heavy Metal, Short Version)", "3:04", "hope-life-and-light-short", {
+    spotify: "https://open.spotify.com/track/2bA8jtr6ZsJ39GzxJ2BLSE",
+    youtubeMusic: "https://music.youtube.com/watch?v=LM04vMyc5bo",
+    appleMusic:
+      "https://music.apple.com/us/album/hope-life-and-light-heavy-metal-short-version/6828752065?i=6828752067",
+  }),
 ];
 
 /**
  * Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks)
  * are out. Leave them off this list until they should play on the site.
- * Adding one appends its tracks after the singles:
- *
- * { artist: "LathosWorld", title: "Volume One", tracks: [{ title, duration, file }] }
- * { artist: "Lexi Storm", title: "Volume Two", tracks: [{ title, duration, file }] }
+ * Adding one appends its tracks after the singles.
  */
 export const ALBUMS: readonly AlbumRelease[] = [];
 
-function toTrack(artist: string, track: ReleaseTrack, album?: string): Track {
+function toTrack(artist: string, release: ReleaseTrack, album?: string): Track {
   return {
-    id: track.file.replace(/\.wav$/i, ""),
+    ...release,
     artist,
-    title: track.title,
-    duration: track.duration,
-    file: track.file,
-    downloadFilename: `${artist} - ${track.title}.wav`,
+    preview: `/previews/${release.id}.mp3`,
     ...(album ? { album } : {}),
   };
 }
@@ -123,165 +200,10 @@ function toTrack(artist: string, track: ReleaseTrack, album?: string): Track {
 /** Singles first, then any album tracks, in catalog order. */
 export const TRACKS: readonly Track[] = [
   ...SINGLES.map((single) => toTrack(single.artist, single)),
-  ...ALBUMS.flatMap((album) => album.tracks.map((track) => toTrack(album.artist, track, album.title))),
+  ...ALBUMS.flatMap((album) =>
+    album.tracks.map((item) => toTrack(album.artist, item, album.title)),
+  ),
 ];
 
 /** Lead single. Stays first and is marked in the tracklist. */
 export const LEAD_TRACK_ID = TRACKS[0]?.id ?? "";
-
-export type MusicRange = {
-  offset?: number;
-  length?: number;
-  suffix?: number;
-};
-
-/** Enough of an R2 object for streaming WAV responses. */
-export type MusicObject = {
-  size: number;
-  httpEtag: string;
-  range?: MusicRange;
-  body?: ReadableStream<Uint8Array> | null;
-  writeHttpMetadata?: (headers: Headers) => void;
-};
-
-export type MusicBucket = {
-  head(key: string): Promise<MusicObject | null>;
-  get(key: string, options?: { range?: Headers; onlyIf?: Headers }): Promise<MusicObject | null>;
-};
-
-export function streamUrl(track: Track): string {
-  return `/music/${encodeURIComponent(track.file)}`;
-}
-
-export function downloadUrl(track: Track): string {
-  return `${streamUrl(track)}?download=1`;
-}
-
-export function trackByFile(raw: string): Track | undefined {
-  let file = raw.trim();
-  if (!file || file.includes("\0") || file.includes("/") || file.includes("\\")) return undefined;
-  try {
-    file = decodeURIComponent(file);
-  } catch {
-    return undefined;
-  }
-  if (file.includes("/") || file.includes("\\") || file.includes("\0")) return undefined;
-  if (!file.toLowerCase().endsWith(".wav")) return undefined;
-  return TRACKS.find((track) => track.file === file);
-}
-
-export function contentDisposition(filename: string, download: boolean): string {
-  const cleaned = filename.replace(/[\r\n"]/g, "");
-  const encoded = encodeURIComponent(cleaned).replace(/[!'()*]/g, (char) =>
-    `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
-  );
-  return `${download ? "attachment" : "inline"}; filename="${cleaned}"; filename*=UTF-8''${encoded}`;
-}
-
-export function rangeBounds(size: number, range: MusicRange): { start: number; end: number } | null {
-  if (size <= 0) return null;
-  if (range.suffix !== undefined) {
-    if (range.suffix <= 0) return null;
-    const length = Math.min(range.suffix, size);
-    return { start: size - length, end: size - 1 };
-  }
-  const start = range.offset ?? 0;
-  if (!Number.isFinite(start) || start < 0 || start >= size) return null;
-  const length = range.length ?? size - start;
-  if (!Number.isFinite(length) || length <= 0) return null;
-  const end = Math.min(size - 1, start + length - 1);
-  if (end < start) return null;
-  return { start, end };
-}
-
-function notFound(): Response {
-  return new Response("Not found", {
-    status: 404,
-    headers: {
-      "cache-control": "no-store",
-      "content-type": "text/plain; charset=utf-8",
-    },
-  });
-}
-
-export function musicFileResponse(options: {
-  request: Request;
-  track: Track;
-  object: MusicObject | null;
-  download: boolean;
-  method: "GET" | "HEAD";
-}): Response {
-  const { request, track, object, download, method } = options;
-  if (!object) return notFound();
-
-  const headers = new Headers();
-  object.writeHttpMetadata?.(headers);
-  headers.delete("content-length");
-  headers.delete("content-disposition");
-  headers.set("content-type", "audio/wav");
-  headers.set("accept-ranges", "bytes");
-  headers.set("etag", object.httpEtag);
-  headers.set("x-content-type-options", "nosniff");
-  headers.set("content-disposition", contentDisposition(track.downloadFilename, download));
-  headers.set("cache-control", "public, max-age=3600");
-
-  const hasBody = object.body != null;
-  if (method === "GET" && !hasBody) {
-    const revalidate = request.headers.has("if-none-match") || request.headers.has("if-modified-since");
-    return new Response(null, { status: revalidate ? 304 : 412, headers });
-  }
-
-  if (request.headers.has("range") && object.range) {
-    const bounds = rangeBounds(object.size, object.range);
-    if (!bounds) {
-      headers.set("content-range", `bytes */${object.size}`);
-      return new Response(method === "HEAD" ? null : "Range not satisfiable", { status: 416, headers });
-    }
-    headers.set("content-range", `bytes ${bounds.start}-${bounds.end}/${object.size}`);
-    headers.set("content-length", String(bounds.end - bounds.start + 1));
-    return new Response(method === "HEAD" ? null : object.body, { status: 206, headers });
-  }
-
-  headers.set("content-length", String(object.size));
-  return new Response(method === "HEAD" ? null : (object.body ?? null), { status: 200, headers });
-}
-
-export async function serveMusic(request: Request, rawFile: string, bucket: MusicBucket | null): Promise<Response> {
-  const track = trackByFile(rawFile);
-  if (!track) return notFound();
-  const method = request.method.toUpperCase();
-  if (method !== "GET" && method !== "HEAD") {
-    return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
-  }
-  if (!bucket) return notFound();
-  const download = new URL(request.url).searchParams.get("download") === "1";
-  try {
-    const object =
-      method === "HEAD"
-        ? await bucket.head(track.file)
-        : await bucket.get(
-            track.file,
-            request.headers.has("range")
-              ? { range: request.headers, onlyIf: request.headers }
-              : { onlyIf: request.headers },
-          );
-    return musicFileResponse({ request, track, object, download, method });
-  } catch {
-    return notFound();
-  }
-}
-
-export async function musicAvailability(bucket: MusicBucket | null): Promise<Record<string, boolean>> {
-  const entries = await Promise.all(
-    TRACKS.map(async (track) => {
-      if (!bucket) return [track.id, false] as const;
-      try {
-        const object = await bucket.head(track.file);
-        return [track.id, object !== null] as const;
-      } catch {
-        return [track.id, false] as const;
-      }
-    }),
-  );
-  return Object.fromEntries(entries);
-}

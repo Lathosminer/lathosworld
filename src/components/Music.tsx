@@ -1,47 +1,30 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ARTIST,
-  FEATURED_ARTIST,
-  LEAD_TRACK_ID,
-  TRACKS,
-  downloadUrl,
-  streamUrl,
-  type Track,
-} from "@/lib/music";
+import { useRef, useState } from "react";
+import { ARTIST, FEATURED_ARTIST, LEAD_TRACK_ID, TRACKS, type Track } from "@/lib/music";
 
-type Availability = Record<string, boolean>;
+type StreamLink = { name: string; href: string };
+
+function streamLinks(track: Track): StreamLink[] {
+  return [
+    track.spotify ? { name: "Spotify", href: track.spotify } : null,
+    track.youtubeMusic ? { name: "YouTube Music", href: track.youtubeMusic } : null,
+    track.appleMusic ? { name: "Apple Music", href: track.appleMusic } : null,
+  ].filter((link): link is StreamLink => link !== null);
+}
 
 export function Music() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
-  const [availability, setAvailability] = useState<Availability | null>(null);
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
   const active = TRACKS.find((track) => track.id === activeId) ?? null;
 
-  useEffect(() => {
-    let alive = true;
-    const unavailable = Object.fromEntries(TRACKS.map((track) => [track.id, false])) as Availability;
-    fetch("/api/music")
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("unavailable"))))
-      .then((body: { tracks?: Availability }) => {
-        if (!alive) return;
-        setAvailability(body.tracks ?? unavailable);
-      })
-      .catch(() => {
-        if (alive) setAvailability(unavailable);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   const markMissing = (id: string) => {
-    setAvailability((current) => ({ ...(current ?? {}), [id]: false }));
+    setFailed((current) => ({ ...current, [id]: true }));
     setPlaying(false);
   };
 
   const play = async (track: Track) => {
-    if (availability?.[track.id] === false) return;
+    if (failed[track.id]) return;
     const audio = audioRef.current;
     if (!audio) return;
     if (activeId === track.id && !audio.paused && audio.src) {
@@ -49,14 +32,14 @@ export function Music() {
       return;
     }
     if (audio.dataset.track !== track.id) {
-      audio.src = streamUrl(track);
+      audio.src = track.preview;
       audio.dataset.track = track.id;
     }
     setActiveId(track.id);
     try {
       await audio.play();
     } catch {
-      /* The play button stays. A missing file is handled by onError. */
+      /* The play button stays. A missing preview is handled by onError. */
     }
   };
 
@@ -99,14 +82,18 @@ export function Music() {
 
         <div className="music-player">
           <p id="music-player-note" className="note">
-            Play a track here. Download stays on the track row.
+            Play a 30-second preview. The full song streams from the buttons.
           </p>
           <audio
             ref={audioRef}
             controls
             controlsList="nodownload"
             preload="none"
-            aria-label={active ? `${active.artist} player: ${active.title}` : `${ARTIST} player. Choose a track.`}
+            aria-label={
+              active
+                ? `${active.artist} player: ${active.title}`
+                : `${ARTIST} player. Choose a track.`
+            }
             aria-describedby="music-player-note"
             onContextMenu={(event) => event.preventDefault()}
             onPlay={() => setPlaying(true)}
@@ -123,12 +110,11 @@ export function Music() {
 
         <ol className="music-list" aria-label="Tracks">
           {TRACKS.map((track) => {
-            const known = availability?.[track.id];
-            const ready = known === true;
-            const missing = known === false;
+            const missing = failed[track.id] === true;
             const isActive = activeId === track.id;
             const isLead = track.id === LEAD_TRACK_ID;
-            const action = !availability ? "Checking" : isActive && playing ? "Pause" : "Play";
+            const action = isActive && playing ? "Pause" : "Play";
+            const links = streamLinks(track);
             return (
               <li
                 key={track.id}
@@ -138,14 +124,12 @@ export function Music() {
                 <button
                   type="button"
                   className="music-main"
-                  aria-disabled={!ready}
+                  aria-disabled={missing}
                   aria-pressed={isActive}
                   aria-label={
                     missing
-                      ? `${track.title} by ${track.artist}, unavailable`
-                      : ready
-                        ? `${action} ${track.title} by ${track.artist}, ${track.duration}`
-                        : `Checking ${track.title} by ${track.artist}`
+                      ? `${track.title} by ${track.artist}, preview unavailable`
+                      : `${action} ${track.title} by ${track.artist}, ${track.duration}`
                   }
                   onClick={() => void play(track)}
                 >
@@ -162,17 +146,25 @@ export function Music() {
                   </span>
                 </button>
                 <span className="music-time">{track.duration}</span>
-                {ready ? (
-                  <a
-                    className="btn btn-ghost music-download"
-                    href={downloadUrl(track)}
-                    download={track.downloadFilename}
-                    aria-label={`Download ${track.title} by ${track.artist}, WAV`}
-                  >
-                    Download
-                  </a>
+                {links.length > 0 ? (
+                  <span className="music-links">
+                    {links.map((link) => (
+                      <a
+                        key={link.name}
+                        className="btn btn-ghost"
+                        href={link.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {link.name}
+                        <span className="visually-hidden">
+                          : {track.title} by {track.artist} (opens in a new tab)
+                        </span>
+                      </a>
+                    ))}
+                  </span>
                 ) : (
-                  <span className="music-missing">{missing ? "Unavailable" : "Checking"}</span>
+                  <span className="music-missing">No stream</span>
                 )}
               </li>
             );
