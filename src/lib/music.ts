@@ -10,8 +10,8 @@ import { SOCIALS } from "./socials.ts";
  * is left off the row.
  *
  * Each preview starts at the first chorus or hook, on a phrase boundary:
- * Hope 0:57.2, Slow Motion 1:16.2, Life (feat. Lexi Storm) 1:02.1,
- * No One Can Help Me Except 0:28.0, Blame Me 0:21.8,
+ * Hope 0:57.2, Slow Motion 0:36.9, Life (feat. Lexi Storm) 1:02.1,
+ * No One Can Help Me Except 0:28.0, Blame Me 0:08.5,
  * Deeper Than the Ocean 0:46.6, I Carry You With Me 0:43.0,
  * I Carry You With Me (Esme Version) 0:39.8, Lost Treasure 2:09.0,
  * Lost Treasure (Remastered) 2:25.3, The Light 0:22.7, Why 0:18.7,
@@ -106,6 +106,7 @@ export const SINGLES: readonly SingleRelease[] = [
     youtubeMusic: "https://music.youtube.com/watch?v=YdU75FEjzb8",
     appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
   }),
+  // Preview is the first chorus of the released 2:46 album cut.
   lexi("Slow Motion", "2:46", "slow-motion", {
     youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
     appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
@@ -120,8 +121,7 @@ export const SINGLES: readonly SingleRelease[] = [
     appleMusic:
       "https://music.apple.com/us/album/no-one-can-help-me-except-feat-lexi-storm/6826919523?i=6826919524",
   }),
-  // The preview is the first chorus of the master the site already hosted.
-  // That master runs 3:34. The row length and the YouTube Music link are the 2:21 single.
+  // Preview is the first hook of the released 2:21 album cut, not the unreleased rap remix.
   lexi("Blame Me", "2:21", "blame-me", {
     youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
   }),
@@ -142,6 +142,7 @@ export const SINGLES: readonly SingleRelease[] = [
     appleMusic:
       "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
   }),
+  // Released length is 4:38 (Spotify 278.7s, 25 Oct 2026). The row keeps that.
   lw("Lost Treasure (feat. Lexi Storm)", "4:38", "lost-treasure", {
     spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
     youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
