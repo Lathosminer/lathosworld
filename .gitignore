@@ -9,6 +9,9 @@ dist
 .env
 .env.*
 *.zip
+# Served if left under public/. Keep these out of the site and the repo.
+/public/vault/
+/public/gb-analyze.md
 .tanstack
 
 # wrangler files
