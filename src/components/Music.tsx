@@ -1,12 +1,28 @@
 import { useRef, useState } from "react";
-import { ARTIST, FEATURED_ARTIST, LEAD_TRACK_ID, TRACKS, type Track } from "@/lib/music";
+import {
+  ARTIST,
+  FEATURED_ARTIST,
+  LEAD_TRACK_ID,
+  TRACKS,
+  YOUTUBE_MUSIC_PLAYLIST,
+  type Track,
+} from "@/lib/music";
 
 type StreamLink = { name: string; href: string };
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function releasedLabel(iso: string): string {
+  const [year, month, day] = iso.split("-");
+  const name = MONTHS[Number(month) - 1];
+  return name && day && year ? `${name} ${Number(day)}, ${year}` : iso;
+}
 
 function streamLinks(track: Track): StreamLink[] {
   return [
     track.spotify ? { name: "Spotify", href: track.spotify } : null,
     track.youtubeMusic ? { name: "YouTube Music", href: track.youtubeMusic } : null,
+    track.youtube ? { name: "YouTube", href: track.youtube } : null,
     track.appleMusic ? { name: "Apple Music", href: track.appleMusic } : null,
   ].filter((link): link is StreamLink => link !== null);
 }
@@ -24,7 +40,7 @@ export function Music() {
   };
 
   const play = async (track: Track) => {
-    if (failed[track.id]) return;
+    if (!track.preview || failed[track.id]) return;
     const audio = audioRef.current;
     if (!audio) return;
     if (activeId === track.id && !audio.paused && audio.src) {
@@ -82,7 +98,13 @@ export function Music() {
 
         <div className="music-player">
           <p id="music-player-note" className="note">
-            Play a 30-second preview. The full song streams from the buttons.
+            Play a 30-second preview when this site has one. Full songs open from the store buttons.
+          </p>
+          <p className="music-feature-link">
+            <a href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
+              YouTube Music playlist
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
           </p>
           <audio
             ref={audioRef}
@@ -108,44 +130,56 @@ export function Music() {
           </p>
         </div>
 
-        <ol className="music-list" aria-label="Tracks">
+        <ol className="music-list" aria-label="Tracks, newest verified release first">
           {TRACKS.map((track) => {
             const missing = failed[track.id] === true;
             const isActive = activeId === track.id;
             const isLead = track.id === LEAD_TRACK_ID;
             const action = isActive && playing ? "Pause" : "Play";
             const links = streamLinks(track);
+            const length = track.duration ? `, ${track.duration}` : "";
+            const identity = (
+              <span className="music-copy">
+                {track.released ? (
+                  <span className="music-date">{releasedLabel(track.released)}</span>
+                ) : null}
+                {isLead ? <span className="music-flag">Featured</span> : null}
+                <span className="music-name">{track.title}</span>
+                <span className="music-by">
+                  {track.artist}
+                  {track.album ? ` · ${track.album}` : ""}
+                </span>
+                {track.note ? <span className="music-note">{track.note}</span> : null}
+              </span>
+            );
             return (
               <li
                 key={track.id}
                 className={`music-row${isLead ? " is-lead" : ""}${isActive ? " is-active" : ""}${missing ? " is-missing" : ""}`}
                 aria-current={isActive ? "true" : undefined}
               >
-                <button
-                  type="button"
-                  className="music-main"
-                  aria-disabled={missing}
-                  aria-pressed={isActive}
-                  aria-label={
-                    missing
-                      ? `${track.title} by ${track.artist}, preview unavailable`
-                      : `${action} ${track.title} by ${track.artist}, ${track.duration}`
-                  }
-                  onClick={() => void play(track)}
-                >
-                  <span className="music-glyph" aria-hidden="true">
-                    {isActive && playing ? "❚❚" : "▶"}
-                  </span>
-                  <span className="music-copy">
-                    {isLead ? <span className="music-flag">Featured</span> : null}
-                    <span className="music-name">{track.title}</span>
-                    <span className="music-by">
-                      {track.artist}
-                      {track.album ? ` · ${track.album}` : ""}
+                {track.preview ? (
+                  <button
+                    type="button"
+                    className="music-main"
+                    aria-disabled={missing}
+                    aria-pressed={isActive}
+                    aria-label={
+                      missing
+                        ? `${track.title} by ${track.artist}, preview unavailable`
+                        : `${action} ${track.title} by ${track.artist}${length}`
+                    }
+                    onClick={() => void play(track)}
+                  >
+                    <span className="music-glyph" aria-hidden="true">
+                      {isActive && playing ? "❚❚" : "▶"}
                     </span>
-                  </span>
-                </button>
-                <span className="music-time">{track.duration}</span>
+                    {identity}
+                  </button>
+                ) : (
+                  <div className="music-main">{identity}</div>
+                )}
+                <span className="music-time">{track.duration ?? ""}</span>
                 {links.length > 0 ? (
                   <span className="music-links">
                     {links.map((link) => (
@@ -164,7 +198,7 @@ export function Music() {
                     ))}
                   </span>
                 ) : (
-                  <span className="music-missing">No stream</span>
+                  <span className="music-missing">Not verified yet</span>
                 )}
               </li>
             );

@@ -2023,6 +2023,23 @@ html.lw-sword-cursor { --lw-pointer: none; }
   color: var(--color-muted);
   font-size: 0.82rem;
 }
+.music-date {
+  display: block;
+  margin-bottom: 0.12rem;
+  color: var(--color-cyan);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.music-note {
+  display: block;
+  margin-top: 0.22rem;
+  max-width: 36rem;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
 .music-time {
   color: var(--color-muted);
   font-family: var(--font-mono);
