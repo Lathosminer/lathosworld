@@ -36,6 +36,7 @@ const EXPECTED: Expectation[] = [
     artist: ARTIST,
     duration: "3:08",
     released: "2026-11-07",
+    spotify: "https://open.spotify.com/track/2aNjroKhgsX4o5Itiq3sCM",
     appleMusic: "https://music.apple.com/us/album/silk-in-the-static/6832024154?i=6832024155",
   },
   {
@@ -43,6 +44,7 @@ const EXPECTED: Expectation[] = [
     artist: ARTIST,
     duration: "3:09",
     released: "2026-11-07",
+    spotify: "https://open.spotify.com/track/1OQXBNqCcYk71MRboRcafJ",
     appleMusic: "https://music.apple.com/us/album/ghost-in-the-mix/6832085789?i=6832085790",
   },
   {
@@ -51,6 +53,7 @@ const EXPECTED: Expectation[] = [
     duration: "2:07",
     released: "2026-11-07",
     album: "Shape of Us",
+    spotify: "https://open.spotify.com/track/2nA9nHNO47dP5QnyU7Cz0C",
     appleMusic: "https://music.apple.com/us/album/shape-of-us/6831960552?i=6831960556",
   },
   {
@@ -59,6 +62,7 @@ const EXPECTED: Expectation[] = [
     duration: "3:08",
     released: "2026-11-07",
     album: "Shape of Us",
+    spotify: "https://open.spotify.com/track/5YS1VNtA0hrMntMQMRBQ4s",
     appleMusic: "https://music.apple.com/us/album/the-test-of-time/6831960552?i=6831960553",
   },
   {
