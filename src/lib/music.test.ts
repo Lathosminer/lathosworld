@@ -148,6 +148,14 @@ const EXPECTED: Expectation[] = [
     appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
   },
   {
+    title: "Light It Up",
+    artist: LEXI_ARTIST,
+    duration: "3:04",
+    released: "2026-10-28",
+    album: "Volume Two",
+    appleMusic: "https://music.apple.com/us/album/light-it-up/6828049260?i=6828049263",
+  },
+  {
     title: "Slow Motion",
     artist: LEXI_ARTIST,
     duration: "2:46",
@@ -165,6 +173,39 @@ const EXPECTED: Expectation[] = [
     album: "Volume Two",
     spotify: "https://open.spotify.com/track/2v8WyqD0l5jjf6PdyD9saj",
     appleMusic: "https://music.apple.com/us/album/love-me/6828049260?i=6828049265",
+  },
+  {
+    title: "What Happened to You and I",
+    artist: LEXI_ARTIST,
+    duration: "3:07",
+    released: "2026-10-28",
+    album: "Volume Two",
+    appleMusic:
+      "https://music.apple.com/us/album/what-happened-to-you-and-i/6828049260?i=6828049266",
+  },
+  {
+    title: "Some Day",
+    artist: LEXI_ARTIST,
+    duration: "3:24",
+    released: "2026-10-28",
+    album: "Volume Two",
+    appleMusic: "https://music.apple.com/us/album/some-day/6828049260?i=6828049267",
+  },
+  {
+    title: "Turns You Never Said",
+    artist: LEXI_ARTIST,
+    duration: "3:04",
+    released: "2026-10-28",
+    album: "Volume Two",
+    appleMusic: "https://music.apple.com/us/album/turns-you-never-said/6828049260?i=6828049269",
+  },
+  {
+    title: "A Place",
+    artist: LEXI_ARTIST,
+    duration: "3:29",
+    released: "2026-10-28",
+    album: "Volume Two",
+    appleMusic: "https://music.apple.com/us/album/a-place/6828049260?i=6828049271",
   },
   {
     title: "I Carry You With Me (feat. Lexi Storm)",
@@ -254,7 +295,7 @@ describe("catalog", () => {
       EXPECTED.map((track) => track.title),
     );
     assert.equal(TRACKS.length, SINGLES.length);
-    assert.equal(TRACKS.length, 24);
+    assert.equal(TRACKS.length, 29);
     assert.equal(ALBUMS.length, 0);
     assert.equal(PREVIEW_SECONDS, 30);
     assert.equal(LEAD_TRACK_ID, "hope");
@@ -268,8 +309,13 @@ describe("catalog", () => {
       "Love Me in Slow Motion",
       "Ghosted",
       "Hope",
+      "Light It Up",
       "Slow Motion",
       "Love Me",
+      "What Happened to You and I",
+      "Some Day",
+      "Turns You Never Said",
+      "A Place",
       "Blame Me",
     ]);
     assert.equal(FEATURED_ARTIST.youtube, "https://www.youtube.com/@lexistormai");

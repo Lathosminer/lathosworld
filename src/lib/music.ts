@@ -231,6 +231,12 @@ export const SINGLES: readonly SingleRelease[] = [
     },
   ),
   lexi(
+    "Light It Up",
+    "light-it-up",
+    { duration: "3:04", released: "2026-10-28", album: "Volume Two" },
+    { appleMusic: "https://music.apple.com/us/album/light-it-up/6828049260?i=6828049263" },
+  ),
+  lexi(
     "Slow Motion",
     "slow-motion",
     { duration: "2:46", released: "2026-10-28", album: "Volume Two", hasPreview: true },
@@ -247,6 +253,35 @@ export const SINGLES: readonly SingleRelease[] = [
       spotify: "https://open.spotify.com/track/2v8WyqD0l5jjf6PdyD9saj",
       appleMusic: "https://music.apple.com/us/album/love-me/6828049260?i=6828049265",
     },
+  ),
+  lexi(
+    "What Happened to You and I",
+    "what-happened-to-you-and-i",
+    { duration: "3:07", released: "2026-10-28", album: "Volume Two" },
+    {
+      appleMusic:
+        "https://music.apple.com/us/album/what-happened-to-you-and-i/6828049260?i=6828049266",
+    },
+  ),
+  lexi(
+    "Some Day",
+    "some-day",
+    { duration: "3:24", released: "2026-10-28", album: "Volume Two" },
+    { appleMusic: "https://music.apple.com/us/album/some-day/6828049260?i=6828049267" },
+  ),
+  lexi(
+    "Turns You Never Said",
+    "turns-you-never-said",
+    { duration: "3:04", released: "2026-10-28", album: "Volume Two" },
+    {
+      appleMusic: "https://music.apple.com/us/album/turns-you-never-said/6828049260?i=6828049269",
+    },
+  ),
+  lexi(
+    "A Place",
+    "a-place",
+    { duration: "3:29", released: "2026-10-28", album: "Volume Two" },
+    { appleMusic: "https://music.apple.com/us/album/a-place/6828049260?i=6828049271" },
   ),
   lw(
     "I Carry You With Me (feat. Lexi Storm)",
