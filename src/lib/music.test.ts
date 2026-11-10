@@ -19,14 +19,17 @@ const root = path.resolve(import.meta.dirname, "../..");
 
 const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusic?: string }> = {
   hope: {
+    spotify: "https://open.spotify.com/track/4apD6uEFjtlvWCw2tFBXQk",
     youtubeMusic: "https://music.youtube.com/watch?v=YdU75FEjzb8",
     appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
   },
   "slow-motion": {
+    spotify: "https://open.spotify.com/track/3TRiOjwf2Jv3ItWboK6wsZ",
     youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
     appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
   },
   life: {
+    spotify: "https://open.spotify.com/track/4CA3ZnfDTRD9kfvvf2WYVH",
     youtubeMusic: "https://music.youtube.com/watch?v=d1xAoQkvW1w",
     appleMusic: "https://music.apple.com/us/album/life-feat-lexi-storm/6828751394?i=6828751395",
   },
@@ -37,7 +40,10 @@ const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusi
       "https://music.apple.com/us/album/no-one-can-help-me-except-feat-lexi-storm/6826919523?i=6826919524",
   },
   "blame-me": {
+    spotify: "https://open.spotify.com/track/1XVfxVnjkt4WFrAUYgtQPV",
     youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
+    appleMusic:
+      "https://music.apple.com/us/album/blame-me-feat-lathosworld/6828049260?i=6828049273",
   },
   "deeper-than-the-ocean": {
     spotify: "https://open.spotify.com/track/3q2L3B1M5qFlyriDJPaJLC",
@@ -52,6 +58,7 @@ const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusi
       "https://music.apple.com/us/album/i-carry-you-with-me-feat-lexi-storm/6828063294?i=6828063295",
   },
   "i-carry-you-with-me-esme": {
+    spotify: "https://open.spotify.com/track/3AyBAJ5ypgDk96GeHvmjrm",
     youtubeMusic: "https://music.youtube.com/watch?v=PJkYS22r0gs",
     appleMusic:
       "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
@@ -59,6 +66,8 @@ const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusi
   "lost-treasure": {
     spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
     youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
+    appleMusic:
+      "https://music.apple.com/us/album/lost-treasure-feat-lexi-storm/6829084549?i=6829084559",
   },
   "lost-treasure-remastered": {
     spotify: "https://open.spotify.com/track/1ls2YWImVEGxApCA4sD32s",
@@ -72,6 +81,7 @@ const LINKS: Record<string, { spotify?: string; youtubeMusic?: string; appleMusi
       "https://music.apple.com/us/album/the-light-feat-lexi-storm/6826906074?i=6826906075",
   },
   why: {
+    spotify: "https://open.spotify.com/track/2bgjL75ZMF8jAf9knHx7t5",
     youtubeMusic: "https://music.youtube.com/watch?v=3pGvs78SB1I",
     appleMusic: "https://music.apple.com/us/album/why-feat-lexi-storm/6826906074?i=6826906406",
   },
@@ -159,24 +169,13 @@ describe("catalog", () => {
       assert.equal(header[0], 0xff);
       assert.ok(stat.size > 50_000 && stat.size < 500_000, `${track.id} is not a short preview`);
     }
-    assert.equal(
-      TRACKS.filter((track) => !track.spotify)
-        .map((track) => track.title)
-        .join("|"),
-      [
-        "Hope",
-        "Slow Motion",
-        "Life (feat. Lexi Storm)",
-        "Blame Me",
-        "I Carry You With Me (Esme Version)",
-        "Why",
-      ].join("|"),
+    assert.deepEqual(
+      TRACKS.filter((track) => !track.spotify).map((track) => track.title),
+      [],
     );
-    assert.equal(
-      TRACKS.filter((track) => !track.appleMusic)
-        .map((track) => track.title)
-        .join("|"),
-      ["Blame Me", "Lost Treasure (feat. Lexi Storm)"].join("|"),
+    assert.deepEqual(
+      TRACKS.filter((track) => !track.appleMusic).map((track) => track.title),
+      [],
     );
   });
 });

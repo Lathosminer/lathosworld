@@ -6,7 +6,8 @@ import { SOCIALS } from "./socials.ts";
  *
  * Play is a 30-second 96 kbps MP3 preview in public/previews. The page does
  * not stream or link a full master. Spotify, YouTube Music, and Apple Music
- * are only the links checked on 4 Nov 2026. A platform with no checked link
+ * are only the links checked on 4 Nov 2026, plus the missing platform
+ * links checked on 9 Nov 2026. A platform with no checked link
  * is left off the row.
  *
  * Each preview starts at the first chorus or hook, on a phrase boundary:
@@ -103,15 +104,18 @@ const lexi = (title: string, duration: string, id: string, links: Links) =>
 /** Singles, in play order. */
 export const SINGLES: readonly SingleRelease[] = [
   lexi("Hope", "3:17", "hope", {
+    spotify: "https://open.spotify.com/track/4apD6uEFjtlvWCw2tFBXQk",
     youtubeMusic: "https://music.youtube.com/watch?v=YdU75FEjzb8",
     appleMusic: "https://music.apple.com/us/album/hope/6828049260?i=6828049261",
   }),
   // Preview is the first chorus of the released 2:46 album cut.
   lexi("Slow Motion", "2:46", "slow-motion", {
+    spotify: "https://open.spotify.com/track/3TRiOjwf2Jv3ItWboK6wsZ",
     youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
     appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
   }),
   lw("Life (feat. Lexi Storm)", "3:46", "life", {
+    spotify: "https://open.spotify.com/track/4CA3ZnfDTRD9kfvvf2WYVH",
     youtubeMusic: "https://music.youtube.com/watch?v=d1xAoQkvW1w",
     appleMusic: "https://music.apple.com/us/album/life-feat-lexi-storm/6828751394?i=6828751395",
   }),
@@ -123,7 +127,10 @@ export const SINGLES: readonly SingleRelease[] = [
   }),
   // Preview is the first hook of the released 2:21 album cut, not the unreleased rap remix.
   lexi("Blame Me", "2:21", "blame-me", {
+    spotify: "https://open.spotify.com/track/1XVfxVnjkt4WFrAUYgtQPV",
     youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
+    appleMusic:
+      "https://music.apple.com/us/album/blame-me-feat-lathosworld/6828049260?i=6828049273",
   }),
   lw("Deeper Than the Ocean (feat. Lexi Storm)", "3:04", "deeper-than-the-ocean", {
     spotify: "https://open.spotify.com/track/3q2L3B1M5qFlyriDJPaJLC",
@@ -138,6 +145,7 @@ export const SINGLES: readonly SingleRelease[] = [
       "https://music.apple.com/us/album/i-carry-you-with-me-feat-lexi-storm/6828063294?i=6828063295",
   }),
   lw("I Carry You With Me (Esme Version)", "1:49", "i-carry-you-with-me-esme", {
+    spotify: "https://open.spotify.com/track/3AyBAJ5ypgDk96GeHvmjrm",
     youtubeMusic: "https://music.youtube.com/watch?v=PJkYS22r0gs",
     appleMusic:
       "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
@@ -146,6 +154,8 @@ export const SINGLES: readonly SingleRelease[] = [
   lw("Lost Treasure (feat. Lexi Storm)", "4:38", "lost-treasure", {
     spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
     youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
+    appleMusic:
+      "https://music.apple.com/us/album/lost-treasure-feat-lexi-storm/6829084549?i=6829084559",
   }),
   lw("Lost Treasure (Remastered)", "4:42", "lost-treasure-remastered", {
     spotify: "https://open.spotify.com/track/1ls2YWImVEGxApCA4sD32s",
@@ -159,6 +169,7 @@ export const SINGLES: readonly SingleRelease[] = [
       "https://music.apple.com/us/album/the-light-feat-lexi-storm/6826906074?i=6826906075",
   }),
   lw("Why", "3:22", "why", {
+    spotify: "https://open.spotify.com/track/2bgjL75ZMF8jAf9knHx7t5",
     youtubeMusic: "https://music.youtube.com/watch?v=3pGvs78SB1I",
     appleMusic: "https://music.apple.com/us/album/why-feat-lexi-storm/6826906074?i=6826906406",
   }),
