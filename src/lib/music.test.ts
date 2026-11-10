@@ -166,6 +166,7 @@ const EXPECTED: Expectation[] = [
     released: "2026-10-28",
     album: "Volume Two",
     preview: true,
+    spotify: "https://open.spotify.com/track/3TRiOjwf2Jv3ItWboK6wsZ",
     youtubeMusic: "https://music.youtube.com/watch?v=T3zfGwkHVRQ",
     appleMusic: "https://music.apple.com/us/album/slow-motion/6828049260?i=6828049264",
   },
@@ -228,6 +229,7 @@ const EXPECTED: Expectation[] = [
     duration: "1:49",
     released: "2026-10-28",
     preview: true,
+    spotify: "https://open.spotify.com/track/3AyBAJ5ypgDk96GeHvmjrm",
     youtubeMusic: "https://music.youtube.com/watch?v=PJkYS22r0gs",
     appleMusic:
       "https://music.apple.com/us/album/i-carry-you-with-me-esme-version/6827958045?i=6827958046",
@@ -262,6 +264,8 @@ const EXPECTED: Expectation[] = [
     preview: true,
     spotify: "https://open.spotify.com/track/3JlctyW268MNhJDql1EbMt",
     youtubeMusic: "https://music.youtube.com/watch?v=CntmN_O-LVE",
+    appleMusic:
+      "https://music.apple.com/us/album/lost-treasure-feat-lexi-storm/6829084549?i=6829084559",
   },
   {
     title: "The Light",
@@ -280,6 +284,7 @@ const EXPECTED: Expectation[] = [
     duration: "3:22",
     released: "2026-10-25",
     preview: true,
+    spotify: "https://open.spotify.com/track/2bgjL75ZMF8jAf9knHx7t5",
     youtubeMusic: "https://music.youtube.com/watch?v=3pGvs78SB1I",
     appleMusic: "https://music.apple.com/us/album/why-feat-lexi-storm/6826906074?i=6826906406",
   },
@@ -288,7 +293,10 @@ const EXPECTED: Expectation[] = [
     artist: LEXI_ARTIST,
     duration: "2:21",
     preview: true,
+    spotify: "https://open.spotify.com/track/1XVfxVnjkt4WFrAUYgtQPV",
     youtubeMusic: "https://music.youtube.com/watch?v=Baf6z71AZhg",
+    appleMusic:
+      "https://music.apple.com/us/album/blame-me-feat-lathosworld/6828049260?i=6828049273",
   },
 ];
 
