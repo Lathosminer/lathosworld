@@ -42,7 +42,7 @@ X and TikTok try a live count, then the numbers in `src/lib/community-counts.ts`
 
 Singles are listed on the home page, under the hero and above Streams. The catalog is `src/lib/music.ts` (`SINGLES`, then `ALBUMS`). Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks) stay out of `ALBUMS` until they should be on the page. Add an album there and its tracks show up after the singles.
 
-Each row plays a 30-second 96 kbps MP3 preview from `public/previews/<id>.mp3`. The full song is not on this site. Spotify, YouTube Music, and Apple Music buttons use only links that were checked. Leave a platform off the row when it has no checked link.
+Newest verified releases are listed first. A row plays a 30-second 96 kbps MP3 preview only when `public/previews/<id>.mp3` exists. The full song is not on this site. Spotify, YouTube, YouTube Music, and Apple Music buttons use only links whose title and artist were checked. Leave a platform off the row when it has no checked link. A song with no checked page can stay on the list with a plain status and no button.
 
 Masters stay in the private R2 bucket `lathosworld-music`. The Worker does not bind that bucket, and nothing on the site serves those objects. The bucket's public r2.dev domain stays off. Do not put masters in `public/`. `/hero-audio.mp3` and `/calm-audio.mp3` are background audio and are separate from the singles.
 
