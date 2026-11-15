@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { AccountBar } from "@/components/AccountBadge";
+import { RadioProvider } from "@/components/RadioPlayer";
 import { SwordCursor } from "@/components/SwordCursor";
 import { GTM_HEAD_SCRIPT, GTM_NOSCRIPT_IFRAME } from "@/lib/gtm";
 import appCss from "../styles.css?url";
@@ -49,10 +50,12 @@ export const Route = createRootRoute({
         <noscript dangerouslySetInnerHTML={{ __html: GTM_NOSCRIPT_IFRAME }} />
         <PreviewHostBridge />
         <SwordCursor />
-        <AuthProvider>
-          <AccountBar />
-          <Outlet />
-        </AuthProvider>
+        <RadioProvider>
+          <AuthProvider>
+            <AccountBar />
+            <Outlet />
+          </AuthProvider>
+        </RadioProvider>
         <Scripts />
       </body>
     </html>

@@ -18,6 +18,7 @@ import { Route as HelpRouteImport } from './routes/help'
 import { Route as LetterRouteImport } from './routes/letter'
 import { Route as ListRouteImport } from './routes/list'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as RadioRouteImport } from './routes/radio'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SurvivorsRouteImport } from './routes/survivors'
 import { Route as ApiCommunityRouteImport } from './routes/api/community'
@@ -74,6 +75,11 @@ const ListRoute = ListRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadioRoute = RadioRouteImport.update({
+  id: '/radio',
+  path: '/radio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScheduleRoute = ScheduleRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/letter': typeof LetterRoute
   '/list': typeof ListRoute
   '/login': typeof LoginRoute
+  '/radio': typeof RadioRoute
   '/schedule': typeof ScheduleRoute
   '/survivors': typeof SurvivorsRoute
   '/api/community': typeof ApiCommunityRoute
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/letter'
     | '/list'
     | '/login'
+    | '/radio'
     | '/schedule'
     | '/survivors'
     | '/api/community'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/letter'
     | '/list'
     | '/login'
+    | '/radio'
     | '/schedule'
     | '/survivors'
     | '/api/community'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/letter'
     | '/list'
     | '/login'
+    | '/radio'
     | '/schedule'
     | '/survivors'
     | '/api/community'
@@ -291,6 +303,7 @@ export interface RootRouteChildren {
   LetterRoute: typeof LetterRoute
   ListRoute: typeof ListRoute
   LoginRoute: typeof LoginRoute
+  RadioRoute: typeof RadioRoute
   ScheduleRoute: typeof ScheduleRoute
   SurvivorsRoute: typeof SurvivorsRoute
   ApiCommunityRoute: typeof ApiCommunityRoute
@@ -368,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radio': {
+      id: '/radio'
+      path: '/radio'
+      fullPath: '/radio'
+      preLoaderRoute: typeof RadioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/schedule': {
@@ -467,6 +487,7 @@ const rootRouteChildren: RootRouteChildren = {
   LetterRoute: LetterRoute,
   ListRoute: ListRoute,
   LoginRoute: LoginRoute,
+  RadioRoute: RadioRoute,
   ScheduleRoute: ScheduleRoute,
   SurvivorsRoute: SurvivorsRoute,
   ApiCommunityRoute: ApiCommunityRoute,

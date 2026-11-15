@@ -2078,3 +2078,309 @@ html.lw-sword-cursor { --lw-pointer: none; }
     justify-content: flex-start;
   }
 }
+
+/* LathosWorld Radio sits beside the store-link list. The reel is under the radio. */
+.music-radio-row {
+  display: grid;
+  gap: 1.15rem;
+  align-items: start;
+}
+.music-catalog {
+  min-width: 0;
+}
+.radio-stack {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-width: 0;
+}
+@media (min-width: 1000px) {
+  .music-radio-row {
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 26rem);
+    gap: 1.25rem;
+  }
+}
+
+.radio-card {
+  position: relative;
+  overflow: hidden;
+  padding: 0.95rem 0.95rem 0.85rem;
+  background:
+    radial-gradient(90% 80% at 100% 0%, rgba(176, 107, 255, 0.22), transparent 58%),
+    var(--color-panel);
+  border: 1px solid color-mix(in srgb, #b06bff 46%, var(--color-line));
+  box-shadow: 0 0 22px rgba(124, 58, 237, 0.16);
+}
+.radio-card h1,
+.radio-card h3 {
+  position: relative;
+  margin: 0.15rem 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  letter-spacing: 0.04em;
+}
+.radio-bolts {
+  position: absolute;
+  top: -0.4rem;
+  right: 0.15rem;
+  width: 4.2rem;
+  height: auto;
+  fill: none;
+  stroke: #c084fc;
+  stroke-width: 2;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 8px rgba(176, 107, 255, 0.85));
+  pointer-events: none;
+}
+.radio-bolts path:first-child {
+  stroke: #5ff3f0;
+}
+.radio-bolts path:last-child {
+  animation: radio-bolt 2.4s infinite;
+}
+.radio-now {
+  position: relative;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+.radio-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--color-line);
+  color: var(--color-muted);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.radio-flag.is-live {
+  border-color: transparent;
+  background: #e0182d;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(255, 42, 42, 0.6);
+}
+.radio-live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff;
+  animation: radio-pulse 1.4s ease-in-out infinite;
+}
+.radio-track {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+}
+.radio-controls {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem 1rem;
+  margin-top: 0.9rem;
+}
+.radio-play {
+  min-width: 7rem;
+}
+.radio-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  color: var(--color-muted);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.radio-volume input {
+  width: 7.2rem;
+  accent-color: #c084fc;
+  cursor: inherit;
+}
+.radio-jump {
+  margin: 0.75rem 0 0;
+}
+.radio-jump a {
+  color: var(--color-cyan);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.radio-page-wrap {
+  width: min(36rem, 100%);
+}
+.radio-mini {
+  position: fixed;
+  z-index: 34;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  box-sizing: border-box;
+  min-height: 3.3rem;
+  padding: 0.35rem 0.7rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+  background: #05080c;
+  border-top: 1px solid color-mix(in srgb, #b06bff 55%, var(--color-line));
+}
+body:has(.buy-bar) .radio-mini {
+  bottom: calc(4.15rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 0.35rem;
+}
+.radio-mini-play {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0.4rem 0.75rem;
+}
+.radio-mini-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+.radio-mini .radio-volume span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+.radio-mini a {
+  flex: 0 0 auto;
+  color: var(--color-cyan);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+body.radio-mini-open {
+  padding-bottom: calc(12rem + env(safe-area-inset-bottom, 0px));
+}
+@keyframes radio-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes radio-bolt {
+  0%,
+  70%,
+  100% {
+    opacity: 0.25;
+  }
+  74% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 0.2;
+  }
+  84% {
+    opacity: 0.9;
+  }
+}
+@media (max-width: 720px) {
+  .radio-mini .radio-volume {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .radio-bolts path,
+  .radio-live-dot {
+    animation: none;
+  }
+}
+
+.reel-section {
+  min-width: 0;
+}
+.reel-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, #b06bff 40%, var(--color-line));
+}
+.reel-back,
+.reel-front {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.reel-back {
+  object-fit: cover;
+  transform: scale(1.14);
+  filter: blur(16px) saturate(1.2);
+  opacity: 0.7;
+}
+.reel-front {
+  z-index: 1;
+  object-fit: contain;
+}
+.reel-sound {
+  position: absolute;
+  z-index: 2;
+  top: 0.4rem;
+  right: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-cyan) 55%, transparent);
+  background: rgba(5, 8, 12, 0.78);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.reel-caption {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 1.3rem 0.7rem 0.55rem;
+  background: linear-gradient(transparent, rgba(5, 8, 12, 0.9));
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+}
+.reel-cat {
+  flex: 0 0 auto;
+  color: var(--color-cyan);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.reel-preload {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}

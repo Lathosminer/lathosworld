@@ -1,4 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
+import { RadioDeck } from "@/components/RadioPlayer";
+import { VideoReel } from "@/components/VideoReel";
 import {
   ARTIST,
   FEATURED_ARTIST,
@@ -34,6 +37,15 @@ export function Music() {
   const [failed, setFailed] = useState<Record<string, boolean>>({});
   const active = TRACKS.find((track) => track.id === activeId) ?? null;
 
+  useEffect(() => {
+    const onClaim = (event: Event) => {
+      if ((event as CustomEvent<AudioSource>).detail === "music") return;
+      audioRef.current?.pause();
+    };
+    window.addEventListener(AUDIO_EVENT, onClaim);
+    return () => window.removeEventListener(AUDIO_EVENT, onClaim);
+  }, []);
+
   const markMissing = (id: string) => {
     setFailed((current) => ({ ...current, [id]: true }));
     setPlaying(false);
@@ -51,6 +63,7 @@ export function Music() {
       audio.src = track.preview;
       audio.dataset.track = track.id;
     }
+    claimAudio("music");
     setActiveId(track.id);
     try {
       await audio.play();
@@ -96,6 +109,8 @@ export function Music() {
           </div>
         </article>
 
+        <div className="music-radio-row">
+          <div className="music-catalog">
         <div className="music-player">
           <p id="music-player-note" className="note">
             Play a 30-second preview when this site has one. Full songs open from the store buttons.
@@ -204,6 +219,12 @@ export function Music() {
             );
           })}
         </ol>
+          </div>
+          <div className="radio-stack">
+            <RadioDeck />
+            <VideoReel />
+          </div>
+        </div>
       </div>
     </section>
   );
