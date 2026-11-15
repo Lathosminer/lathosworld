@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
-import { parseReelManifest, REEL_MANIFEST_URL, shuffleReel, type ReelClip } from "@/lib/reel";
+import { parseReelManifest, pickShowcase, REEL_MANIFEST_URL, SHOWCASE_REEL, type ReelClip } from "@/lib/reel";
 
 const CATEGORY_LABEL: Record<string, string> = {
   promo: "Promo",
@@ -42,7 +42,7 @@ export function VideoReel() {
       try {
         const response = await fetch(REEL_MANIFEST_URL, { cache: "no-store" });
         if (!response.ok) throw new Error(String(response.status));
-        const parsed = shuffleReel(parseReelManifest(await response.json()));
+        const parsed = pickShowcase(parseReelManifest(await response.json()), SHOWCASE_REEL);
         if (cancelled) return;
         setClips(parsed.length > 0 ? parsed : null);
       } catch {

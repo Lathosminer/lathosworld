@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RadioDeck } from "@/components/RadioPlayer";
 import { FEATURED_ARTIST } from "@/lib/music";
-import { parseReelManifest, REEL_MANIFEST_URL, shuffleReel, type ReelClip } from "@/lib/reel";
+import { LEXI_SHOWCASE, parseReelManifest, pickShowcase, REEL_MANIFEST_URL, type ReelClip } from "@/lib/reel";
 
 function isLexiClip(clip: ReelClip): boolean {
   return clip.category === "lexi" && clip.title.includes("Lexi Storm (AI)");
@@ -30,7 +30,7 @@ function LexiReel() {
       try {
         const response = await fetch(REEL_MANIFEST_URL, { cache: "no-store" });
         if (!response.ok) throw new Error(String(response.status));
-        const parsed = shuffleReel(parseReelManifest(await response.json()).filter(isLexiClip));
+        const parsed = pickShowcase(parseReelManifest(await response.json()).filter(isLexiClip), LEXI_SHOWCASE);
         if (!cancelled) setClips(parsed.length > 0 ? parsed : null);
       } catch {
         if (!cancelled) setClips(null);
