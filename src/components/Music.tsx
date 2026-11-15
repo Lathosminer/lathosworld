@@ -9,6 +9,7 @@ import {
   LEXI_ARTIST,
   LEXI_SPOTIFY_ARTIST,
   LEXI_YOUTUBE_CHANNEL,
+  SPOTIFY_ARTIST,
   SPOTIFY_PLAYLIST,
   TRACKS,
   YOUTUBE_MUSIC_PLAYLIST,
@@ -127,12 +128,16 @@ export function Music() {
         </div>
 
         <div className="music-playlists">
-          <a className="btn btn-ghost" href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
-            LathosWorld playlist on YouTube Music
+          <a className="btn btn-ghost" href={SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">
+            LathosWorld on Spotify
             <span className="visually-hidden"> (opens in a new tab)</span>
           </a>
           <a className="btn btn-ghost" href={SPOTIFY_PLAYLIST} target="_blank" rel="noopener noreferrer">
             LathosWorld playlist on Spotify
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <a className="btn btn-ghost" href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
+            LathosWorld playlist on YouTube Music
             <span className="visually-hidden"> (opens in a new tab)</span>
           </a>
           <a className="btn btn-ghost" href={LEXI_SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">
