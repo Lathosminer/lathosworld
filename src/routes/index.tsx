@@ -15,6 +15,7 @@ import { SurvivorEgg } from "@/components/SurvivorEgg";
 import { CommunityStats } from "@/components/CommunityStats";
 import { PollWidget } from "@/components/Poll";
 import { DESK_LABEL } from "@/lib/helpdesk";
+import { SUNO_RUINS } from "@/lib/music";
 
 const MARK_SM = "/mark-sm.webp";
 
@@ -54,6 +55,8 @@ const SOCIALS = [
   { name: "Discord", handle: "The lobby", href: "https://discord.gg/749tHdsFU6", hint: "Join", icon: "discord" },
   { name: "Instagram", handle: "@lathosworld", href: "https://www.instagram.com/lathosworld", hint: "Photos", icon: "instagram" },
   { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates", icon: "telegram" },
+  { name: "SoundCloud", handle: "lathosworld", href: "https://soundcloud.com/lathosworld", hint: "Listen", icon: "soundcloud" },
+  { name: "Suno", handle: "Built From The Ruins", href: SUNO_RUINS, hint: "Listen", icon: "suno" },
 ] as const;
 
 const OFFERS = [
@@ -527,6 +530,20 @@ function Mark({ name }: { name: string }) {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 7h12l-1 13H7L6 7zm2.1 2 .7 9h6.4l.7-9H8.1zM9 7l.6-2h4.8L15 7H9z" />
+      </svg>
+    );
+  }
+  if (name === "soundcloud") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6.2 16.5h10.4a3.3 3.3 0 0 0 .4-6.58 4.6 4.6 0 0 0-8.85-1.15A3.4 3.4 0 0 0 6.2 16.5z" />
+      </svg>
+    );
+  }
+  if (name === "suno") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 17.6a2.4 2.4 0 1 1-1.9-2.35V6.4L17 4.2v8.7a2.4 2.4 0 1 1-1.9-2.35V7.1L9 8.5v9.1z" />
       </svg>
     );
   }

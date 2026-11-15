@@ -32,6 +32,9 @@ export const LEXI_SPOTIFY_ARTIST = "https://open.spotify.com/artist/0f3pG12MkS1w
 /** Lexi Storm's channel. The Lexi card does not use this. */
 export const LEXI_YOUTUBE_CHANNEL = "https://www.youtube.com/@lexistormai";
 
+/** Built From The Ruins on Suno. The music row and the Suno social use this. */
+export const SUNO_RUINS = "https://suno.com/playlist/d18b030f-c745-409a-a52e-00c16208c4cd";
+
 export const FEATURED_ARTIST = {
   name: "Lexi Storm",
   role: "AI singer",
