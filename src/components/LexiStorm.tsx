@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RadioDeck } from "@/components/RadioPlayer";
-import { FEATURED_ARTIST, LEXI_ARTIST, TRACKS, type Track } from "@/lib/music";
+import { FEATURED_ARTIST } from "@/lib/music";
 import { parseReelManifest, REEL_MANIFEST_URL, shuffleReel, type ReelClip } from "@/lib/reel";
-
-function storeLinks(track: Track): { name: string; href: string }[] {
-  return [
-    track.spotify ? { name: "Spotify", href: track.spotify } : null,
-    track.appleMusic ? { name: "Apple Music", href: track.appleMusic } : null,
-  ].filter((link): link is { name: string; href: string } => link !== null);
-}
 
 function isLexiClip(clip: ReelClip): boolean {
   return clip.category === "lexi" && clip.title.includes("Lexi Storm (AI)");
@@ -107,7 +100,6 @@ function LexiReel() {
 }
 
 export function LexiStorm() {
-  const songs = TRACKS.filter((track) => track.artist === LEXI_ARTIST);
   return (
     <article className="lexi" id="lexi" aria-labelledby="lexi-title">
       <div className="lexi-visuals">
@@ -129,39 +121,6 @@ export function LexiStorm() {
         <p className="kicker">{FEATURED_ARTIST.role}</p>
         <h3 id="lexi-title">{FEATURED_ARTIST.name}</h3>
         <p className="serif-line">{FEATURED_ARTIST.intro}</p>
-        <ol className="lexi-songs" aria-label="Lexi Storm songs">
-          {songs.map((song) => {
-            const links = storeLinks(song);
-            return (
-              <li key={song.id}>
-                <span className="lexi-song-name">
-                  {song.title}
-                  {song.duration ? <span className="lexi-song-time">{song.duration}</span> : null}
-                </span>
-                {links.length > 0 ? (
-                  <span className="music-links">
-                    {links.map((link) => (
-                      <a
-                        key={link.name}
-                        className="btn btn-ghost"
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {link.name}
-                        <span className="visually-hidden">
-                          : {song.title} by {LEXI_ARTIST} (opens in a new tab)
-                        </span>
-                      </a>
-                    ))}
-                  </span>
-                ) : (
-                  <span className="music-missing">Not on Spotify or Apple Music yet</span>
-                )}
-              </li>
-            );
-          })}
-        </ol>
         <RadioDeck placement="lexi" />
       </div>
     </article>

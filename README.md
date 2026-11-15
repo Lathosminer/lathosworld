@@ -40,15 +40,13 @@ X and TikTok try a live count, then the numbers in `src/lib/community-counts.ts`
 
 ## Music
 
-The opening block is the station: LathosWorld Radio, the songs, and Lexi Storm, the AI singer. Her card lists Spotify and Apple Music only. It does not link to YouTube. The music list, under that card, links LathosWorld on Spotify, the LathosWorld playlists on Spotify and YouTube Music, LathosWorld on YouTube, plus Lexi's Spotify artist page and YouTube channel. Singles are listed on the home page, under that card and above Streams. The catalog is `src/lib/music.ts` (`SINGLES`, then `ALBUMS`). Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks) stay out of `ALBUMS` until they should be on the page. Add an album there and its tracks show up after the singles.
+The opening block is the station: LathosWorld Radio and Lexi Storm, the AI singer. Her card does not link to YouTube and does not list songs. Under the Music heading, one row of buttons links LathosWorld on Spotify, the LathosWorld playlists on Spotify and YouTube Music, LathosWorld on YouTube, Built From The Ruins on Suno, and Lexi on Spotify and YouTube.
 
-Newest verified releases are listed first. A row plays a 30-second 96 kbps MP3 preview only when `public/previews/<id>.mp3` exists. The full song is not on this site. Spotify, YouTube, YouTube Music, and Apple Music buttons use only links whose title and artist were checked. Leave a platform off the row when it has no checked link. A song with no checked page can stay on the list with a plain status and no button.
-
-Masters stay in the private R2 bucket `lathosworld-music`. The Worker does not bind that bucket, and nothing on the site serves those objects. The bucket's public r2.dev domain stays off. Do not put masters in `public/`. `/hero-audio.mp3` and `/calm-audio.mp3` are background audio and are separate from the singles.
+Masters stay in the private R2 bucket `lathosworld-music`. The Worker does not bind that bucket, and nothing on the site serves those objects. The bucket's public r2.dev domain stays off. Do not put masters in `public/`. `/hero-audio.mp3` and `/calm-audio.mp3` are background audio.
 
 ## Radio
 
-LathosWorld Radio sits beside the music list (the Spotify, YouTube, YouTube Music, and Apple Music links). On a phone it stacks under that list. Play starts only from the Play button. The browser reads `https://radio.lathosworld.com/live` and polls `https://radio.lathosworld.com/status-json.xsl` about every 15 seconds for the current title. If the stream or the status page cannot be reached, the card says Radio offline. `/radio` is the same player on its own page, and a mini bar stays up while it is playing and the card is off screen.
+LathosWorld Radio is on Lexi's card. Play starts only from the Play button. The browser reads `https://radio.lathosworld.com/live` and polls `https://radio.lathosworld.com/status-json.xsl` about every 15 seconds for the current title. If the stream or the status page cannot be reached, the card says Radio offline. `/radio` is the same player on its own page, and a mini bar stays up while it is playing and the card is off screen.
 
 The video reel is directly under the radio card. It loads `https://videos.lathosworld.com/reel.json`, plays the clips muted and inline, and hides itself when that file is missing.
 
