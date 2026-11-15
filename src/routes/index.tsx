@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
     const h = pageHead({
       path: "/",
       title: "LathosWorld · Gamer, streamer and $LWRLD",
-      description: "Lathos streams Once Human and more on Twitch and YouTube. Clips, the $LWRLD token on Flap, The Official Shit List and the help desk.",
+      description: "Lathos streams Once Human and more on Twitch and YouTube. LathosWorld Radio, clips, the $LWRLD token on Flap, The Official Shit List and the help desk.",
     });
     return { ...h, links: [...h.links, { rel: "preload", as: "image", href: "/hero-poster.jpg", fetchPriority: "high" }] };
   },
@@ -67,6 +67,7 @@ const OFFERS = [
 const SHOP = "https://lathosworld-shop.fourthwall.com/collections/all";
 
 const SITE_LINKS = [
+  { name: "Radio", handle: "LathosWorld Radio", hint: "Listen", to: "/radio" },
   { name: "Clips", handle: "Twitch and YouTube", hint: "Watch", to: "/clips" },
   { name: "Schedule", handle: "The week", hint: "Week", to: "/schedule" },
   { name: "Survivors", handle: "Names on the wall", hint: "Names", to: "/survivors" },
@@ -214,6 +215,7 @@ function Home() {
           <span>lathosworld.com</span>
         </a>
         <nav className="nav-links" aria-label="Sections">
+          <a href="#radio">Radio</a>
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
           <Link to="/community" search={{}}>Community</Link>
@@ -477,7 +479,7 @@ function Home() {
           <p className="way">Not financial advice.</p>
           <p className="thanks">I would like to thank Bubahmon, Demon Hunter, and Cyclops for their awesome support. Thanks for reading my story. I hope to see you all soon. God bless and goodnight.</p>
           <p className="copy">$LWRLD on Flap. BNB Smart Chain.</p>
-          <p className="copy"><Link to="/schedule">Schedule</Link> · <Link to="/clips">Clips</Link> · <Link to="/community" search={{}}>Community</Link> · <Link to="/survivors">Survivors</Link> · <Link to="/list">The Official Shit List</Link> · <Link to="/help">{DESK_LABEL}</Link></p>
+          <p className="copy"><Link to="/radio">Radio</Link> · <Link to="/schedule">Schedule</Link> · <Link to="/clips">Clips</Link> · <Link to="/community" search={{}}>Community</Link> · <Link to="/survivors">Survivors</Link> · <Link to="/list">The Official Shit List</Link> · <Link to="/help">{DESK_LABEL}</Link></p>
           <p className="copy">© 2026 lathosworld.com</p>
         </div>
       </footer>

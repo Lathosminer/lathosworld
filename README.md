@@ -46,6 +46,12 @@ Newest verified releases are listed first. A row plays a 30-second 96 kbps MP3 p
 
 Masters stay in the private R2 bucket `lathosworld-music`. The Worker does not bind that bucket, and nothing on the site serves those objects. The bucket's public r2.dev domain stays off. Do not put masters in `public/`. `/hero-audio.mp3` and `/calm-audio.mp3` are background audio and are separate from the singles.
 
+## Radio
+
+LathosWorld Radio sits beside the music list (the Spotify, YouTube, YouTube Music, and Apple Music links). On a phone it stacks under that list. Play starts only from the Play button. The browser reads `https://radio.lathosworld.com/live` and polls `https://radio.lathosworld.com/status-json.xsl` about every 15 seconds for the current title. If the stream or the status page cannot be reached, the card says Radio offline. `/radio` is the same player on its own page, and a mini bar stays up while it is playing and the card is off screen.
+
+The video reel is directly under the radio card. It loads `https://videos.lathosworld.com/reel.json`, plays the clips muted and inline, and hides itself when that file is missing.
+
 ## Run it
 
 ```bash

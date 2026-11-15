@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
 
 const FADE_SEC = 2;
 const HERO_VISIBLE = 0.4;
@@ -185,6 +186,20 @@ export function HeroLoop() {
     return bed;
   };
 
+  useEffect(() => {
+    const onClaim = (event: Event) => {
+      if ((event as CustomEvent<AudioSource>).detail === "hero") return;
+      if (!soundRef.current) return;
+      soundRef.current = false;
+      setSound(false);
+      heroRef.current?.pause();
+      calmRef.current?.pause();
+      if (bedRef.current) snap(bedRef.current, true);
+    };
+    window.addEventListener(AUDIO_EVENT, onClaim);
+    return () => window.removeEventListener(AUDIO_EVENT, onClaim);
+  }, []);
+
   const toggleSound = () => {
     const hero = heroRef.current;
     const calm = calmRef.current;
@@ -199,6 +214,7 @@ export function HeroLoop() {
     }
     const bed = ensureBed();
     if (!bed) return;
+    claimAudio("hero");
     soundRef.current = true;
     setSound(true);
     snap(bed, heroOnRef.current);
