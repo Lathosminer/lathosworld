@@ -13,6 +13,7 @@ import {
   TRACKS,
   LEXI_SPOTIFY_ARTIST,
   LEXI_YOUTUBE_CHANNEL,
+  SPOTIFY_ARTIST,
   SPOTIFY_PLAYLIST,
   YOUTUBE_MUSIC_PLAYLIST,
 } from "./music.ts";
@@ -316,6 +317,9 @@ describe("catalog", () => {
     assert.notEqual(TRACKS[0]?.id, LEAD_TRACK_ID);
     assert.equal(YOUTUBE_MUSIC_PLAYLIST, "https://music.youtube.com/playlist?list=PLALrux7JVT28");
     assert.equal(YOUTUBE_MUSIC_PLAYLIST.includes("si="), false);
+    assert.equal(SPOTIFY_ARTIST, "https://open.spotify.com/artist/5z5hD7mC4N7n4aOrx8uFiH");
+    assert.equal(SPOTIFY_ARTIST.includes("si="), false);
+    assert.equal(SPOTIFY_ARTIST.includes("utm_"), false);
     assert.equal(SPOTIFY_PLAYLIST, "https://open.spotify.com/playlist/2JSGvRvhmosCrxIau864I5");
     assert.equal(SPOTIFY_PLAYLIST.includes("si="), false);
     assert.equal(SPOTIFY_PLAYLIST.includes("pt="), false);
