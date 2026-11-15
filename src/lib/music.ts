@@ -17,6 +17,9 @@ export const PREVIEW_SECONDS = 30;
 /** Released songs on YouTube Music. No tracking query. */
 export const YOUTUBE_MUSIC_PLAYLIST = "https://music.youtube.com/playlist?list=PLALrux7JVT28";
 
+/** LathosWorld's YouTube channel. The music row uses this; other YouTube links stay as they are. */
+export const YOUTUBE_CHANNEL = "https://www.youtube.com/@Lathos563";
+
 /** LathosWorld's Spotify artist page. No tracking query. */
 export const SPOTIFY_ARTIST = "https://open.spotify.com/artist/5z5hD7mC4N7n4aOrx8uFiH";
 
