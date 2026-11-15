@@ -1,3 +1,5 @@
+import { SUNO_RUINS } from "./music.ts";
+
 export const SOCIALS = [
   { name: "Twitch", handle: "lathosworld", href: "https://www.twitch.tv/lathosworld", hint: "Live" },
   { name: "YouTube", handle: "@lathos563", href: "https://www.youtube.com/@lathos563", hint: "Watch" },
@@ -8,4 +10,6 @@ export const SOCIALS = [
   { name: "Telegram", handle: "Official updates", href: "https://t.me/LathosWorldOfficial", hint: "Updates" },
   { name: "Pinterest", handle: "Lathos' World", href: "https://www.pinterest.com/lathosworld/", hint: "Pins" },
   { name: "Linktree", handle: "LathosWorld", href: "https://linktr.ee/LathosWorld", hint: "All links" },
+  { name: "SoundCloud", handle: "lathosworld", href: "https://soundcloud.com/lathosworld", hint: "Listen" },
+  { name: "Suno", handle: "Built From The Ruins", href: SUNO_RUINS, hint: "Listen" },
 ] as const;

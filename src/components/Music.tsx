@@ -12,6 +12,7 @@ import {
   SPOTIFY_ARTIST,
   SPOTIFY_PLAYLIST,
   TRACKS,
+  SUNO_RUINS,
   YOUTUBE_CHANNEL,
   YOUTUBE_MUSIC_PLAYLIST,
   type Track,
@@ -143,6 +144,10 @@ export function Music() {
           </a>
           <a className="btn btn-ghost" href={YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
             LathosWorld on YouTube
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <a className="btn btn-ghost" href={SUNO_RUINS} target="_blank" rel="noopener noreferrer">
+            Built From The Ruins on Suno
             <span className="visually-hidden"> (opens in a new tab)</span>
           </a>
           <a className="btn btn-ghost" href={LEXI_SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">

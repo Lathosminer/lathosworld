@@ -15,6 +15,7 @@ import {
   LEXI_YOUTUBE_CHANNEL,
   SPOTIFY_ARTIST,
   SPOTIFY_PLAYLIST,
+  SUNO_RUINS,
   YOUTUBE_CHANNEL,
   YOUTUBE_MUSIC_PLAYLIST,
 } from "./music.ts";
@@ -319,6 +320,7 @@ describe("catalog", () => {
     assert.equal(YOUTUBE_MUSIC_PLAYLIST, "https://music.youtube.com/playlist?list=PLALrux7JVT28");
     assert.equal(YOUTUBE_MUSIC_PLAYLIST.includes("si="), false);
     assert.equal(YOUTUBE_CHANNEL, "https://www.youtube.com/@Lathos563");
+    assert.equal(SUNO_RUINS, "https://suno.com/playlist/d18b030f-c745-409a-a52e-00c16208c4cd");
     assert.equal(SPOTIFY_ARTIST, "https://open.spotify.com/artist/5z5hD7mC4N7n4aOrx8uFiH");
     assert.equal(SPOTIFY_ARTIST.includes("si="), false);
     assert.equal(SPOTIFY_ARTIST.includes("utm_"), false);
