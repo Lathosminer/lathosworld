@@ -7,6 +7,8 @@ import {
   ARTIST,
   LEAD_TRACK_ID,
   LEXI_ARTIST,
+  LEXI_SPOTIFY_ARTIST,
+  LEXI_YOUTUBE_CHANNEL,
   SPOTIFY_PLAYLIST,
   TRACKS,
   YOUTUBE_MUSIC_PLAYLIST,
@@ -129,12 +131,18 @@ export function Music() {
             LathosWorld playlist on YouTube Music
             <span className="visually-hidden"> (opens in a new tab)</span>
           </a>
-          {SPOTIFY_PLAYLIST ? (
-            <a className="btn btn-ghost" href={SPOTIFY_PLAYLIST} target="_blank" rel="noopener noreferrer">
-              LathosWorld playlist on Spotify
-              <span className="visually-hidden"> (opens in a new tab)</span>
-            </a>
-          ) : null}
+          <a className="btn btn-ghost" href={SPOTIFY_PLAYLIST} target="_blank" rel="noopener noreferrer">
+            LathosWorld playlist on Spotify
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <a className="btn btn-ghost" href={LEXI_SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">
+            Lexi Storm on Spotify
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <a className="btn btn-ghost" href={LEXI_YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
+            Lexi Storm on YouTube
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
         </div>
 
         <ol className="music-list" aria-label="Tracks, newest verified release first">

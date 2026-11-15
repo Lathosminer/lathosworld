@@ -17,11 +17,14 @@ export const PREVIEW_SECONDS = 30;
 /** Released songs on YouTube Music. No tracking query. */
 export const YOUTUBE_MUSIC_PLAYLIST = "https://music.youtube.com/playlist?list=PLALrux7JVT28";
 
-/**
- * Same songs on Spotify. Empty until the playlist URL is confirmed.
- * The music section renders it beside the YouTube Music playlist when this is set.
- */
-export const SPOTIFY_PLAYLIST = "";
+/** Released songs on Spotify. No tracking query. */
+export const SPOTIFY_PLAYLIST = "https://open.spotify.com/playlist/2JSGvRvhmosCrxIau864I5";
+
+/** Lexi Storm's artist page. Not a playlist, and not used on her card. */
+export const LEXI_SPOTIFY_ARTIST = "https://open.spotify.com/artist/0f3pG12MkS1wmPSGQ1Z4R0";
+
+/** Lexi Storm's channel. The Lexi card does not use this. */
+export const LEXI_YOUTUBE_CHANNEL = "https://www.youtube.com/@lexistormai";
 
 export const FEATURED_ARTIST = {
   name: "Lexi Storm",
