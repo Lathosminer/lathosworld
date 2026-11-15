@@ -1,5 +1,3 @@
-import { SOCIALS } from "./socials.ts";
-
 /**
  * Released recordings, newest verified date first. A platform field is set
  * only after a public page confirmed the title and artist. A missing field
@@ -16,25 +14,36 @@ import { SOCIALS } from "./socials.ts";
 export const ARTIST = "LathosWorld";
 export const LEXI_ARTIST = "Lexi Storm";
 export const PREVIEW_SECONDS = 30;
+/** Released songs on YouTube Music. No tracking query. */
 export const YOUTUBE_MUSIC_PLAYLIST = "https://music.youtube.com/playlist?list=PLALrux7JVT28";
 
-const youtube = SOCIALS.find((item) => item.name === "YouTube");
-if (!youtube) throw new Error("LathosWorld YouTube link is missing from socials");
+/** Released songs on Spotify. No tracking query. */
+export const SPOTIFY_PLAYLIST = "https://open.spotify.com/playlist/2JSGvRvhmosCrxIau864I5";
 
-/** LathosWorld's channel. The Lexi Storm card does not use this. */
-export const LEXI_YOUTUBE_URL = youtube.href;
+/** Lexi Storm's artist page. Not a playlist, and not used on her card. */
+export const LEXI_SPOTIFY_ARTIST = "https://open.spotify.com/artist/0f3pG12MkS1wmPSGQ1Z4R0";
+
+/** Lexi Storm's channel. The Lexi card does not use this. */
+export const LEXI_YOUTUBE_CHANNEL = "https://www.youtube.com/@lexistormai";
 
 export const FEATURED_ARTIST = {
   name: "Lexi Storm",
-  role: "AI character",
-  intro:
-    "Lexi Storm is the LathosWorld AI character. She sings with LathosWorld, and her own singles are in the list.",
-  image: "/pins/lexi_leather_city_pin.jpg",
-  imageWidth: 1000,
-  imageHeight: 1500,
-  imageAlt: "Lexi Storm, the LathosWorld AI character",
-  youtube: "https://www.youtube.com/@lexistormai",
-  youtubeLabel: "Watch Lexi Storm on YouTube",
+  role: "AI singer",
+  intro: "Lexi Storm is LathosWorld's AI singer. Her songs are the way in.",
+  images: [
+    {
+      src: "/pins/lexi_leather_city_pin.jpg",
+      width: 1000,
+      height: 1500,
+      alt: "Lexi Storm, the LathosWorld AI singer, in the city",
+    },
+    {
+      src: "/pins/lexi_autumn_park_pin.jpg",
+      width: 1000,
+      height: 1500,
+      alt: "Lexi Storm, the LathosWorld AI singer, in the autumn park",
+    },
+  ],
 } as const;
 
 export type ReleaseTrack = {

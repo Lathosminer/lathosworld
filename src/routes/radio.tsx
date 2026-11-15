@@ -21,7 +21,7 @@ function RadioPage() {
       </Link>
       <section className="section">
         <div className="wrap radio-page-wrap">
-          <RadioDeck standalone />
+          <RadioDeck placement="page" />
         </div>
       </section>
     </main>

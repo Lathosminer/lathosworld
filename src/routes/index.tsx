@@ -10,6 +10,7 @@ import { AccountBadge } from "@/components/AccountBadge";
 import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
 import { Music } from "@/components/Music";
+import { MusicIntro } from "@/components/MusicIntro";
 import { SurvivorEgg } from "@/components/SurvivorEgg";
 import { CommunityStats } from "@/components/CommunityStats";
 import { PollWidget } from "@/components/Poll";
@@ -242,13 +243,7 @@ function Home() {
           </nav>
         </section>
         <h1 className="visually-hidden">LathosWorld</h1>
-        <section className="hero" aria-label="Story">
-          <div className="hero-copy">
-            <p className="sell-line">I am a gamer and a streamer.</p>
-            <p className="lede">I love technology, and $LWRLD is a passion project I am building for my own good time. Anyone can join by buying $LWRLD. This is not about raising money. This is a community that I am personally building one person at a time.</p>
-            <p className="lede">I will never ask you for anything but a follow.</p>
-          </div>
-        </section>
+        <MusicIntro />
         <Music />
         <SwordRule />
         <section className="section" id="streams">
