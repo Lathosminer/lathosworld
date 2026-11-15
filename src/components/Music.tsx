@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
 import { LexiStorm } from "@/components/LexiStorm";
-import { RadioDeck } from "@/components/RadioPlayer";
 import { VideoReel } from "@/components/VideoReel";
 import {
   ARTIST,
@@ -98,9 +97,9 @@ export function Music() {
         </div>
 
         <LexiStorm />
+        <VideoReel />
 
-        <div className="music-radio-row">
-          <div className="music-catalog">
+        <div className="music-catalog">
         <div className="music-player">
           <p id="music-player-note" className="note">
             Play a 30-second preview when this site has one. Full songs open from the store buttons.
@@ -234,11 +233,6 @@ export function Music() {
             );
           })}
         </ol>
-          </div>
-          <div className="radio-stack">
-            <RadioDeck />
-            <VideoReel />
-          </div>
         </div>
       </div>
     </section>
