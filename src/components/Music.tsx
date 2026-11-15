@@ -12,6 +12,7 @@ import {
   SPOTIFY_ARTIST,
   SPOTIFY_PLAYLIST,
   TRACKS,
+  YOUTUBE_CHANNEL,
   YOUTUBE_MUSIC_PLAYLIST,
   type Track,
 } from "@/lib/music";
@@ -138,6 +139,10 @@ export function Music() {
           </a>
           <a className="btn btn-ghost" href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
             LathosWorld playlist on YouTube Music
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          <a className="btn btn-ghost" href={YOUTUBE_CHANNEL} target="_blank" rel="noopener noreferrer">
+            LathosWorld on YouTube
             <span className="visually-hidden"> (opens in a new tab)</span>
           </a>
           <a className="btn btn-ghost" href={LEXI_SPOTIFY_ARTIST} target="_blank" rel="noopener noreferrer">
