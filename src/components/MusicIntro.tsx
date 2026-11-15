@@ -25,7 +25,7 @@ export function MusicIntro() {
           videos.lathosworld.com.
         </p>
         <div className="cta-row">
-          <RadioListenButton targetId="lexi-radio" />
+          <RadioListenButton targetId="radio" />
           <a className="btn btn-ghost" href="#lexi">
             Lexi's songs
           </a>

@@ -2496,3 +2496,68 @@ body.radio-mini-open {
   opacity: 0;
   pointer-events: none;
 }
+
+/* Homepage polish: one station card, even controls, full-width releases. */
+.music-intro .cta-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.music-intro .cta-row .btn {
+  min-width: 16rem;
+}
+.music-catalog .music-player {
+  max-width: none;
+  margin: 0 0 1rem;
+}
+.music-playlists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15.5rem, 1fr));
+  gap: 0.55rem;
+  align-items: stretch;
+}
+.music-playlists .btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.55rem 0.9rem;
+  text-align: center;
+  line-height: 1.25;
+}
+.lexi-songs .music-links {
+  justify-content: flex-end;
+}
+.lexi-songs .music-links .btn {
+  min-width: 8.5rem;
+  justify-content: center;
+}
+.reel-section {
+  max-width: 48rem;
+  margin: 0 auto 1.4rem;
+}
+.social {
+  min-height: 4.6rem;
+}
+.social > span {
+  min-width: 0;
+}
+#lexi,
+#radio {
+  scroll-margin-top: 4.75rem;
+}
+@media (max-width: 640px) {
+  .music-intro .cta-row {
+    flex-direction: column;
+    width: min(20rem, 100%);
+    margin-inline: auto;
+  }
+  .music-intro .cta-row .btn,
+  .music-playlists .btn {
+    width: 100%;
+  }
+  .lexi-songs .music-links {
+    width: 100%;
+  }
+  .lexi-songs .music-links .btn {
+    flex: 1 1 8.5rem;
+  }
+}

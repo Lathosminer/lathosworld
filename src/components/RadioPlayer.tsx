@@ -299,7 +299,7 @@ const RADIO_PLACEMENT: Record<
   lexi: {
     titleId: "lexi-radio-title",
     volumeId: "radio-volume-lexi",
-    anchorId: "lexi-radio",
+    anchorId: "radio",
     heading: "h3",
   },
   page: {
