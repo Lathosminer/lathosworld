@@ -29,7 +29,7 @@ type RadioContextValue = {
   volume: number;
   toggle: () => void;
   setVolume: (value: number) => void;
-  setDeckOnScreen: (on: boolean) => void;
+  setDeckVisible: (id: string, visible: boolean) => void;
 };
 
 const RadioContext = createContext<RadioContextValue | null>(null);
@@ -58,6 +58,7 @@ export function RadioProvider({ children }: { children: ReactNode }) {
   const [volume, setVolumeState] = useState(0.85);
   const [deckOnScreen, setDeckOnScreen] = useState(false);
   const [engaged, setEngaged] = useState(false);
+  const visibleDecks = useRef(new Set<string>());
 
   const markPlaying = useCallback((on: boolean) => {
     playingRef.current = on;
@@ -138,6 +139,13 @@ export function RadioProvider({ children }: { children: ReactNode }) {
     };
   }, [halt]);
 
+  const setDeckVisible = useCallback((id: string, visible: boolean) => {
+    const decks = visibleDecks.current;
+    if (visible) decks.add(id);
+    else decks.delete(id);
+    setDeckOnScreen(decks.size > 0);
+  }, []);
+
   const applyVolume = useCallback((next: number) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -192,9 +200,9 @@ export function RadioProvider({ children }: { children: ReactNode }) {
       volume,
       toggle,
       setVolume,
-      setDeckOnScreen,
+      setDeckVisible,
     }),
-    [phase, playing, title, serverName, volume, toggle, setVolume],
+    [phase, playing, title, serverName, volume, toggle, setVolume, setDeckVisible],
   );
 
   const showMini = engaged && !deckOnScreen;
@@ -230,23 +238,23 @@ export function RadioProvider({ children }: { children: ReactNode }) {
   );
 }
 
-function useRadioDeck(ref: RefObject<HTMLElement | null>) {
-  const { setDeckOnScreen } = useRadio();
+function useRadioDeck(ref: RefObject<HTMLElement | null>, deckId: string) {
+  const { setDeckVisible } = useRadio();
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setDeckOnScreen(Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.25));
+        setDeckVisible(deckId, Boolean(entry?.isIntersecting && entry.intersectionRatio >= 0.25));
       },
       { threshold: [0, 0.25, 0.6] },
     );
     observer.observe(node);
     return () => {
       observer.disconnect();
-      setDeckOnScreen(false);
+      setDeckVisible(deckId, false);
     };
-  }, [ref, setDeckOnScreen]);
+  }, [deckId, ref, setDeckVisible]);
 }
 
 function VolumeSlider({ id }: { id: string }) {
@@ -281,17 +289,63 @@ function Bolts() {
   );
 }
 
-export function RadioDeck({ standalone = false }: { standalone?: boolean }) {
+type RadioPlacement = "home" | "lexi" | "page";
+
+const RADIO_PLACEMENT: Record<
+  RadioPlacement,
+  { titleId: string; volumeId: string; anchorId: string; heading: "h1" | "h3" }
+> = {
+  home: { titleId: "radio-title", volumeId: "radio-volume-home", anchorId: "radio", heading: "h3" },
+  lexi: {
+    titleId: "lexi-radio-title",
+    volumeId: "radio-volume-lexi",
+    anchorId: "lexi-radio",
+    heading: "h3",
+  },
+  page: {
+    titleId: "radio-page-title",
+    volumeId: "radio-volume-page",
+    anchorId: "radio",
+    heading: "h1",
+  },
+};
+
+export function RadioListenButton({
+  targetId = "radio",
+  idleLabel = "Listen on LathosWorld Radio",
+  playingLabel = "Pause the station",
+}: {
+  targetId?: string;
+  idleLabel?: string;
+  playingLabel?: string;
+}) {
+  const { playing, toggle } = useRadio();
+  return (
+    <button
+      type="button"
+      className="btn btn-cyan"
+      onClick={() => {
+        void toggle();
+        document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }}
+    >
+      {playing ? playingLabel : idleLabel}
+    </button>
+  );
+}
+
+export function RadioDeck({ placement = "home" }: { placement?: RadioPlacement }) {
   const radio = useRadio();
   const ref = useRef<HTMLElement>(null);
-  useRadioDeck(ref);
-  const TitleTag = standalone ? "h1" : "h3";
+  const place = RADIO_PLACEMENT[placement];
+  useRadioDeck(ref, place.anchorId);
+  const TitleTag = place.heading;
   const track = radio.title || radio.serverName;
   return (
-    <section ref={ref} className="radio-card" id="radio" aria-labelledby="radio-title">
+    <section ref={ref} className="radio-card" id={place.anchorId} aria-labelledby={place.titleId}>
       <Bolts />
       <p className="kicker">{radio.serverName}</p>
-      <TitleTag id="radio-title">LathosWorld Radio</TitleTag>
+      <TitleTag id={place.titleId}>LathosWorld Radio</TitleTag>
       <p className="radio-now" aria-live="polite">
         {radio.phase === "live" ? (
           <span className="radio-flag is-live">
@@ -314,10 +368,10 @@ export function RadioDeck({ standalone = false }: { standalone?: boolean }) {
         >
           {radio.playing ? "Pause" : "Play"}
         </button>
-        <VolumeSlider id={standalone ? "radio-volume-page" : "radio-volume-home"} />
+        <VolumeSlider id={place.volumeId} />
       </div>
       <p className="note radio-jump">
-        {standalone ? <Link to="/">Back home</Link> : <Link to="/radio">Open the station</Link>}
+        {placement === "page" ? <Link to="/">Back home</Link> : <Link to="/radio">Open the station</Link>}
       </p>
     </section>
   );

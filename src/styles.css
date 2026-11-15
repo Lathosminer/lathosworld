@@ -246,6 +246,16 @@
   z-index: 8;
 }
 .hero-copy { text-align: center; padding: 0.4rem 1.1rem 2.6rem; }
+.music-intro { position: relative; }
+.music-intro-mark {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 22px rgba(176, 107, 255, 0.45);
+}
+.music-intro .sell-line { margin-top: 0.2rem; }
+.music-intro .cta-row { align-items: center; }
 .blade {
   display: flex;
   flex-direction: column;
@@ -1946,7 +1956,109 @@ html.lw-sword-cursor { --lw-pointer: none; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+.lexi {
+  display: grid;
+  gap: 1.15rem;
+  margin: 0.2rem 0 1.6rem;
+}
+.lexi-stills {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+.lexi-stills img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  object-position: center 12%;
+  border: 1px solid color-mix(in srgb, #b06bff 42%, var(--color-line));
+  box-shadow: 0 0 22px rgba(124, 58, 237, 0.18);
+}
+.lexi-copy h3 {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  letter-spacing: 0.04em;
+}
+.lexi-songs {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.lexi-songs li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem 0.7rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel);
+}
+.lexi-song-name {
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  letter-spacing: 0.03em;
+}
+.lexi-song-time {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.lexi-reel {
+  position: relative;
+  margin-top: 0.55rem;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #05080c;
+  border: 1px solid color-mix(in srgb, #b06bff 40%, var(--color-line));
+}
+.lexi-reel video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background:
+    radial-gradient(80% 80% at 50% 40%, rgba(176, 107, 255, 0.28), transparent 70%),
+    #05080c;
+}
+.lexi-reel-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 1rem 0.6rem 0.4rem;
+  background: linear-gradient(transparent, rgba(5, 8, 12, 0.88));
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+}
+@media (min-width: 900px) {
+  .lexi {
+    grid-template-columns: minmax(16rem, 24rem) minmax(0, 1fr);
+    align-items: start;
+  }
+}
 .music-player { margin: 0 auto 1.2rem; max-width: 40rem; }
+.music-playlists {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 0.75rem;
+}
+.music-playlists .btn {
+  min-width: 0;
+  min-height: 44px;
+  padding: 0.45rem 0.8rem;
+}
 .music-player .note { margin: 0 0 0.55rem; }
 .music-player audio {
   display: block;

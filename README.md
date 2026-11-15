@@ -40,7 +40,7 @@ X and TikTok try a live count, then the numbers in `src/lib/community-counts.ts`
 
 ## Music
 
-Singles are listed on the home page, under the hero and above Streams. The catalog is `src/lib/music.ts` (`SINGLES`, then `ALBUMS`). Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks) stay out of `ALBUMS` until they should be on the page. Add an album there and its tracks show up after the singles.
+The opening block is the station: LathosWorld Radio, the songs, and Lexi Storm, the AI singer. Her card lists Spotify and Apple Music only. It does not link to YouTube. Singles are listed on the home page, under that card and above Streams. The catalog is `src/lib/music.ts` (`SINGLES`, then `ALBUMS`). Volume One (LathosWorld, 14 tracks) and Volume Two (Lexi Storm, 13 tracks) stay out of `ALBUMS` until they should be on the page. Add an album there and its tracks show up after the singles.
 
 Newest verified releases are listed first. A row plays a 30-second 96 kbps MP3 preview only when `public/previews/<id>.mp3` exists. The full song is not on this site. Spotify, YouTube, YouTube Music, and Apple Music buttons use only links whose title and artist were checked. Leave a platform off the row when it has no checked link. A song with no checked page can stay on the list with a plain status and no button.
 

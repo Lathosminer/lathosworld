@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
+import { LexiStorm } from "@/components/LexiStorm";
 import { RadioDeck } from "@/components/RadioPlayer";
 import { VideoReel } from "@/components/VideoReel";
 import {
   ARTIST,
-  FEATURED_ARTIST,
   LEAD_TRACK_ID,
+  LEXI_ARTIST,
+  SPOTIFY_PLAYLIST,
   TRACKS,
   YOUTUBE_MUSIC_PLAYLIST,
   type Track,
@@ -25,7 +27,9 @@ function streamLinks(track: Track): StreamLink[] {
   return [
     track.spotify ? { name: "Spotify", href: track.spotify } : null,
     track.youtubeMusic ? { name: "YouTube Music", href: track.youtubeMusic } : null,
-    track.youtube ? { name: "YouTube", href: track.youtube } : null,
+    track.artist === LEXI_ARTIST || !track.youtube
+      ? null
+      : { name: "YouTube", href: track.youtube },
     track.appleMusic ? { name: "Apple Music", href: track.appleMusic } : null,
   ].filter((link): link is StreamLink => link !== null);
 }
@@ -88,38 +92,13 @@ export function Music() {
           <h2 id="music-title">Music</h2>
         </div>
 
-        <article className="music-feature" aria-labelledby="lexi-title">
-          <img
-            src={FEATURED_ARTIST.image}
-            width={FEATURED_ARTIST.imageWidth}
-            height={FEATURED_ARTIST.imageHeight}
-            alt={FEATURED_ARTIST.imageAlt}
-            decoding="async"
-          />
-          <div>
-            <p className="kicker">Featured artist · {FEATURED_ARTIST.role}</p>
-            <h3 id="lexi-title">{FEATURED_ARTIST.name}</h3>
-            <p className="serif-line">{FEATURED_ARTIST.intro}</p>
-            <p className="music-feature-link">
-              <a href={FEATURED_ARTIST.youtube} target="_blank" rel="noopener noreferrer">
-                {FEATURED_ARTIST.youtubeLabel}
-                <span className="visually-hidden"> (opens in a new tab)</span>
-              </a>
-            </p>
-          </div>
-        </article>
+        <LexiStorm />
 
         <div className="music-radio-row">
           <div className="music-catalog">
         <div className="music-player">
           <p id="music-player-note" className="note">
             Play a 30-second preview when this site has one. Full songs open from the store buttons.
-          </p>
-          <p className="music-feature-link">
-            <a href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
-              YouTube Music playlist
-              <span className="visually-hidden"> (opens in a new tab)</span>
-            </a>
           </p>
           <audio
             ref={audioRef}
@@ -143,6 +122,19 @@ export function Music() {
           <p className="visually-hidden" aria-live="polite">
             {active ? `${playing ? "Playing" : "Paused"} ${active.title}` : "No track selected"}
           </p>
+        </div>
+
+        <div className="music-playlists">
+          <a className="btn btn-ghost" href={YOUTUBE_MUSIC_PLAYLIST} target="_blank" rel="noopener noreferrer">
+            LathosWorld playlist on YouTube Music
+            <span className="visually-hidden"> (opens in a new tab)</span>
+          </a>
+          {SPOTIFY_PLAYLIST ? (
+            <a className="btn btn-ghost" href={SPOTIFY_PLAYLIST} target="_blank" rel="noopener noreferrer">
+              LathosWorld playlist on Spotify
+              <span className="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          ) : null}
         </div>
 
         <ol className="music-list" aria-label="Tracks, newest verified release first">

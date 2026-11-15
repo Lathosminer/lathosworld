@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { SOCIALS } from "./socials.ts";
 import {
   ALBUMS,
   ARTIST,
@@ -12,6 +11,7 @@ import {
   PREVIEW_SECONDS,
   SINGLES,
   TRACKS,
+  SPOTIFY_PLAYLIST,
   YOUTUBE_MUSIC_PLAYLIST,
 } from "./music.ts";
 
@@ -313,6 +313,8 @@ describe("catalog", () => {
     assert.equal(LEAD_TRACK_ID, "hope");
     assert.notEqual(TRACKS[0]?.id, LEAD_TRACK_ID);
     assert.equal(YOUTUBE_MUSIC_PLAYLIST, "https://music.youtube.com/playlist?list=PLALrux7JVT28");
+    assert.equal(YOUTUBE_MUSIC_PLAYLIST.includes("si="), false);
+    assert.equal(SPOTIFY_PLAYLIST, "");
   });
 
   it("keeps Lexi Storm's channel off LathosWorld's YouTube", () => {
@@ -330,11 +332,10 @@ describe("catalog", () => {
       "A Place",
       "Blame Me",
     ]);
-    assert.equal(FEATURED_ARTIST.youtube, "https://www.youtube.com/@lexistormai");
-    assert.equal(FEATURED_ARTIST.youtubeLabel, "Watch Lexi Storm on YouTube");
-    assert.notEqual(FEATURED_ARTIST.youtube, SOCIALS.find((item) => item.name === "YouTube")?.href);
-    assert.equal(FEATURED_ARTIST.youtube.includes("@lathos563"), false);
-    assert.equal(FEATURED_ARTIST.youtube.includes("UCcV1q2gBovKyWlU8SnCI3ww"), false);
+    assert.equal(FEATURED_ARTIST.role, "AI singer");
+    assert.equal(FEATURED_ARTIST.name, "Lexi Storm");
+    assert.equal(/youtube|jared/i.test(JSON.stringify(FEATURED_ARTIST)), false);
+    assert.equal(FEATURED_ARTIST.images.length, 2);
     assert.equal(
       TRACKS.some((track) => /og hope/i.test(track.title)),
       false,
