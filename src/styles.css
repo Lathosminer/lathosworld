@@ -1981,7 +1981,8 @@ html.lw-sword-cursor { --lw-pointer: none; }
   font-size: clamp(1.5rem, 3vw, 2.1rem);
   letter-spacing: 0.04em;
 }
-.lexi-qr {
+.lexi-qr,
+.lw-qr {
   display: grid;
   justify-items: start;
   gap: 0.45rem;
@@ -1993,14 +1994,17 @@ html.lw-sword-cursor { --lw-pointer: none; }
   font-size: 0.72rem;
   letter-spacing: 0.08em;
 }
-.lexi-qr img {
+.lexi-qr img,
+.lw-qr img {
   width: 100%;
   height: auto;
   border: 1px solid color-mix(in srgb, #b06bff 42%, var(--color-line));
   box-shadow: 0 0 22px rgba(124, 58, 237, 0.18);
 }
 .lexi-qr:hover,
-.lexi-qr:focus-visible {
+.lexi-qr:focus-visible,
+.lw-qr:hover,
+.lw-qr:focus-visible {
   color: #fff;
 }
 .lexi-reel {
