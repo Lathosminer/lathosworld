@@ -80,7 +80,7 @@ function LexiReel() {
         autoPlay
         preload="auto"
         loop={clips.length === 1}
-        aria-label={clip.title}
+        aria-label="Lexi Storm"
         onEnded={advance}
         onError={() => {
           fails.current += 1;
@@ -94,7 +94,7 @@ function LexiReel() {
       {next ? (
         <video className="reel-preload" src={next.src} preload="auto" muted playsInline aria-hidden="true" tabIndex={-1} />
       ) : null}
-      <p className="lexi-reel-caption">{clip.title.replace(/ - Lexi Storm \(AI\)$/, "")}</p>
+      <p className="lexi-reel-caption">Lexi Storm</p>
     </div>
   );
 }

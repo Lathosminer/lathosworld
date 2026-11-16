@@ -165,7 +165,7 @@ export function VideoReel() {
           {muted ? "Unmute" : "Mute"}
         </button>
         <p className="reel-caption">
-          <span>{clip.title}</span>
+          <span>{clip.category === "lexi" ? "Lexi Storm" : clip.title}</span>
           <span className="reel-cat">{categoryLabel(clip.category)}</span>
         </p>
         {next ? (
