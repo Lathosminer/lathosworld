@@ -420,6 +420,21 @@ function Home() {
                 </a>
               ))}
             </div>
+            <a
+              className="lw-qr"
+              href="https://www.instagram.com/lathosworld/"
+              target="_blank"
+              rel="noopener"
+            >
+              <img
+                src="/qr/lathosworld-instagram-qr.webp"
+                width={400}
+                height={460}
+                alt="Scan to follow LathosWorld on Instagram @lathosworld"
+                decoding="async"
+              />
+              <span>Follow LathosWorld on Instagram</span>
+            </a>
           </div>
         </section>
         <SwordRule />
