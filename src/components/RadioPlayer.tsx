@@ -40,6 +40,11 @@ function useRadio(): RadioContextValue {
   return value;
 }
 
+/** Now-playing title from the station poll. Empty until the first status reply. */
+export function useRadioNowPlaying(): { title: string } {
+  return { title: useRadio().title };
+}
+
 function stopStream(audio: HTMLAudioElement) {
   audio.pause();
   audio.removeAttribute("src");

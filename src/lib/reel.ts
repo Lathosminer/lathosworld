@@ -76,6 +76,15 @@ export function shuffleReel<T>(items: readonly T[], random: () => number = Math.
   return next;
 }
 
+export const FOOTSTEPS_VIDEO_ID = "GtEB3UBHqv4";
+export const FOOTSTEPS_REEL_TITLE =
+  "Footsteps Don't Leave Me Behind remix - LathosWorld (Official Lyric Video)";
+export const FOOTSTEPS_CAPTION = "Footsteps Don't Leave Me Behind remix - Official Lyric Video";
+
+export type HomeReelEntry =
+  | { kind: "youtube"; id: string; title: string }
+  | { kind: "clip"; clip: ReelClip };
+
 /** Hand-picked showcase: album covers first, a few Lexi pictures, a few of our MP4s. No prototypes. */
 export const SHOWCASE_REEL = [
   "reel_005.mp4", // Built From the Ruins (cover)
@@ -102,4 +111,12 @@ export function pickShowcase(clips: ReelClip[], files: readonly string[]): ReelC
     const clip = byFile.get(file);
     return clip ? [clip] : [];
   });
+}
+
+/** Footsteps first, then every showcase file that the manifest still has, in the same order. */
+export function homeShowcase(clips: ReelClip[]): HomeReelEntry[] {
+  return [
+    { kind: "youtube", id: FOOTSTEPS_VIDEO_ID, title: FOOTSTEPS_REEL_TITLE },
+    ...pickShowcase(clips, SHOWCASE_REEL).map((clip) => ({ kind: "clip" as const, clip })),
+  ];
 }
