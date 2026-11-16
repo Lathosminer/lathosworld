@@ -122,6 +122,21 @@ export function LexiStorm() {
         <h3 id="lexi-title">{FEATURED_ARTIST.name}</h3>
         <p className="serif-line">{FEATURED_ARTIST.intro}</p>
         <RadioDeck placement="lexi" />
+        <a
+          className="lexi-qr"
+          href="https://www.instagram.com/lexistorm.xo/"
+          target="_blank"
+          rel="noopener"
+        >
+          <img
+            src="/qr/lexi-instagram-qr.webp"
+            width={400}
+            height={583}
+            alt="Scan to follow Lexi Storm on Instagram @lexistorm.xo"
+            decoding="async"
+          />
+          <span>Follow Lexi on Instagram</span>
+        </a>
       </div>
     </article>
   );
