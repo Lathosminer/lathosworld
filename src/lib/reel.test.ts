@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { parseReelManifest, shuffleReel, type ReelClip } from "./reel.ts";
+import {
+  homeShowcase,
+  parseReelManifest,
+  SHOWCASE_REEL,
+  shuffleReel,
+  type ReelClip,
+} from "./reel.ts";
 
 const clip: ReelClip = {
   src: "https://videos.lathosworld.com/reel/reel_01.mp4",
@@ -47,6 +53,23 @@ describe("parseReelManifest", () => {
     assert.equal(parsed.length, 6);
     assert.equal(parsed[0]?.orientation, "portrait");
     assert.equal(parsed[1]?.orientation, "landscape");
+  });
+});
+
+describe("homeShowcase", () => {
+  it("puts the Footsteps lyric video first and keeps every showcase file", () => {
+    const clips = SHOWCASE_REEL.map((file, index) => ({
+      ...clip,
+      src: `https://videos.lathosworld.com/reel/${file}`,
+      title: `Clip ${index}`,
+    }));
+    const shown = homeShowcase(clips);
+    assert.equal(shown[0]?.kind, "youtube");
+    if (shown[0]?.kind === "youtube") assert.equal(shown[0].id, "GtEB3UBHqv4");
+    assert.deepEqual(
+      shown.slice(1).map((item) => (item.kind === "clip" ? item.clip.src.split("/").pop() : "")),
+      [...SHOWCASE_REEL],
+    );
   });
 });
 

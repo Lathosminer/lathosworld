@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { AUDIO_EVENT, claimAudio, type AudioSource } from "@/lib/audio-bus";
-import { parseReelManifest, pickShowcase, REEL_MANIFEST_URL, SHOWCASE_REEL, type ReelClip } from "@/lib/reel";
+import {
+  FOOTSTEPS_VIDEO_ID,
+  homeShowcase,
+  parseReelManifest,
+  REEL_MANIFEST_URL,
+  type HomeReelEntry,
+  type ReelClip,
+} from "@/lib/reel";
+import { attachYouTubePlayer } from "@/lib/youtube-iframe";
 
 const CATEGORY_LABEL: Record<string, string> = {
   promo: "Promo",
@@ -22,32 +30,37 @@ function categoryLabel(category: string): string {
   );
 }
 
+const FOOTSTEPS_SRC = `https://www.youtube-nocookie.com/embed/${FOOTSTEPS_VIDEO_ID}?autoplay=1&mute=1&playsinline=1&rel=0&enablejsapi=1`;
+
 /**
- * Home-page reel. A missing or broken manifest renders nothing, so the rest
- * of the page stays up while videos.lathosworld.com is still being wired.
+ * Home-page reel. A missing or broken manifest still shows the Footsteps lyric
+ * video. The other clips stay in their showcase order after it.
  */
 export function VideoReel() {
-  const [clips, setClips] = useState<ReelClip[] | null>(null);
+  const [items, setItems] = useState<HomeReelEntry[] | null>(null);
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const frontRef = useRef<HTMLVideoElement>(null);
   const backRef = useRef<HTMLVideoElement>(null);
+  const ytRef = useRef<HTMLIFrameElement>(null);
   const fails = useRef(0);
   const mutedRef = useRef(true);
+  const advanceRef = useRef<() => void>(() => {});
   mutedRef.current = muted;
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      let parsed: ReelClip[] = [];
       try {
         const response = await fetch(REEL_MANIFEST_URL, { cache: "no-store" });
         if (!response.ok) throw new Error(String(response.status));
-        const parsed = pickShowcase(parseReelManifest(await response.json()), SHOWCASE_REEL);
-        if (cancelled) return;
-        setClips(parsed.length > 0 ? parsed : null);
+        parsed = parseReelManifest(await response.json());
       } catch {
-        if (!cancelled) setClips(null);
+        parsed = [];
       }
+      if (cancelled) return;
+      setItems(homeShowcase(parsed));
     };
     void load();
     return () => {
@@ -64,8 +77,14 @@ export function VideoReel() {
     return () => window.removeEventListener(AUDIO_EVENT, onClaim);
   }, []);
 
-  const clip = clips?.[index] ?? null;
-  const next = clips && clips.length > 1 ? clips[(index + 1) % clips.length] : null;
+  const item = items?.[index] ?? null;
+  const clip = item?.kind === "clip" ? item.clip : null;
+  const nextEntry =
+    items && items.length > 1
+      ? (items.slice(index + 1).find((entry) => entry.kind === "clip") ??
+        items.find((entry) => entry.kind === "clip"))
+      : undefined;
+  const nextClip = nextEntry?.kind === "clip" ? nextEntry.clip : null;
 
   useEffect(() => {
     const front = frontRef.current;
@@ -115,21 +134,66 @@ export function VideoReel() {
     front.muted = muted;
   }, [muted, clip]);
 
-  if (!clips || !clip) return null;
-
   const advance = () => {
+    if (!items || items.length === 0) return;
     fails.current = 0;
-    setIndex((current) => (current + 1) % clips.length);
+    setIndex((current) => (current + 1) % items.length);
   };
+  advanceRef.current = advance;
+
+  useEffect(() => {
+    if (item?.kind !== "youtube") return;
+    let moved = false;
+    const go = () => {
+      if (moved) return;
+      moved = true;
+      advanceRef.current();
+    };
+    const timer = window.setTimeout(go, 240_000);
+    const frame = ytRef.current;
+    if (frame) {
+      void attachYouTubePlayer(frame, { onEnded: go });
+    }
+    return () => {
+      moved = true;
+      window.clearTimeout(timer);
+    };
+  }, [item]);
+
+  if (!items || !item) return null;
 
   const onError = () => {
     fails.current += 1;
-    if (fails.current >= clips.length) {
-      setClips(null);
+    const clipCount = items.filter((entry) => entry.kind === "clip").length;
+    if (clipCount > 0 && fails.current >= clipCount) {
+      setItems(items.filter((entry) => entry.kind === "youtube"));
+      setIndex(0);
       return;
     }
-    setIndex((current) => (current + 1) % clips.length);
+    advance();
   };
+
+  if (item.kind === "youtube") {
+    return (
+      <section className="reel-section" aria-label="Video reel">
+        <p className="kicker">Reel</p>
+        <div className="reel-stage is-landscape">
+          <iframe
+            ref={ytRef}
+            className="youtube-frame reel-front"
+            src={FOOTSTEPS_SRC}
+            title={item.title}
+            loading="lazy"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            referrerPolicy="strict-origin-when-cross-origin"
+          />
+          <p className="reel-caption">
+            <span>{item.title}</span>
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   const toggleMute = () => {
     setMuted((current) => {
@@ -141,7 +205,7 @@ export function VideoReel() {
   return (
     <section className="reel-section" aria-label="Video reel">
       <p className="kicker">Reel</p>
-      <div className={`reel-stage is-${clip.orientation}`}>
+      <div className={`reel-stage is-${clip?.orientation ?? "landscape"}`}>
         <video
           ref={backRef}
           className="reel-back"
@@ -157,7 +221,7 @@ export function VideoReel() {
           playsInline
           autoPlay
           preload="auto"
-          loop={clips.length === 1}
+          loop={items.length === 1}
           onEnded={advance}
           onError={onError}
         />
@@ -165,13 +229,13 @@ export function VideoReel() {
           {muted ? "Unmute" : "Mute"}
         </button>
         <p className="reel-caption">
-          <span>{clip.category === "lexi" ? "Lexi Storm" : clip.title}</span>
-          <span className="reel-cat">{categoryLabel(clip.category)}</span>
+          <span>{clip?.category === "lexi" ? "Lexi Storm" : clip?.title}</span>
+          <span className="reel-cat">{clip ? categoryLabel(clip.category) : ""}</span>
         </p>
-        {next ? (
+        {nextClip ? (
           <video
             className="reel-preload"
-            src={next.src}
+            src={nextClip.src}
             preload="auto"
             muted
             playsInline

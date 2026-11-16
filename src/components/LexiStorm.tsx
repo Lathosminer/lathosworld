@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FootstepsLyric } from "@/components/FootstepsLyric";
 import { RadioDeck } from "@/components/RadioPlayer";
 import { FEATURED_ARTIST } from "@/lib/music";
 import { LEXI_SHOWCASE, parseReelManifest, pickShowcase, REEL_MANIFEST_URL, type ReelClip } from "@/lib/reel";
@@ -121,6 +122,7 @@ export function LexiStorm() {
         <p className="kicker">{FEATURED_ARTIST.role}</p>
         <h3 id="lexi-title">{FEATURED_ARTIST.name}</h3>
         <p className="serif-line">{FEATURED_ARTIST.intro}</p>
+        <FootstepsLyric />
         <RadioDeck placement="lexi" />
         <a
           className="lexi-qr"
