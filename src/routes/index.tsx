@@ -11,6 +11,7 @@ import { MiniSword } from "@/components/MiniSword";
 import { HeroLoop } from "@/components/HeroLoop";
 import { Music } from "@/components/Music";
 import { MusicIntro } from "@/components/MusicIntro";
+import { SiteVideos } from "@/components/SiteVideos";
 import { SurvivorEgg } from "@/components/SurvivorEgg";
 import { CommunityStats } from "@/components/CommunityStats";
 import { PollWidget } from "@/components/Poll";
@@ -220,6 +221,7 @@ function Home() {
         </a>
         <nav className="nav-links" aria-label="Sections">
           <a href="#radio">Radio</a>
+          <a href="#videos">Videos</a>
           <a href="#streams">Streams</a>
           <Link to="/clips">Clips</Link>
           <Link to="/community" search={{}}>Community</Link>
@@ -233,6 +235,8 @@ function Home() {
         <h1 className="visually-hidden">LathosWorld</h1>
         <MusicIntro />
         <Music />
+        <SwordRule />
+        <SiteVideos />
         <SwordRule />
         <section className="section" id="streams">
           <TwitchEmbed />

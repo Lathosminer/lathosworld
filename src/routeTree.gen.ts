@@ -27,6 +27,8 @@ import { Route as GiveawayIndexRouteImport } from './routes/giveaway/index'
 import { Route as GiveawayAdminRouteImport } from './routes/giveaway/admin'
 import { Route as GiveawayRulesRouteImport } from './routes/giveaway/rules'
 import { Route as VideosVideoIdRouteImport } from './routes/videos/$videoId'
+import { Route as VideosFootstepsEndScreenRouteImport } from './routes/videos/footsteps-end-screen'
+import { Route as VideosLightningLogoRouteImport } from './routes/videos/lightning-logo'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiGiveawayTickerRouteImport } from './routes/api/giveaway/ticker'
 import { Route as ApiGiveawayCallbackProviderRouteImport } from './routes/api/giveaway/callback/$provider'
@@ -122,6 +124,17 @@ const VideosVideoIdRoute = VideosVideoIdRouteImport.update({
   path: '/videos/$videoId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VideosFootstepsEndScreenRoute =
+  VideosFootstepsEndScreenRouteImport.update({
+    id: '/videos/footsteps-end-screen',
+    path: '/videos/footsteps-end-screen',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const VideosLightningLogoRoute = VideosLightningLogoRouteImport.update({
+  id: '/videos/lightning-logo',
+  path: '/videos/lightning-logo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -163,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
+  '/videos/footsteps-end-screen': typeof VideosFootstepsEndScreenRoute
+  '/videos/lightning-logo': typeof VideosLightningLogoRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -187,6 +202,8 @@ export interface FileRoutesByTo {
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
+  '/videos/footsteps-end-screen': typeof VideosFootstepsEndScreenRoute
+  '/videos/lightning-logo': typeof VideosLightningLogoRoute
   '/giveaway': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -212,6 +229,8 @@ export interface FileRoutesById {
   '/giveaway/admin': typeof GiveawayAdminRoute
   '/giveaway/rules': typeof GiveawayRulesRoute
   '/videos/$videoId': typeof VideosVideoIdRoute
+  '/videos/footsteps-end-screen': typeof VideosFootstepsEndScreenRoute
+  '/videos/lightning-logo': typeof VideosLightningLogoRoute
   '/giveaway/': typeof GiveawayIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/giveaway/ticker': typeof ApiGiveawayTickerRoute
@@ -238,6 +257,8 @@ export interface FileRouteTypes {
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/videos/$videoId'
+    | '/videos/footsteps-end-screen'
+    | '/videos/lightning-logo'
     | '/giveaway/'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -262,6 +283,8 @@ export interface FileRouteTypes {
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/videos/$videoId'
+    | '/videos/footsteps-end-screen'
+    | '/videos/lightning-logo'
     | '/giveaway'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -286,6 +309,8 @@ export interface FileRouteTypes {
     | '/giveaway/admin'
     | '/giveaway/rules'
     | '/videos/$videoId'
+    | '/videos/footsteps-end-screen'
+    | '/videos/lightning-logo'
     | '/giveaway/'
     | '/api/auth/$'
     | '/api/giveaway/ticker'
@@ -311,6 +336,8 @@ export interface RootRouteChildren {
   GiveawayAdminRoute: typeof GiveawayAdminRoute
   GiveawayRulesRoute: typeof GiveawayRulesRoute
   VideosVideoIdRoute: typeof VideosVideoIdRoute
+  VideosFootstepsEndScreenRoute: typeof VideosFootstepsEndScreenRoute
+  VideosLightningLogoRoute: typeof VideosLightningLogoRoute
   GiveawayIndexRoute: typeof GiveawayIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiGiveawayTickerRoute: typeof ApiGiveawayTickerRoute
@@ -446,6 +473,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VideosVideoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/videos/footsteps-end-screen': {
+      id: '/videos/footsteps-end-screen'
+      path: '/videos/footsteps-end-screen'
+      fullPath: '/videos/footsteps-end-screen'
+      preLoaderRoute: typeof VideosFootstepsEndScreenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videos/lightning-logo': {
+      id: '/videos/lightning-logo'
+      path: '/videos/lightning-logo'
+      fullPath: '/videos/lightning-logo'
+      preLoaderRoute: typeof VideosLightningLogoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -495,6 +536,8 @@ const rootRouteChildren: RootRouteChildren = {
   GiveawayAdminRoute: GiveawayAdminRoute,
   GiveawayRulesRoute: GiveawayRulesRoute,
   VideosVideoIdRoute: VideosVideoIdRoute,
+  VideosFootstepsEndScreenRoute: VideosFootstepsEndScreenRoute,
+  VideosLightningLogoRoute: VideosLightningLogoRoute,
   GiveawayIndexRoute: GiveawayIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiGiveawayTickerRoute: ApiGiveawayTickerRoute,
