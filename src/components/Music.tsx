@@ -1,3 +1,4 @@
+import { LexiSlideshow } from "@/components/LexiSlideshow";
 import { LexiStorm } from "@/components/LexiStorm";
 import { VideoReel } from "@/components/VideoReel";
 import {
@@ -31,14 +32,23 @@ export function Music() {
         </div>
         <div className="music-playlists">
           {LINKS.map((link) => (
-            <a key={link.href} className="btn btn-ghost" href={link.href} target="_blank" rel="noopener noreferrer">
+            <a
+              key={link.href}
+              className="btn btn-ghost"
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {link.name}
               <span className="visually-hidden"> (opens in a new tab)</span>
             </a>
           ))}
         </div>
         <LexiStorm />
-        <VideoReel />
+        <div className="highlight-reels">
+          <VideoReel />
+          <LexiSlideshow />
+        </div>
       </div>
     </section>
   );
