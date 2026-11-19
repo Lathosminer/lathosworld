@@ -151,6 +151,7 @@ export function LexiSlideshow() {
           <span aria-hidden="true">›</span>
         </button>
         {hold && near ? <p className="lexi-slide-paused">Paused</p> : null}
+        {slide.caption ? <p className="lexi-slide-caption">{slide.caption}</p> : null}
         <p className="lexi-slide-count">
           <span className="visually-hidden">Photo </span>
           {index + 1} / {LEXI_SLIDE_COUNT}

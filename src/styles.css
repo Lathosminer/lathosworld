@@ -2447,7 +2447,8 @@ body.radio-mini-open {
 .lexi-slide-prev { left: 0.4rem; }
 .lexi-slide-next { right: 0.4rem; }
 .lexi-slide-paused,
-.lexi-slide-count {
+.lexi-slide-count,
+.lexi-slide-caption {
   position: absolute;
   z-index: 2;
   margin: 0;
@@ -2466,12 +2467,19 @@ body.radio-mini-open {
   font-size: 0.62rem;
   text-transform: uppercase;
 }
-.lexi-slide-count {
-  right: 0.55rem;
+.lexi-slide-count,
+.lexi-slide-caption {
   bottom: 0.45rem;
   padding: 0.35rem 0.5rem;
   background: rgba(5, 8, 12, 0.72);
   font-size: 0.68rem;
+}
+.lexi-slide-count {
+  right: 0.55rem;
+}
+.lexi-slide-caption {
+  left: 0.55rem;
+  max-width: calc(100% - 5.75rem);
 }
 @media (hover: none), (pointer: coarse) {
   .lexi-slideshow-frame { cursor: pointer; }
