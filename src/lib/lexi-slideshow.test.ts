@@ -10,20 +10,39 @@ import {
   LEXI_SLIDES,
 } from "./lexi-slideshow.ts";
 
+const ALBUM_CAPTIONS = [
+  "Volume Two",
+  "Love Me in Slow Motion",
+  "Made Woman",
+  "Hope",
+  "Heart Flutter",
+  "Ghosted",
+];
+
 describe("lexi slideshow", () => {
-  it("lists all 126 photos in numeric order with Lexi Storm alt text", () => {
-    assert.equal(LEXI_SLIDES.length, LEXI_SLIDE_COUNT);
-    assert.equal(LEXI_SLIDE_COUNT, 126);
+  it("lists 6 album covers first, then 158 photos", () => {
+    assert.equal(LEXI_SLIDES.length, 164);
+    assert.equal(LEXI_SLIDE_COUNT, 164);
+    const albums = LEXI_SLIDES.slice(0, 6);
+    const photos = LEXI_SLIDES.slice(6);
     assert.deepEqual(
-      LEXI_SLIDES.map((slide) => slide.src),
-      Array.from({ length: 126 }, (_, index) => `/lexi/${String(index + 1).padStart(3, "0")}.jpg`),
+      albums.map((slide) => slide.caption),
+      ALBUM_CAPTIONS,
     );
-    assert.equal(LEXI_SLIDES[0]?.src, "/lexi/001.jpg");
-    assert.equal(LEXI_SLIDES[29]?.src, "/lexi/030.jpg");
-    assert.equal(LEXI_SLIDES[30]?.src, "/lexi/031.jpg");
-    assert.equal(LEXI_SLIDES[125]?.src, "/lexi/126.jpg");
-    for (const slide of LEXI_SLIDES) assert.equal(slide.alt, LEXI_ALT);
-    assert.equal(LEXI_ALT, "Lexi Storm");
+    for (const slide of albums) {
+      assert.match(slide.src, /^\/lexi\/lexi_album_[a-z0-9_]+\.jpg$/);
+      assert.equal(slide.alt, `${LEXI_ALT}, ${slide.caption}`);
+    }
+    assert.equal(photos.length, 158);
+    assert.equal(photos[0]?.src, "/lexi/lexi_01_20_looks_01_vineyard_white_sundress.jpg");
+    assert.equal(photos[157]?.src, "/lexi/lexi_158_trend_pink_jacket_alley.jpg");
+    for (const [index, slide] of photos.entries()) {
+      assert.equal(slide.alt, LEXI_ALT);
+      assert.equal(slide.caption, undefined);
+      assert.match(slide.src, new RegExp(`^/lexi/lexi_${String(index + 1).padStart(2, "0")}_`));
+    }
+    const srcs = LEXI_SLIDES.map((slide) => slide.src);
+    assert.equal(new Set(srcs).size, srcs.length);
   });
 
   it("holds each photo for 4.5s, crossfades, and preloads only the next two", () => {
@@ -38,9 +57,10 @@ describe("lexi slideshow", () => {
     const names = readdirSync(dir)
       .filter((name) => name.endsWith(".jpg"))
       .sort();
-    assert.deepEqual(
-      names,
-      LEXI_SLIDES.map((slide) => slide.src.slice("/lexi/".length)),
+    assert.deepEqual(names, LEXI_SLIDES.map((slide) => slide.src.slice("/lexi/".length)).sort());
+    assert.equal(
+      names.some((name) => /^\d{3}\.jpg$/.test(name)),
+      false,
     );
     for (const name of names) {
       const bytes = readFileSync(new URL(name, dir));
